@@ -1,14 +1,14 @@
-"""Module containing the logic for the dynamic dictionary."""
+"""Module containing the logic for querying dictionary."""
 import re
 from dlquery.argumenthelper import validate_argument_type
 from dlquery.argumenthelper import validate_argument_choice
 
 
-class DLQuery(Exception):
+class DLQueryError(Exception):
     """Use to capture error for DLQuery instance"""
 
 
-class DLQueryDataTypeError(DLQuery):
+class DLQueryDataTypeError(DLQueryError):
     """Use to capture error of unsupported query data type."""
 
 
