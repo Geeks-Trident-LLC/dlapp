@@ -88,6 +88,15 @@ class DLQuery:
             data = OrderedDict(zip(range(total), self.data))
             return data.values()
 
+    def items(self):
+        """a set-like object providing a view on D's items"""
+        if self.is_dict:
+            return self.data.items()
+        else:
+            total = len(self.data)
+            data = OrderedDict(zip(range(total), self.data))
+            return data.items()
+
     def get(self, lookup, is_regex=False, default=None):
         try:
             if self.is_list:
