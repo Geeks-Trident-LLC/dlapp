@@ -32,6 +32,17 @@ class DLQuery:
         self.data = data
         self.dtype = dtype
 
+    ############################################################################
+    # properties
+    ############################################################################
+    @property
+    def is_dict(self):
+        """Check if data of DLQuery is a dictionary data."""
+        return isinstance(self.data, dict)
+
+    ############################################################################
+    # public methods
+    ############################################################################
     def get(self, lookup, is_regex=False, default=None):
         try:
             if self.dtype == 'list':
