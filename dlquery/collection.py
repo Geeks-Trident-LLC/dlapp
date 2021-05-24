@@ -146,18 +146,22 @@ class Element(Result):
             self.type = 'object'
             self.value = data
 
+    @property
     def has_children(self):
         """Return True if an element has children."""
         return bool(self.children)
 
+    @property
     def is_element(self):
         """Return True if an element has children."""
-        return self.has_children()
+        return self.has_children
 
+    @property
     def is_leaf(self):
         """Return True if an element doesnt have children."""
-        return not self.has_children()
+        return not self.has_children
 
+    @property
     def is_scalar(self):
         """Return True if an element is a scalar type."""
         return isinstance(self.data, (int, float, bool, str, None))
