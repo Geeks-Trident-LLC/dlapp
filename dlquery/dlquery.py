@@ -1,5 +1,6 @@
 """Module containing the logic for querying dictionary or list object."""
 import re
+import operator
 from collections import OrderedDict
 from dlquery.argumenthelper import validate_argument_type
 
@@ -52,6 +53,13 @@ class DLQuery:
 
     def __bool__(self):
         return bool(self.data)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            result = operator.eq(self.data, other.data)
+        else:
+            result = operator.eq(self.data, other)
+        return result
 
     ############################################################################
     # properties
