@@ -1,5 +1,6 @@
 """Module containing the logic for querying dictionary or list object."""
 import re
+from collections import OrderedDict
 from dlquery.argumenthelper import validate_argument_type
 
 
@@ -69,6 +70,15 @@ class DLQuery:
     ############################################################################
     # public methods
     ############################################################################
+    def keys(self):
+        """a set-like object providing a view on D's keys"""
+        if self.is_dict:
+            return self.data.keys()
+        else:
+            total = len(self.data)
+            data = OrderedDict(zip(range(total), self.data))
+            return data.keys()
+
     def get(self, lookup, is_regex=False, default=None):
         try:
             if self.is_list:
