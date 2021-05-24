@@ -28,6 +28,7 @@ class DLQuery:
         validate_argument_type(list, tuple, dict, data=data)
         self.data = data
         self._is_dict = None
+        self._is_list = None
 
     ############################################################################
     # Special methods
@@ -61,7 +62,9 @@ class DLQuery:
     @property
     def is_list(self):
         """Check if data of DLQuery is a list or tuple data."""
-        return isinstance(self.data, (list, tuple))
+        if self._is_list is None:
+            self._is_list = isinstance(self.data, (list, tuple))
+        return self._is_list
 
     ############################################################################
     # public methods
