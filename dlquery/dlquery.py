@@ -50,6 +50,9 @@ class DLQuery:
             msg = fmt.format(type(self).__name__)
             raise TypeError(msg)
 
+    def __bool__(self):
+        return bool(self.data)
+
     ############################################################################
     # properties
     ############################################################################
