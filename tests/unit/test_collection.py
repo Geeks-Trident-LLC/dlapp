@@ -23,4 +23,4 @@ class TestElement:
         )
         # import pdb; pdb.set_trace()
         obj = Element(data)
-        print(obj.has_children())
+        print(obj.has_children)
