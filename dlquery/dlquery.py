@@ -22,7 +22,7 @@ class DLQuery:
         TBA
 
     Exception:
-        TBA
+        TypeError
     """
 
     def __init__(self, data):
@@ -37,6 +37,16 @@ class DLQuery:
 
     def __getitem__(self, item):
         return self.data[item]
+
+    def __iter__(self):
+        if self.is_dict:
+            return iter(self.data.keys())
+        elif self.is_list:
+            return iter(range(len(self.data)))
+        else:
+            fmt = '{!r} object is not iterable.'
+            msg = fmt.format(type(self).__name__)
+            raise TypeError(msg)
 
     ############################################################################
     # properties
