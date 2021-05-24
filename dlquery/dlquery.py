@@ -16,8 +16,7 @@ class DLQuery:
     """This is a class for querying dictionary or list object.
 
     Attributes:
-        data (list or dict): list or dictionary instance.
-       dtype (str): list|dict.  Default is an empty string.
+        data (list, tuple, or dict): list or dictionary instance.
 
     Methods:
         TBA
@@ -26,11 +25,9 @@ class DLQuery:
         TBA
     """
 
-    def __init__(self, data, dtype=''):
-        validate_argument_type(list, dict, data=data)
-        validate_argument_choice(dtype=[dtype, ('list', 'dict')])
+    def __init__(self, data):
+        validate_argument_type(list, tuple, dict, data=data)
         self.data = data
-        self.dtype = dtype
 
     ############################################################################
     # properties
@@ -50,7 +47,7 @@ class DLQuery:
     ############################################################################
     def get(self, lookup, is_regex=False, default=None):
         try:
-            if self.dtype == 'list':
+            if self.is_list:
                 if isinstance(lookup, int):
                     return self.data[lookup]
                 elif isinstance(lookup, str):
