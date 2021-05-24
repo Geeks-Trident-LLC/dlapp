@@ -3,7 +3,6 @@
 import yaml
 import json
 from dlquery import DLQuery
-from dlquery.utils import get_reference_dtype
 
 
 def create_from_json_file(filename, **kwargs):
@@ -19,8 +18,7 @@ def create_from_json_file(filename, **kwargs):
         with open(filename) as stream:
             obj = json.load(stream, **kwargs)
 
-    dtype = get_reference_dtype(obj)
-    query_obj = DLQuery(obj, dtype=dtype)
+    query_obj = DLQuery(obj)
     return query_obj
 
 
@@ -33,8 +31,7 @@ def create_from_json_data(data, **kwargs):
         DLQuery: a DLQuery instance.
     """
     obj = json.loads(data, **kwargs)
-    dtype = get_reference_dtype(obj)
-    query_obj = DLQuery(obj, dtype=dtype)
+    query_obj = DLQuery(obj)
     return query_obj
 
 
@@ -48,8 +45,7 @@ def create_from_yaml_file(filename, loader=yaml.SafeLoader):
     """
     with open(filename) as stream:
         obj = yaml.load(stream, Loader=loader)
-        dtype = get_reference_dtype(obj)
-        query_obj = DLQuery(obj, dtype=dtype)
+        query_obj = DLQuery(obj)
         return query_obj
 
 
@@ -62,6 +58,5 @@ def create_from_yaml_data(data, loader=yaml.SafeLoader):
         DLQuery: a DLQuery instance.
     """
     obj = yaml.load(data, Loader=loader)
-    dtype = get_reference_dtype(obj)
-    query_obj = DLQuery(obj, dtype=dtype)
+    query_obj = DLQuery(obj)
     return query_obj
