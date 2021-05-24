@@ -61,6 +61,13 @@ class DLQuery:
             result = operator.eq(self.data, other)
         return result
 
+    def __ne__(self, other):
+        if isinstance(other, self.__class__):
+            result = operator.ne(self.data, other.data)
+        else:
+            result = operator.ne(self.data, other)
+        return result
+
     ############################################################################
     # properties
     ############################################################################
