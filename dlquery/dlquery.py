@@ -1,4 +1,4 @@
-"""Module containing the logic for querying dictionary."""
+"""Module containing the logic for querying dictionary or list object."""
 import re
 from dlquery.argumenthelper import validate_argument_type
 from dlquery.argumenthelper import validate_argument_choice
