@@ -40,6 +40,11 @@ class DLQuery:
         """Check if data of DLQuery is a dictionary data."""
         return isinstance(self.data, dict)
 
+    @property
+    def is_list(self):
+        """Check if data of DLQuery is a list or tuple data."""
+        return isinstance(self.data, (list, tuple))
+
     ############################################################################
     # public methods
     ############################################################################
