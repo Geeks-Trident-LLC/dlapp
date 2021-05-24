@@ -273,30 +273,30 @@ class ObjectDict(dict):
         return obj_dict
 
     @classmethod
-    def create_from_yaml_file(cls, filename, Loader=yaml.SafeLoader):
+    def create_from_yaml_file(cls, filename, loader=yaml.SafeLoader):
         """Create a ObjectDict instance from YAML file.
         Parameters:
             filename (string): YAML file.
-            Loader (yaml.loader.Loader): YAML loader.
+            loader (yaml.loader.Loader): YAML loader.
         """
         from io import IOBase
         if isinstance(filename, IOBase):
-            obj = yaml.load(filename, Loader=Loader)
+            obj = yaml.load(filename, Loader=loader)
         else:
             with open(filename) as stream:
-                obj = yaml.load(stream, Loader=Loader)
+                obj = yaml.load(stream, Loader=loader)
 
         obj_dict = ObjectDict(obj)
         return obj_dict
 
     @classmethod
-    def create_from_yaml_data(cls, data, Loader=yaml.SafeLoader):
+    def create_from_yaml_data(cls, data, loader=yaml.SafeLoader):
         """Create a ObjectDict instance from YAML data.
         Parameters:
             data (string): YAML data.
-            Loader (yaml.loader.Loader): YAML loader.
+            loader (yaml.loader.Loader): YAML loader.
         """
-        obj = yaml.load(data, Loader=Loader)
+        obj = yaml.load(data, Loader=loader)
         obj_dict = ObjectDict(obj)
         return obj_dict
 
