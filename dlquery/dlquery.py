@@ -45,7 +45,7 @@ class DLQuery:
         if self.is_dict:
             return iter(self.data.keys())
         elif self.is_list:
-            return iter(range(len(self.data)))
+            return iter(self.data)
         else:
             fmt = '{!r} object is not iterable.'
             msg = fmt.format(type(self).__name__)
