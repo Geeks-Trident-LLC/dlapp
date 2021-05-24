@@ -1,15 +1,6 @@
 """Module containing the logic for utilities."""
 
 
-def get_reference_dtype(obj):
-    if isinstance(obj, (tuple, list)):
-        return 'list'
-    elif isinstance(obj, dict):
-        return 'dict'
-    else:
-        return 'anything'
-
-
 class Printer:
     @classmethod
     def print(cls, data, header='', footer='', failure_msg='', print_func=None):
