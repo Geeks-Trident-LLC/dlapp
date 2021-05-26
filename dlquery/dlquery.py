@@ -19,8 +19,15 @@ class DLQuery:
     Attributes:
         data (list, tuple, or dict): list or dictionary instance.
 
+    Properties:
+        is_dict -> bool
+        is_list -> bool
+
     Methods:
-        TBA
+        keys() -> dict_keys or odict_keys
+        values() -> dict_values or odict_values
+        items() -> dict_items or odict_items
+        get(index, default=None) -> anything
 
     Exception:
         TypeError
@@ -115,44 +122,76 @@ class DLQuery:
             data = OrderedDict(zip(range(total), self.data))
             return data.items()
 
-    def get(self, lookup, is_regex=False, default=None):
+    def get(self, index, default=None, on_exception=False):
+        """if DLQuery is a list, then return the value for index if
+        index is in the list, else default.
+
+        if DLQuery is a dictionary, then return the value for key (i.e index)
+        if key is in the dictionary, else default.
+
+        Parameters:
+            index (int, str): a index of list or a key of dictionary.
+            default (anything): a default value if no element in list or
+                    in dictionary is found.
+            on_exception (bool): raise Exception if it is True.  Default is False.
+        Return:
+            anything: any value from DLQuery.data
+        """
         try:
             if self.is_list:
-                if isinstance(lookup, int):
-                    return self.data[lookup]
-                elif isinstance(lookup, str):
-                    if lookup.isdigit():
-                        return self.data[int(lookup)]
+                if isinstance(index, int):
+                    return self.data[index]
+                elif isinstance(index, str):
+                    if re.match(r'-?[0-9]+$', index.strip()):
+                        return self.data[int(index)]
                     else:
-                        count = lookup.count(':')
+                        count = index.count(':')
                         if count == 1:
-                            i, j = [k.strip() for k in lookup.split(':')]
-                            if i.isdigit() and j.isdigit():
-                                return self.data[int(i):int(j)]
+                            i, j = [x.strip() for x in index.split(':')]
+                            chks = [
+                                i.isdigit() or i == '',
+                                j.isdigit() or j == ''
+                            ]
+                            if any(chks):
+                                i = int(i) if i else None
+                                j = int(j) if j else None
+                                slice_obj = slice(i, j)
+                                return self.data[slice_obj]
                             else:
-                                # display warning
-                                return default
+                                if on_exception:
+                                    return self.data[index]
+                                else:
+                                    return default
                         elif count == 2:
-                            i, j, k = [k.strip() for k in lookup.split(':')]
-                            if i.isdigit() and j.isdigit() and k.isdigit():
-                                return self.data[int(i):int(j):int(k)]
+                            i, j, k = [x.strip() for x in index.split(':')]
+                            chks = [
+                                i.isdigit() or i == '',
+                                j.isdigit() or j == '',
+                                k.isdigit() or k == ''
+                            ]
+                            if any(chks):
+                                i = int(i) if i else None
+                                j = int(j) if j else None
+                                k = int(k) if k else None
+                                slice_obj = slice(i, j, k)
+                                return self.data[slice_obj]
                             else:
-                                # display warning
-                                return default
+                                if on_exception:
+                                    return self.data[index]
+                                else:
+                                    return default
                         else:
-                            # print warning
-                            return default
+                            if on_exception:
+                                return self.data[index]
+                            else:
+                                return default
                 else:
-                    # print warning
-                    return True
+                    return default
             else:
-                if is_regex:
-                    result = []
-                    for key, value in self.data.items():
-                        if re.match(lookup, key):
-                            result.append(self.data[key])
-                    return result
-                else:
-                    return self.data[lookup]
+                key = index
+                return self.data.get(key, default)
         except Exception as ex:     # noqa
-            return default
+            if on_exception:
+                raise ex
+            else:
+                return default
