@@ -31,6 +31,9 @@ class ExpectedResult:
         self.true = True
         self.false = False
 
+        # constant
+        self.not_found = 'NOT_FOUND'
+
 
 @pytest.fixture
 def expected_result():
@@ -179,3 +182,143 @@ class TestDLQuery:
         assert data_list_obj[index2] == expected_result.index2
         assert data_list_obj[index2][key1] == expected_result.value1
         assert data_list_obj[index2][key2] == expected_result.value2
+
+    def test_keys_method(self, dldata, expected_result):
+        data_dict_obj, data_list_obj = dldata
+
+        dict_keys = data_dict_obj.keys()
+        result = iter(dict_keys)
+
+        assert next(result) == expected_result.key1
+        assert next(result) == expected_result.key2
+
+        list_indices = data_list_obj.keys()
+        result = iter(list_indices)
+
+        assert next(result) == expected_result.zero
+        assert next(result) == expected_result.one
+        assert next(result) == expected_result.two
+
+    def test_values_method(self, dldata, expected_result):
+        data_dict_obj, data_list_obj = dldata
+
+        dict_values = data_dict_obj.values()
+        result = iter(dict_values)
+
+        assert next(result) == expected_result.value1
+        assert next(result) == expected_result.value2
+
+        list_items = data_list_obj.values()
+        result = iter(list_items)
+
+        assert next(result) == expected_result.index0
+        assert next(result) == expected_result.index1
+        assert next(result) == expected_result.index2
+
+    def test_items_method(self, dldata, expected_result):
+        data_dict_obj, data_list_obj = dldata
+
+        dict_items = data_dict_obj.items()
+        result = iter(dict_items)
+
+        assert next(result) == (expected_result.key1, expected_result.value1)
+        assert next(result) == (expected_result.key2, expected_result.value2)
+
+        list_items = data_list_obj.items()
+        result = iter(list_items)
+
+        assert next(result) == (expected_result.zero, expected_result.index0)
+        assert next(result) == (expected_result.one, expected_result.index1)
+        assert next(result) == (expected_result.two, expected_result.index2)
+
+    def test_is_dict_property(self, dldata, expected_result):
+        data_dict_obj, data_list_obj = dldata
+
+        assert data_dict_obj.is_dict == expected_result.true
+        assert data_list_obj.is_dict == expected_result.false
+
+        with pytest.raises(AssertionError):
+            assert data_list_obj.is_dict == expected_result.true
+
+    def test_is_list_property(self, dldata, expected_result):
+        data_dict_obj, data_list_obj = dldata
+
+        assert data_list_obj.is_list == expected_result.true
+        assert data_dict_obj.is_list == expected_result.false
+
+        with pytest.raises(AssertionError):
+            assert data_dict_obj.is_list == expected_result.true
+
+    def test_get_method(self, dldata, expected_result):
+        data_dict_obj, data_list_obj = dldata
+
+        default = 'NOT_FOUND'
+
+        # case 1: DLQuery is holding a dictionary
+        assert data_dict_obj.get('a', default=default) == expected_result.value1
+        assert data_dict_obj.get('b', default=default) == expected_result.value2
+        assert data_dict_obj.get('c', default=default) == expected_result.not_found
+
+        # case 2: DLQuery is holding a list
+        assert data_list_obj.get(0, default=default) == expected_result.index0
+        assert data_list_obj.get('0', default=default) == expected_result.index0
+
+        assert data_list_obj.get(1, default=default) == expected_result.index1
+        assert data_list_obj.get('1', default=default) == expected_result.index1
+
+        assert data_list_obj.get(2, default=default) == expected_result.index2
+        assert data_list_obj.get('2', default=default) == expected_result.index2
+
+        assert data_list_obj.get(-3, default=default) == expected_result.index0
+        assert data_list_obj.get('-3', default=default) == expected_result.index0
+
+        assert data_list_obj.get(-2, default=default) == expected_result.index1
+        assert data_list_obj.get('-2', default=default) == expected_result.index1
+
+        assert data_list_obj.get(-1, default=default) == expected_result.index2
+        assert data_list_obj.get('-1', default=default) == expected_result.index2
+
+        with pytest.raises(TypeError):
+            data_list_obj.get('abc', default=default, on_exception=True)
+
+        with pytest.raises(IndexError):
+            data_list_obj.get(3, default=default, on_exception=True)
+
+        with pytest.raises(IndexError):
+            data_list_obj.get('3', default=default, on_exception=True)
+
+        with pytest.raises(IndexError):
+            data_list_obj.get(-4, default=default, on_exception=True)
+
+        with pytest.raises(IndexError):
+            data_list_obj.get('-4', default=default, on_exception=True)
+
+        # case 3: slicing
+        eresult = [
+            expected_result.index0,
+            expected_result.index1,
+            expected_result.index2
+        ]
+        assert data_list_obj.get('::', default=default) == eresult
+        assert data_list_obj.get('::1', default=default) == eresult
+        assert data_list_obj.get('0:3:1', default=default) == eresult
+        assert data_list_obj.get('0:3:', default=default) == eresult
+
+        eresult1 = [
+            expected_result.index0,
+            expected_result.index2
+        ]
+        assert data_list_obj.get('0:3:2', default=default) == eresult1
+        assert data_list_obj.get('0::2', default=default) == eresult1
+
+        eresult2 = [
+            expected_result.index0
+        ]
+        assert data_list_obj.get('0:3:3', default=default) == eresult2
+        assert data_list_obj.get('0::3', default=default) == eresult2
+
+        with pytest.raises(TypeError):
+            data_list_obj.get(':::', default=default, on_exception=True)
+
+        with pytest.raises(TypeError):
+            data_list_obj.get('0:3:1:', default=default, on_exception=True)
