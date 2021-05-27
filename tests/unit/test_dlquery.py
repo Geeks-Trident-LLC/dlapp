@@ -269,6 +269,12 @@ class TestDLQuery:
         assert data_list_obj.get(2, default=default) == expected_result.index2
         assert data_list_obj.get('2', default=default) == expected_result.index2
 
+        assert data_list_obj.get(3, default=default) == expected_result.not_found
+        assert data_list_obj.get('3', default=default) == expected_result.not_found
+
+        assert data_list_obj.get(-4, default=default) == expected_result.not_found
+        assert data_list_obj.get('-4', default=default) == expected_result.not_found
+
         assert data_list_obj.get(-3, default=default) == expected_result.index0
         assert data_list_obj.get('-3', default=default) == expected_result.index0
 
@@ -299,10 +305,17 @@ class TestDLQuery:
             expected_result.index1,
             expected_result.index2
         ]
+        assert data_list_obj.get(':', default=default) == eresult
+        assert data_list_obj.get(':3', default=default) == eresult
+        assert data_list_obj.get('0:3', default=default) == eresult
+        assert data_list_obj.get('-3:', default=default) == eresult
+
         assert data_list_obj.get('::', default=default) == eresult
         assert data_list_obj.get('::1', default=default) == eresult
         assert data_list_obj.get('0:3:1', default=default) == eresult
         assert data_list_obj.get('0:3:', default=default) == eresult
+        assert data_list_obj.get('-3::', default=default) == eresult
+        assert data_list_obj.get('-3::1', default=default) == eresult
 
         eresult1 = [
             expected_result.index0,
