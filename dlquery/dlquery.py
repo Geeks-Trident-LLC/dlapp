@@ -142,15 +142,16 @@ class DLQuery:
                 if isinstance(index, int):
                     return self.data[index]
                 elif isinstance(index, str):
-                    if re.match(r'-?[0-9]+$', index.strip()):
+                    pattern = r'-?[0-9]+$'
+                    if re.match(pattern, index.strip()):
                         return self.data[int(index)]
                     else:
                         count = index.count(':')
                         if count == 1:
                             i, j = [x.strip() for x in index.split(':')]
                             chks = [
-                                i.isdigit() or i == '',
-                                j.isdigit() or j == ''
+                                re.match(pattern, i.strip()) or i == '',
+                                re.match(pattern, j.strip()) or j == ''
                             ]
                             if any(chks):
                                 i = int(i) if i else None
@@ -165,9 +166,9 @@ class DLQuery:
                         elif count == 2:
                             i, j, k = [x.strip() for x in index.split(':')]
                             chks = [
-                                i.isdigit() or i == '',
-                                j.isdigit() or j == '',
-                                k.isdigit() or k == ''
+                                re.match(pattern, i.strip()) or i == '',
+                                re.match(pattern, j.strip()) or j == '',
+                                re.match(pattern, k.strip()) or k == ''
                             ]
                             if any(chks):
                                 i = int(i) if i else None
