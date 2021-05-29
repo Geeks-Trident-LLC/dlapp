@@ -46,12 +46,12 @@ class Printer:
         pass
 
 
-def convert_wildcard_to_regex(pattern, opened=False, closed=False):
+def convert_wildcard_to_regex(pattern, closed=False):
     """Convert a wildcard pattern to a regex pattern.
     Parameters:
         pattern (str): a wildcard pattern.
-        opened (bool): prepend caret symbol if it is False.  Default is False.
-        closed (bool): append dollar symbol if it is False.  Default is False.
+        closed (bool): will prepend ^ symbol and append $ symbol to pattern
+                if set to True
     Return:
         str: a regular express pattern.
 
@@ -73,9 +73,7 @@ def convert_wildcard_to_regex(pattern, opened=False, closed=False):
         regex_pattern = regex_pattern.replace('_replacetodot_', '.')
         regex_pattern = regex_pattern.replace('_replacetodotasterisk_', '.*')
         regex_pattern = regex_pattern.replace('[!', '[^')
-        prefix = '' if opened else '^'
-        postfix = '' if closed else '$'
-        regex_pattern = '{}{}{}'.format(prefix, regex_pattern, postfix)
+        regex_pattern = '^{}$'.format(regex_pattern) if closed else regex_pattern
         re.compile(regex_pattern)
         return regex_pattern
     except Exception as ex:
