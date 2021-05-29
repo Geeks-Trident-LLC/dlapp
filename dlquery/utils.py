@@ -1,5 +1,16 @@
 """Module containing the logic for utilities."""
 
+import re
+from dlquery.argumenthelper import validate_argument_type
+
+
+class UtilsError(Exception):
+    """Use to capture utility error."""
+
+
+class RegexConversionError(UtilsError):
+    """Use to capture regular expression conversion error."""
+
 
 class Printer:
     @classmethod
@@ -33,3 +44,40 @@ class Printer:
     @classmethod
     def print_tabular(cls, data):
         pass
+
+
+def convert_wildcard_to_regex(pattern, opened=False, closed=False):
+    """Convert a wildcard pattern to a regex pattern.
+    Parameters:
+        pattern (str): a wildcard pattern.
+        opened (bool): prepend caret symbol if it is False.  Default is False.
+        closed (bool): append dollar symbol if it is False.  Default is False.
+    Return:
+        str: a regular express pattern.
+
+    Wildcard support:
+        ? (question mark): this can represent any single character.
+        * (asterisk): this can represent any number of characters
+            (including zero, in other words, zero or more characters).
+        [] (square brackets): specifies a range.
+        [!] : match any that not specifies in a range.
+
+    """
+    validate_argument_type(str, pattern=pattern)
+    regex_pattern = ''
+    try:
+        regex_pattern = pattern.replace('.', r'\.')
+        regex_pattern = regex_pattern.replace('+', r'\+')
+        regex_pattern = regex_pattern.replace('?', '_replacetodot_')
+        regex_pattern = regex_pattern.replace('*', '_replacetodotasterisk_')
+        regex_pattern = regex_pattern.replace('_replacetodot_', '.')
+        regex_pattern = regex_pattern.replace('_replacetodotasterisk_', '.*')
+        regex_pattern = regex_pattern.replace('[!', '[^')
+        prefix = '' if opened else '^'
+        postfix = '' if closed else '$'
+        regex_pattern = '{}{}{}'.format(prefix, regex_pattern, postfix)
+        re.compile(regex_pattern)
+        return regex_pattern
+    except Exception as ex:
+        fmt = 'Failed to convert wildcard({!r}) to regex({!r})\n{}'
+        raise RegexConversionError(fmt.format(pattern, regex_pattern, ex))
