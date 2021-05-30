@@ -2,8 +2,9 @@
 
 import yaml
 import json
-# import re
+import re
 from dlquery.argumenthelper import validate_argument_type
+from dlquery import utils
 
 
 class ListError(Exception):
@@ -73,6 +74,7 @@ class Result:
         ResultError
     """
     def __init__(self, data, parent=None):
+        self.parent = None
         self.data = data
         self.update_parent(parent)
 
@@ -166,8 +168,25 @@ class Element(Result):
         """Return True if an element is a scalar type."""
         return isinstance(self.data, (int, float, bool, str, None))
 
-    def find(self, lookup, i=False):
-        """recursively search a lookup."""
+    def find_(self, node, lookup, result, select=''):
+        """recursively search a lookup
+        Parameters:
+            node (anything): a search node.
+            lookup (str): a lookup text.
+            result (List): a found result.
+            select (str): a select statement.
+        """
+        raise NotImplementedError('TODO - Need to implement Element.find_')
+
+    def find(self, lookup, select=''):
+        """recursively search a lookup.
+        Parameter:
+            lookup (str): a search pattern.
+            select (str): a select statement.
+
+        Return:
+            List: list of record
+        """
         # lookup = re.sub(r'([*?])', r'.\1', lookup)
         # lookup = lookup.replace('[!', '[^')
         # lookup+= r'\s*$'
@@ -178,6 +197,7 @@ class Element(Result):
 class ObjectDict(dict):
     """The ObjectDict can retrieve value of key as attribute style."""
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.update(*args, **kwargs)
 
     ############################################################################
@@ -356,3 +376,100 @@ class ObjectDict(dict):
         return result
 
     todict = to_dict
+
+
+class LookupClsError(Exception):
+    """Use to capture error for LookupObject instance"""
+
+
+class LookupCls:
+    """To build a lookup object."""
+    def __init__(self, lookup):
+        self.lookup = str(lookup)
+        self.left = None
+        self.right = None
+        self.process()
+
+    @property
+    def is_right(self):
+        return bool(self.right)
+
+    @classmethod
+    def parse(cls, text):
+        """Parse a lookup statement.
+        Parameters:
+            text (str): a lookup.
+        Return:
+              CustomObject: a object is holding pattern and is_regex attributes.
+        """
+        def parse_(text_):
+            vpat = '''
+                _(?P<options>i?)                    # options
+                (?P<method>text|wildcard|regex)     # method is wildcard or regex
+                [(]
+                (?P<pattern>.+)                     # wildcard or regex pattern
+                [)]
+            '''
+            match_ = re.search(vpat, text_, re.VERBOSE)
+            options_ = match_.group('options').lower()
+            method_ = match_.group('method').lower()
+            pattern_ = match_.group('pattern')
+
+            ignorecase_ = 'i' in options_
+            if method_ == 'wildcard':
+                pattern_ = utils.convert_wildcard_to_regex(pattern_)
+            elif method_ == 'text':
+                pattern_ = re.escape(pattern_)
+            return pattern_, ignorecase_
+
+        pat = r'_i?(text|wildcard|regex)[(].+[)]'
+
+        if not re.search(pat, text):
+            pattern = '^{}$'.format(re.escape(text))
+            return pattern
+        lst = []
+        start = 0
+        is_ignorecase = False
+        for node in re.finditer(pat, text):
+            predata = text[start:node.start()]
+            lst.append(re.escape(predata))
+            data = node.group()
+            pattern, ignorecase = parse_(data)
+            lst.append(pattern)
+            start = node.end()
+            is_ignorecase |= ignorecase
+        else:
+            if lst:
+                postdata = text[start:]
+                lst.append(re.escape(postdata))
+
+        pattern = ''.join(lst)
+        if pattern:
+            ss = '' if pattern[0] == '^' else '^'
+            es = '' if pattern[-1] == '$' else '$'
+            ic = '(?i)' if is_ignorecase else ''
+            pattern = '{}{}{}{}'.format(ic, ss, pattern, es)
+            return pattern
+        else:
+            fmt = 'Failed to parse this lookup : {!r}'
+            raise LookupClsError(fmt.format(text))
+
+    def process(self):
+        """Parse a lookup to two expressions: a left expression and
+        a right expression.
+        If a lookup has a right expression, it will parse and assign to right,
+        else, right expression is None."""
+        left, *lst = self.lookup.split('=', maxsplit=1)
+        self.left = self.parse(left)
+        if lst:
+            self.right = self.parse(lst[0])
+
+    def is_left_matched(self, data):
+        result = re.search(self.left, data)
+        return bool(result)
+
+    def is_right_matched(self, data):
+        if not self.right:
+            return True
+        result = re.search(self.right, data)
+        return bool(result)
