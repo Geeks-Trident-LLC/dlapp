@@ -1,6 +1,7 @@
 """Module containing the logic for utilities."""
 
 import re
+from collections import OrderedDict
 from dlquery.argumenthelper import validate_argument_type
 
 
@@ -79,3 +80,29 @@ def convert_wildcard_to_regex(pattern, closed=False):
     except Exception as ex:
         fmt = 'Failed to convert wildcard({!r}) to regex({!r})\n{}'
         raise RegexConversionError(fmt.format(pattern, regex_pattern, ex))
+
+
+def foreach(data, choice='keys'):
+    """"a set-like object providing a view on D's keys/values/items
+    Parameters:
+        data (anything): data
+        choice (str): keys|values|items.  Default is keys.
+    Return:
+        dict_keys or odict_keys if choice is keys
+        dict_values or odict_values if choice is values
+        dict_items or odict_items if choice is items
+    """
+    if isinstance(data, dict):
+        node = data
+    elif isinstance(data, (list, tuple)):
+        total = len(data)
+        node = OrderedDict(zip(range(total), data))
+    else:
+        node = dict()
+
+    if choice == 'keys':
+        return node.keys()
+    elif choice == 'values':
+        return node.values()
+    else:
+        return node.items()
