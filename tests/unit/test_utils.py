@@ -116,3 +116,26 @@ def test_unmatched_regex_conversion(wildcard, unmatched_output):
         result = re.search(regex_pattern, data)
         is_matched = bool(result)
         assert is_matched is False
+
+
+@pytest.mark.parametrize(
+    "data,choice,expected_result",
+    [
+        # data is dict
+        ({'a': 1, 'b': 2}, 'keys', ['a', 'b']),
+        ({'a': 1, 'b': 2}, 'values', [1, 2]),
+        ({'a': 1, 'b': 2}, 'items', [('a', 1), ('b', 2)]),
+        # data is list
+        (['a', 'b'], 'keys', [0, 1]),
+        (['a', 'b'], 'values', ['a', 'b']),
+        (['a', 'b'], 'items', [(0, 'a'), (1, 'b')]),
+        # data is tuple
+        (('a', 'b'), 'keys', [0, 1]),
+        (('a', 'b'), 'values', ['a', 'b']),
+        (('a', 'b'), 'items', [(0, 'a'), (1, 'b')]),
+    ]
+)
+def test_foreach_function(data, choice, expected_result):
+    obj = utils.foreach(data, choice=choice)
+    result = list(obj)
+    assert result == expected_result
