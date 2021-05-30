@@ -465,11 +465,15 @@ class LookupCls:
             self.right = self.parse(lst[0])
 
     def is_left_matched(self, data):
+        if not isinstance(data, str):
+            return False
         result = re.search(self.left, data)
         return bool(result)
 
     def is_right_matched(self, data):
         if not self.right:
             return True
+        if not isinstance(data, str):
+            return False
         result = re.search(self.right, data)
         return bool(result)
