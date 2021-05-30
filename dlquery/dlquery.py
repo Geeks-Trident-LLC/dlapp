@@ -1,7 +1,7 @@
 """Module containing the logic for querying dictionary or list object."""
 import re
 import operator
-from collections import OrderedDict
+from dlquery import utils
 from dlquery.argumenthelper import validate_argument_type
 
 
@@ -97,30 +97,18 @@ class DLQuery:
     ############################################################################
     def keys(self):
         """a set-like object providing a view on D's keys"""
-        if self.is_dict:
-            return self.data.keys()
-        else:
-            total = len(self.data)
-            data = OrderedDict(zip(range(total), self.data))
-            return data.keys()
+        result = utils.foreach(self.data, choice='keys')
+        return result
 
     def values(self):
         """a set-like object providing a view on D's values"""
-        if self.is_dict:
-            return self.data.values()
-        else:
-            total = len(self.data)
-            data = OrderedDict(zip(range(total), self.data))
-            return data.values()
+        result = utils.foreach(self.data, choice='values')
+        return result
 
     def items(self):
         """a set-like object providing a view on D's items"""
-        if self.is_dict:
-            return self.data.items()
-        else:
-            total = len(self.data)
-            data = OrderedDict(zip(range(total), self.data))
-            return data.items()
+        result = utils.foreach(self.data, choice='items')
+        return result
 
     def get(self, index, default=None, on_exception=False):
         """if DLQuery is a list, then return the value for index if
