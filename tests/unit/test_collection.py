@@ -1,4 +1,7 @@
+import pytest
+
 from dlquery.collection import Element
+from dlquery.collection import LookupCls
 
 
 class TestElement:
@@ -24,3 +27,409 @@ class TestElement:
         # import pdb; pdb.set_trace()
         obj = Element(data)
         print(obj.has_children)
+
+
+class TestLookupCls:
+    @pytest.mark.parametrize(
+        "lookup,expected_left,expected_right",
+        [
+            (
+                'full_name',                # lookup only has left expression
+                '^full_name$',              # expected left pattern
+                None,                       # expected right pattern
+            ),
+            (
+                'full++name',               # lookup only has left expression
+                '^full\\+\\+name$',         # expected left pattern
+                None,                       # expected right pattern
+            ),
+            (
+                'full**name',               # lookup only has left expression
+                '^full\\*\\*name$',         # expected left pattern
+                None,                       # expected right pattern
+            ),
+            (
+                '_text(full_name)',         # lookup only has left expression
+                '^full_name$',              # expected left pattern
+                None,                       # expected right pattern
+            ),
+            (
+                'full_name=David M. James',     # lookup has left and right expr
+                '^full_name$',                  # expected left pattern
+                '^David\\ M\\.\\ James$',       # expected right pattern
+            ),
+            (
+                '_itext(full_name)=David M. James',     # lookup has left and right expr
+                '(?i)^full_name$',                      # expected left pattern
+                '^David\\ M\\.\\ James$',               # expected right pattern
+            ),
+            (
+                '_itext(full_name)=_itext(David M. James)',     # lookup has left and right expr
+                '(?i)^full_name$',                              # expected left pattern
+                '(?i)^David\\ M\\.\\ James$',                   # expected right pattern
+            ),
+            (
+                'full_itext(+name)=_itext(David M. James)',     # lookup has left and right expr
+                '(?i)^full\\+name$',                            # expected left pattern
+                '(?i)^David\\ M\\.\\ James$',                   # expected right pattern
+            ),
+        ]
+    )
+    def test_lookup_text(self, lookup, expected_left, expected_right):
+        obj = LookupCls(lookup)
+        assert obj.left == expected_left
+        assert obj.right == expected_right
+
+    @pytest.mark.parametrize(
+        "lookup,left_data,right_data",
+        [
+            (
+                'full_name',                # lookup
+                [                           # left data
+                    ['full_name'],          # matched
+                    [                       # unmatched
+                        'the full_name',
+                        'full_names'
+                    ]
+                ],
+                [                           # right data
+                    [None],                 # matched
+                    [None]                  # unmatched
+                ]
+            ),
+            (
+                '_itext(full_name)=_itext(David M. James)',     # lookup
+                [                           # left data
+                    [                       # matched
+                        'full_name',
+                        'Full_Name',
+                        'FULL_NAME'
+                    ],
+                    [  # unmatched
+                        'the full_name',
+                        'full_names'
+                    ]
+                ],
+                [                           # right data
+                    [                       # matched
+                        'David M. James',
+                        'DAVID M. JAMES'
+                    ],
+                    [                       # unmatched
+                        'David M. Jameson',
+                        'my friend name is David M. James'
+                    ]
+                ]
+            ),
+            (
+                '_itext(full_name)=David _itext(M. James)',  # lookup
+                [                           # left data
+                    [                       # matched
+                        'full_name',
+                        'Full_Name',
+                        'FULL_NAME'
+                    ],
+                    [                       # unmatched
+                        'the full_name',
+                        'full_names'
+                    ]
+                ],
+                [                           # right data
+                    [                       # matched
+                        'David M. James',
+                        'DAVID M. JAMES'
+                    ],
+                    [                       # unmatched
+                        'David M. Jameson',
+                        'is David M. James'
+                    ]
+                ]
+            ),
+        ]
+    )
+    def test_lookup_text_and_verify(self, lookup, left_data, right_data):
+        obj = LookupCls(lookup)
+        left_matched_data, left_unmatched_data = left_data
+
+        for data in left_matched_data:
+            is_match = obj.is_left_matched(data)
+            assert is_match is True
+
+        for data in left_unmatched_data:
+            is_match = obj.is_left_matched(data)
+            assert is_match is False
+
+        right_matched_data, right_unmatched_data = right_data
+        for data in right_matched_data:
+            if obj.is_right:
+                is_match = obj.is_right_matched(data)
+                assert is_match is True
+
+        for data in right_unmatched_data:
+            if obj.is_right:
+                is_match = obj.is_right_matched(data)
+                assert is_match is False
+
+    @pytest.mark.parametrize(
+        "lookup,expected_left,expected_right",
+        [
+            (
+                '_wildcard(full?name)',     # lookup only has left expression
+                '^full.name$',              # expected left pattern
+                None,                       # expected right pattern
+            ),
+            (
+                '_iwildcard(full?name)',    # lookup only has left expression
+                '(?i)^full.name$',          # expected left pattern
+                None,                       # expected right pattern
+            ),
+            (
+                'ful_iwildcard(l?n)ame',  # lookup only has left expression
+                '(?i)^full.name$',          # expected left pattern
+                None,                       # expected right pattern
+            ),
+            (
+                '_iwildcard(*name)=_iwildcard(David *James)',     # lookup has left and right expr
+                '(?i)^.*name$',               # expected left pattern
+                '(?i)^David .*James$',       # expected right pattern
+            ),
+            (
+                'full_name=David_wildcard( [MTW]. )James',     # lookup has left and right expr
+                '^full_name$',                          # expected left pattern
+                '^David [MTW]\\. James$',               # expected right pattern
+            ),
+            (
+                'full_name=David_wildcard( [!MTW]. )James',     # lookup has left and right expr
+                '^full_name$',                            # expected left pattern
+                '^David [^MTW]\\. James$',               # expected right pattern
+            ),
+        ]
+    )
+    def test_lookup_wildcard(self, lookup, expected_left, expected_right):
+        obj = LookupCls(lookup)
+        assert obj.left == expected_left
+        assert obj.right == expected_right
+
+    @pytest.mark.parametrize(
+        "lookup,left_data,right_data",
+        [
+            (
+                '_wildcard(full?name)',     # lookup
+                [                           # left data
+                    [                       # matched
+                        'full?name',
+                        'full_name',
+                        'full name',
+                        'full-name',
+                        'full.name',
+                        'fullaname'
+                    ],
+                    [                       # unmatched
+                        'the full_name',
+                        'full_names'
+                    ]
+                ],
+                [                           # right data
+                    [None],                 # matched
+                    [None]                  # unmatched
+                ]
+            ),
+            (
+                '_iwildcard(*name)=_wildcard(David *James)',     # lookup
+                [                           # left data
+                    [                       # matched
+                        'first name',
+                        'last NAME',
+                        'anything BLABLABLA name'
+                    ],
+                    [                       # unmatched
+                        'the full name is',
+                        'full_names'
+                    ]
+                ],
+                [                           # right data
+                    [                       # matched
+                        'David James',
+                        'David M. James',
+                        'David BlablaBla James'
+                    ],
+                    [                       # unmatched
+                        'David M. Jameson',
+                        'my friend name is David M. James'
+                    ]
+                ]
+            ),
+            (
+                'full_name=David _wildcard([WTM].) James',  # lookup
+                [                           # left data
+                    [                       # matched
+                        'full_name',
+                    ],
+                    [                       # unmatched
+                        'the full_name',
+                        'full_names'
+                    ]
+                ],
+                [                           # right data
+                    [                       # matched
+                        'David M. James',
+                        'David T. James',
+                        'David W. James'
+                    ],
+                    [                       # unmatched
+                        'David M. Jameson',
+                        'is David M. James'
+                    ]
+                ]
+            ),
+            (
+                    'full_name=David _wildcard([!WTM].) James',  # lookup
+                    [                           # left data
+                        [                       # matched
+                            'full_name',
+                        ],
+                        [                       # unmatched
+                            'the full_name',
+                            'full_names'
+                        ]
+                    ],
+                    [                           # right data
+                        [                       # matched
+                            'David C. James',
+                            'David D. James',
+                            'David J. James'
+                        ],
+                        [  # unmatched
+                            'David M. James',
+                            'David T. James',
+                            'David W. James'
+                        ]
+                    ]
+            ),
+        ]
+    )
+    def test_lookup_wildcard_and_verify(self, lookup, left_data, right_data):
+        obj = LookupCls(lookup)
+        left_matched_data, left_unmatched_data = left_data
+
+        for data in left_matched_data:
+            is_match = obj.is_left_matched(data)
+            assert is_match is True
+
+        for data in left_unmatched_data:
+            is_match = obj.is_left_matched(data)
+            assert is_match is False
+
+        right_matched_data, right_unmatched_data = right_data
+        for data in right_matched_data:
+            if obj.is_right:
+                is_match = obj.is_right_matched(data)
+                assert is_match is True
+
+        for data in right_unmatched_data:
+            if obj.is_right:
+                is_match = obj.is_right_matched(data)
+                assert is_match is False
+
+    @pytest.mark.parametrize(
+        "lookup,expected_left,expected_right",
+        [
+            (
+                '_regex([Ff]ull[- _]?[Nn]ame)',         # lookup only has left expression
+                '^[Ff]ull[- _]?[Nn]ame$',               # expected left pattern
+                None,                                   # expected right pattern
+            ),
+            (
+                '_iregex([Ff]ull[- _]?[Nn]ame)',        # lookup only has left expression
+                '(?i)^[Ff]ull[- _]?[Nn]ame$',           # expected left pattern
+                None,                                   # expected right pattern
+            ),
+            (
+                    'Full_iregex([- _]?)Name',  # lookup
+                    '(?i)^Full[- _]?Name$',  # expected left pattern
+                    None,  # expected right pattern
+            ),
+            (
+                '_iregex(full[- _]?name)=_iregex(David ([MTW][.] )?James)',  # lookup
+                '(?i)^full[- _]?name$',  # expected left pattern
+                '(?i)^David ([MTW][.] )?James$',  # expected right pattern
+            ),
+        ]
+    )
+    def test_lookup_regex(self, lookup, expected_left, expected_right):
+        obj = LookupCls(lookup)
+        assert obj.left == expected_left
+        assert obj.right == expected_right
+
+    @pytest.mark.parametrize(
+        "lookup,left_data,right_data",
+        [
+            (
+                '_regex(full[ ._-]name)',     # lookup
+                [                           # left data
+                    [                       # matched
+                        'full name',
+                        'full.name',
+                        'full_name',
+                        'full-name',
+                    ],
+                    [                       # unmatched
+                        'full?name',
+                        'Full name'
+                    ]
+                ],
+                [                           # right data
+                    [None],                 # matched
+                    [None]                  # unmatched
+                ]
+            ),
+            (
+                '_iregex(\\w+ name)=_regex(David ([MTW][.] )?James)',     # lookup
+                [                           # left data
+                    [                       # matched
+                        'first name',
+                        'last NAME',
+                        'anythingword name'
+                    ],
+                    [                       # unmatched
+                        'the full name is',
+                        'full_names'
+                    ]
+                ],
+                [                           # right data
+                    [                       # matched
+                        'David James',
+                        'David M. James',
+                        'David T. James',
+                        'David W. James'
+                    ],
+                    [                       # unmatched
+                        'DAVID M. James',
+                        'David M. Jameson'
+                    ]
+                ]
+            ),
+        ]
+    )
+    def test_lookup_regex_and_verify(self, lookup, left_data, right_data):
+        obj = LookupCls(lookup)
+        left_matched_data, left_unmatched_data = left_data
+
+        for data in left_matched_data:
+            is_match = obj.is_left_matched(data)
+            assert is_match is True
+
+        for data in left_unmatched_data:
+            is_match = obj.is_left_matched(data)
+            assert is_match is False
+
+        right_matched_data, right_unmatched_data = right_data
+        for data in right_matched_data:
+            if obj.is_right:
+                is_match = obj.is_right_matched(data)
+                assert is_match is True
+
+        for data in right_unmatched_data:
+            if obj.is_right:
+                is_match = obj.is_right_matched(data)
+                assert is_match is False
