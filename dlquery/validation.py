@@ -298,20 +298,20 @@ class CustomValidation:
                 return True
         return False
 
-    @classmethod
-    @false_on_exception_for_classmethod
-    def is_network_interface(cls, iface_name, valid=True, on_exception=True):
-        """Verify a provided data is a network interface.
-        Parameters:
-            iface_name (str): a network interface
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if iface_name is a network interface, otherwise, False.
-        """
-        pattern = r'[a-z]+(-[a-z0-9]+)?'
-        result = validate_interface(iface_name, pattern=pattern)
-        return result
+    # @classmethod
+    # @false_on_exception_for_classmethod
+    # def is_network_interface(cls, iface_name, valid=True, on_exception=True):
+    #     """Verify a provided data is a network interface.
+    #     Parameters:
+    #         iface_name (str): a network interface
+    #         valid (bool): check for a valid result.  Default is True.
+    #         on_exception (bool): raise Exception if it is True, otherwise, return None.
+    #     Return:
+    #         boolean: True if iface_name is a network interface, otherwise, False.
+    #     """
+    #     pattern = r'[a-z]+(-?[a-z0-9]+)?'
+    #     result = validate_interface(iface_name, pattern=pattern)
+    #     return result
 
     @classmethod
     @false_on_exception_for_classmethod
@@ -414,7 +414,7 @@ class CustomValidation:
         Return:
             boolean: True if iface_name is a FastEthernet interface, otherwise, False.
         """
-        pattern = r'\fa(stethernet)?'
+        pattern = r'fa(stethernet)?'
         result = validate_interface(iface_name, pattern=pattern)
         return result
 
@@ -446,3 +446,35 @@ class CustomValidation:
         value = str(value)
         result = re.match(r'\s+$', value)
         return bool(result)
+
+    @classmethod
+    @false_on_exception_for_classmethod
+    def is_true(cls, value, valid=True, on_exception=True):
+        """Verify a provided data is True.
+        Parameters:
+            value (bool or str): a boolean or string data.
+            valid (bool): check for a valid result.  Default is True.
+            on_exception (bool): raise Exception if it is True, otherwise, return None.
+        Return:
+            boolean: True if value is a True boolean, otherwise, False.
+        """
+        if isinstance(value, bool):
+            return value is True
+        value = str(value)
+        return value.lower() == 'true'
+
+    @classmethod
+    @false_on_exception_for_classmethod
+    def is_false(cls, value, valid=True, on_exception=True):
+        """Verify a provided data is False.
+        Parameters:
+            value (bool or str): a boolean or string data.
+            valid (bool): check for a valid result.  Default is True.
+            on_exception (bool): raise Exception if it is True, otherwise, return None.
+        Return:
+            boolean: True if value is a False boolean, otherwise, False.
+        """
+        if isinstance(value, bool):
+            return value is False
+        value = str(value)
+        return value.lower() == 'false'

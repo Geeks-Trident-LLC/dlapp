@@ -389,7 +389,7 @@ class TestLookupCls:
                     [                       # matched
                         'first name',
                         'last NAME',
-                        'anythingword name'
+                        'any_letter name'
                     ],
                     [                       # unmatched
                         'the full name is',
@@ -433,3 +433,74 @@ class TestLookupCls:
             if obj.is_right:
                 is_match = obj.is_right_matched(data)
                 assert is_match is False
+
+
+    @pytest.mark.parametrize(
+        "data,lookup,expected_result",
+        [
+            # data is empty
+            ('', 'key=is_empty()', True),
+
+            # data is not empty
+            ('abc', 'key=is_not_empty()', True),
+
+            # data is IPv4 address
+            ('192.168.1.1', 'key=is_ipv4_address()', True),
+
+            # data is not IPv4 address
+            ('192.168.1.256', 'key=is_not_ipv4_address()', True),
+
+            # data is IPv6 address
+            ('2001:8a3::1', 'key=is_ipv6_address()', True),
+
+            # data is not IPv6 address
+            ('2001:8a3::1/130', 'key=is_not_ipv6_address()', True),
+
+            # data is IP address
+            ('192.168.1.1', 'key=is_ip_address()', True),
+            ('2001:8a3::1', 'key=is_ip_address()', True),
+
+            # data is not IP address
+            ('192.168.1.256', 'key=is_not_ip_address()', True),
+            ('2001:8a3::1/130', 'key=is_not_ip_address()', True),
+
+            # data is MAC address
+            ('aa:bb:cc:dd:ee:ff', 'key=is_mac_address()', True),
+            ('aa-bb-cc-dd-ee-ff', 'key=is_mac_address()', True),
+            ('aa bb cc dd ee ff', 'key=is_mac_address()', True),
+
+            # data is not MAC address
+            ('11:30:20 11:59:55', 'key=is_not_mac_address()', True),
+            ('12-10-21 12-20:21', 'key=is_not_mac_address()', True),
+
+            # data is greater than 3.0
+            ('3.2', 'key=gt(3.0)', True),
+
+            # data is greater than or equal 3.0
+            ('3.2', 'key=ge(3.0)', True),
+            ('3.0', 'key=ge(3)', True),
+
+            # data is less than 4.0
+            ('3.2', 'key=lt(4.0)', True),
+
+            # data is less than or equal 4.0
+            ('3.2', 'key=le(4.0)', True),
+            ('4.0', 'key=le(4)', True),
+
+            # data is equal to 4.0
+            ('4', 'key=eq(4.0)', True),
+
+            # data is not equal to 4.0
+            ('3', 'key=ne(4.0)', True),
+
+            # string comparison: data is equal to "abc"
+            ('abc', 'key=eq(abc)', True),
+
+            # string comparison: data is not equal to "abc"
+            ('xyz', 'key=ne(abc)', True),
+        ]
+    )
+    def test_validating_right_expression_for_custom_method(self, data, lookup, expected_result):
+        lkup_obj = LookupCls(lookup)
+        result = lkup_obj.is_right_matched(data)
+        assert result == expected_result

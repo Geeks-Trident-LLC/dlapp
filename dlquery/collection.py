@@ -3,8 +3,12 @@
 import yaml
 import json
 import re
+from functools import partial
 from dlquery.argumenthelper import validate_argument_type
 from dlquery import utils
+# from dlquery.parser import SelectParser
+from dlquery.validation import OpValidation
+from dlquery.validation import CustomValidation
 
 
 class ListError(Exception):
@@ -422,11 +426,68 @@ class LookupCls:
                 pattern_ = re.escape(pattern_)
             return pattern_, ignorecase_
 
+        def parse_other_(text_):
+            vpat1_ = '''
+                (?i)(?P<custom_name>
+                is_empty|is_not_empty|
+                is_mac_address|is_not_mac_address|
+                is_ip_address|is_not_ip_address|
+                is_ipv4_address|is_not_ipv4_address|
+                is_ipv6_address|is_not_ipv6_address|
+                is_true|is_not_true|
+                is_false|is_not_false)
+                [(][)]$
+            '''
+            vpat2_ = '''
+                (?i)(?P<op>lt|le|gt|ge|eq|ne)
+                [(]
+                (?P<other>([0-9]+)?[.]?[0-9]+)
+                [)]$
+            '''
+            vpat3_ = '''
+                (?i)(?P<op>eq|ne)
+                [(]
+                (?P<other>.*[^0-9].*)
+                [)]$
+            '''
+            data_ = text_.lower()
+            match1_ = re.match(vpat1_, data_, flags=re.VERBOSE)
+            if match1_:
+                custom_name = match1_.group('custom_name')
+                valid = False if '_not_' in custom_name else True
+                custom_name = custom_name.replace('not_', '')
+                method = getattr(CustomValidation, custom_name)
+                pfunc = partial(method, valid=valid, on_exception=False)
+                return pfunc
+            else:
+                match2_ = re.match(vpat2_, data_, flags=re.VERBOSE)
+                if match2_:
+                    op = match2_.group('op')
+                    other = match2_.group('other')
+                    pfunc = partial(
+                        OpValidation.compare_number,
+                        op=op, other=other, on_exception=False
+                    )
+                    return pfunc
+                else:
+                    match3_ = re.match(vpat3_, data_, flags=re.VERBOSE)
+                    if match3_:
+                        op = match3_.group('op')
+                        other = match3_.group('other')
+                        pfunc = partial(
+                            OpValidation.compare,
+                            op=op, other=other, on_exception=False
+                        )
+                        return pfunc
+                    else:
+                        pattern_ = '^{}$'.format(re.escape(text_))
+                        return pattern_
+
         pat = r'_i?(text|wildcard|regex)[(].+[)]'
 
         if not re.search(pat, text):
-            pattern = '^{}$'.format(re.escape(text))
-            return pattern
+            result = parse_other_(text)
+            return result
         lst = []
         start = 0
         is_ignorecase = False
@@ -465,11 +526,20 @@ class LookupCls:
             self.right = self.parse(lst[0])
 
     def is_left_matched(self, data):
+        if not isinstance(data, str):
+            return False
         result = re.search(self.left, data)
         return bool(result)
 
     def is_right_matched(self, data):
         if not self.right:
             return True
-        result = re.search(self.right, data)
-        return bool(result)
+        else:
+            if callable(self.right):
+                result = self.right(data)
+                return result
+            else:
+                if not isinstance(data, str):
+                    return False
+                result = re.search(self.right, data)
+                return bool(result)
