@@ -27,7 +27,7 @@ class DLQuery:
         keys() -> dict_keys or odict_keys
         values() -> dict_values or odict_values
         items() -> dict_items or odict_items
-        get(index, default=None) -> anything
+        get(index, default=None) -> Any
 
     Exception:
         TypeError
@@ -119,11 +119,11 @@ class DLQuery:
 
         Parameters:
             index (int, str): a index of list or a key of dictionary.
-            default (anything): a default value if no element in list or
+            default (Any): a default value if no element in list or
                     in dictionary is found.
             on_exception (bool): raise Exception if it is True.  Default is False.
         Return:
-            anything: any value from DLQuery.data
+            Any: any value from DLQuery.data
         """
         try:
             if self.is_list:

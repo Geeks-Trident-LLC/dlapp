@@ -24,8 +24,8 @@ class List(list):
 
     Properties:
         is_empty (boolean): a check point to tell an empty list or not.
-        first (anything): return a first element of a list
-        last (anything): return a last element of a list
+        first (Any): return a first element of a list
+        last (Any): return a last element of a list
         total (int): total element in list
 
     Exception:
@@ -65,7 +65,7 @@ class Result:
     """The Result Class to store data.
 
     Attributes:
-        data (anything): the data.
+        data (Any): the data.
         parent (Result): keyword arguments.
 
     Properties:
@@ -294,12 +294,12 @@ class ObjectDict(dict):
         when the value is the dict instance.
 
         Parameters:
-            value (anything): The value to recursively build a ObjectDict
+            value (Any): The value to recursively build a ObjectDict
                     instance when value is the dict instance.
             forward (boolean): set flag to convert dict instance to ObjectDict
                     instance or vice versa.  Default is True.
         Returns:
-            anything: the value or a new value.
+            Any: the value or a new value.
         """
         if isinstance(value, (dict, list, set, tuple)):
             if isinstance(value, ObjectDict):

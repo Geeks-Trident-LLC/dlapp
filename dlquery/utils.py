@@ -85,7 +85,7 @@ def convert_wildcard_to_regex(pattern, closed=False):
 def foreach(data, choice='keys'):
     """"a set-like object providing a view on D's keys/values/items
     Parameters:
-        data (anything): data
+        data (Any): data
         choice (str): keys|values|items.  Default is keys.
     Return:
         dict_keys or odict_keys if choice is keys
