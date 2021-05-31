@@ -414,7 +414,7 @@ class CustomValidation:
         Return:
             boolean: True if iface_name is a FastEthernet interface, otherwise, False.
         """
-        pattern = r'\fa(stethernet)?'
+        pattern = r'fa(stethernet)?'
         result = validate_interface(iface_name, pattern=pattern)
         return result
 
