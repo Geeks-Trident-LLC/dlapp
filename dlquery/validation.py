@@ -298,20 +298,20 @@ class CustomValidation:
                 return True
         return False
 
-    @classmethod
-    @false_on_exception_for_classmethod
-    def is_network_interface(cls, iface_name, valid=True, on_exception=True):
-        """Verify a provided data is a network interface.
-        Parameters:
-            iface_name (str): a network interface
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if iface_name is a network interface, otherwise, False.
-        """
-        pattern = r'[a-z]+(-[a-z0-9]+)?'
-        result = validate_interface(iface_name, pattern=pattern)
-        return result
+    # @classmethod
+    # @false_on_exception_for_classmethod
+    # def is_network_interface(cls, iface_name, valid=True, on_exception=True):
+    #     """Verify a provided data is a network interface.
+    #     Parameters:
+    #         iface_name (str): a network interface
+    #         valid (bool): check for a valid result.  Default is True.
+    #         on_exception (bool): raise Exception if it is True, otherwise, return None.
+    #     Return:
+    #         boolean: True if iface_name is a network interface, otherwise, False.
+    #     """
+    #     pattern = r'[a-z]+(-?[a-z0-9]+)?'
+    #     result = validate_interface(iface_name, pattern=pattern)
+    #     return result
 
     @classmethod
     @false_on_exception_for_classmethod
