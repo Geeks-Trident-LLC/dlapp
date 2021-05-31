@@ -6,7 +6,7 @@ import re
 from functools import partial
 from dlquery.argumenthelper import validate_argument_type
 from dlquery import utils
-# from dlquery.parser import SelectParser
+from dlquery.parser import SelectParser
 from dlquery.validation import OpValidation
 from dlquery.validation import CustomValidation
 
@@ -172,30 +172,88 @@ class Element(Result):
         """Return True if an element is a scalar type."""
         return isinstance(self.data, (int, float, bool, str, None))
 
-    def find_(self, node, lookup, result, select=''):
-        """recursively search a lookup
+    @property
+    def is_list(self):
+        """Return True if an element is a list type."""
+        return self.type == 'list'
+
+    @property
+    def is_dict(self):
+        """Return True if an element is a list type."""
+        return self.type == 'dict'
+
+    def filter_result(self, records, select_statement):
+        """Filter a list of records based on select statement
         Parameters:
-            node (anything): a search node.
-            lookup (str): a lookup text.
-            result (List): a found result.
-            select (str): a select statement.
+            records (List): a list of record.
+            select_statement (str): a select statement.
+        Return:
+            List: list of filtered records.
         """
-        raise NotImplementedError('TODO - Need to implement Element.find_')
+        result = List()
+        select_obj = SelectParser(select_statement)
+        select_obj.parse_statement()
+
+        if callable(select_obj.predicate):
+            lst = List()
+            for record in records:
+                is_found = select_obj.predicate(record.parent.data)
+                if is_found:
+                    lst.append(record)
+        else:
+            lst = records[:]
+
+        if select_obj.is_zero_select:
+            for item in lst:
+                result.append(item.data)
+        elif select_obj.is_all_select:
+            for item in lst:
+                result.append(item.parent.data)
+        else:
+            for item in lst:
+                new_data = item.parent.data.fromkeys(select_obj.columns)
+                is_added = True
+                for key in new_data:
+                    is_added &= key in item.parent.data
+                    new_data[key] = item.parent.data.get(key, None)
+                is_added and result.append(new_data)
+        return result
+
+    def find_(self, node, lookup_obj, result):
+        """Recursively search a lookup and store a found record to result
+        Parameters:
+            node (Element): a Element instance.
+            lookup_obj (LookupCls): a LookupCls instance.
+            result (List): a found result.
+        """
+        if node.is_dict or node.is_list:
+            for child in node.children:
+                if node.is_list:
+                    if child.is_element:
+                        self.find_(child, lookup_obj, result)
+                else:
+                    if lookup_obj.is_left_matched(child.index):
+                        if lookup_obj.is_right:
+                            if lookup_obj.is_right_matched(child.data):
+                                result.append(child)
+                        else:
+                            result.append(child)
+                    if child.is_element:
+                        self.find_(child, lookup_obj, result)
 
     def find(self, lookup, select=''):
         """recursively search a lookup.
         Parameter:
             lookup (str): a search pattern.
             select (str): a select statement.
-
         Return:
             List: list of record
         """
-        # lookup = re.sub(r'([*?])', r'.\1', lookup)
-        # lookup = lookup.replace('[!', '[^')
-        # lookup+= r'\s*$'
-        # items = re.split(' +', lookup.strip())
-        raise NotImplementedError('TODO - Need to implement Element.find')
+        records = List()
+        lkup_obj = LookupCls(lookup)
+        self.find_(self, lkup_obj, records)
+        result = self.filter_result(records, select)
+        return result
 
 
 class ObjectDict(dict):
