@@ -139,3 +139,20 @@ def test_foreach_function(data, choice, expected_result):
     obj = utils.foreach(data, choice=choice)
     result = list(obj)
     assert result == expected_result
+
+@pytest.mark.parametrize(
+    "data,expected_result",
+    [
+        (1.1, True),
+        (.1, True),
+        (5, True),
+        ('1.1', True),
+        (' .1', True),
+        (' 5 ', True),
+        ('1.1.1', False),
+        ('ab', False)
+    ]
+)
+def test_is_number_function(data, expected_result):
+    result = utils.is_number(data)
+    assert result == expected_result
