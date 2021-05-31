@@ -218,9 +218,9 @@ class TestLookupCls:
         ]
     )
     def test_lookup_text(self, lookup, expected_left, expected_right):
-        obj = LookupCls(lookup)
-        assert obj.left == expected_left
-        assert obj.right == expected_right
+        lkup_obj = LookupCls(lookup)
+        assert lkup_obj.left == expected_left
+        assert lkup_obj.right == expected_right
 
     @pytest.mark.parametrize(
         "lookup,left_data,right_data",
@@ -290,26 +290,26 @@ class TestLookupCls:
         ]
     )
     def test_lookup_text_and_verify(self, lookup, left_data, right_data):
-        obj = LookupCls(lookup)
+        lkup_obj = LookupCls(lookup)
         left_matched_data, left_unmatched_data = left_data
 
         for data in left_matched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is True
 
         for data in left_unmatched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is False
 
         right_matched_data, right_unmatched_data = right_data
         for data in right_matched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is True
 
         for data in right_unmatched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is False
 
     @pytest.mark.parametrize(
@@ -348,9 +348,9 @@ class TestLookupCls:
         ]
     )
     def test_lookup_wildcard(self, lookup, expected_left, expected_right):
-        obj = LookupCls(lookup)
-        assert obj.left == expected_left
-        assert obj.right == expected_right
+        lkup_obj = LookupCls(lookup)
+        assert lkup_obj.left == expected_left
+        assert lkup_obj.right == expected_right
 
     @pytest.mark.parametrize(
         "lookup,left_data,right_data",
@@ -451,26 +451,26 @@ class TestLookupCls:
         ]
     )
     def test_lookup_wildcard_and_verify(self, lookup, left_data, right_data):
-        obj = LookupCls(lookup)
+        lkup_obj = LookupCls(lookup)
         left_matched_data, left_unmatched_data = left_data
 
         for data in left_matched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is True
 
         for data in left_unmatched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is False
 
         right_matched_data, right_unmatched_data = right_data
         for data in right_matched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is True
 
         for data in right_unmatched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is False
 
     @pytest.mark.parametrize(
@@ -499,9 +499,9 @@ class TestLookupCls:
         ]
     )
     def test_lookup_regex(self, lookup, expected_left, expected_right):
-        obj = LookupCls(lookup)
-        assert obj.left == expected_left
-        assert obj.right == expected_right
+        lkup_obj = LookupCls(lookup)
+        assert lkup_obj.left == expected_left
+        assert lkup_obj.right == expected_right
 
     @pytest.mark.parametrize(
         "lookup,left_data,right_data",
@@ -554,26 +554,26 @@ class TestLookupCls:
         ]
     )
     def test_lookup_regex_and_verify(self, lookup, left_data, right_data):
-        obj = LookupCls(lookup)
+        lkup_obj = LookupCls(lookup)
         left_matched_data, left_unmatched_data = left_data
 
         for data in left_matched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is True
 
         for data in left_unmatched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is False
 
         right_matched_data, right_unmatched_data = right_data
         for data in right_matched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is True
 
         for data in right_unmatched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is False
 
     @pytest.mark.parametrize(
