@@ -462,3 +462,19 @@ class CustomValidation:
             return value is True
         value = str(value)
         return value.lower() == 'true'
+
+    @classmethod
+    @false_on_exception_for_classmethod
+    def is_false(cls, value, valid=True, on_exception=True):
+        """Verify a provided data is False.
+        Parameters:
+            value (bool or str): a boolean or string data.
+            valid (bool): check for a valid result.  Default is True.
+            on_exception (bool): raise Exception if it is True, otherwise, return None.
+        Return:
+            boolean: True if value is a False boolean, otherwise, False.
+        """
+        if isinstance(value, bool):
+            return value is False
+        value = str(value)
+        return value.lower() == 'false'
