@@ -106,3 +106,12 @@ def foreach(data, choice='keys'):
         return node.values()
     else:
         return node.items()
+
+
+def is_number(value):
+    """Return True if value is a number"""
+    try:
+        float(value)
+        return True
+    except Exception as ex:         # noqa
+        return False
