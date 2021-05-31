@@ -4,6 +4,7 @@ import re
 import logging
 from functools import partial
 from dlquery.predicate import Predicate
+from dlquery.utils import is_number
 
 
 logger = logging.getLogger(__file__)
@@ -12,9 +13,17 @@ logger = logging.getLogger(__file__)
 class SelectParser:
     def __init__(self, select_statement):
         self.select_statement = select_statement
-        self.select_items = []
+        self.columns = [None]
         self.predicate = None
         self.logger = logger
+
+    @property
+    def is_zero_select(self):
+        return self.columns == [None]
+
+    @property
+    def is_all_select(self):
+        return self.columns == []
 
     def get_predicate(self, expression):
         key, op, value = [i.strip() for i in re.split(r' +', expression, maxsplit=2)]
@@ -29,7 +38,8 @@ class SelectParser:
         elif op in ['lt', 'le', 'gt', 'ge']:
             func = partial(Predicate.compare_number, key=key, op=op, other=value)
         elif op in ['eq', 'ne']:
-            func = partial(Predicate.compare, key=key, op=op, other=value)
+            cfunc = Predicate.compare_number if is_number(value) else Predicate.compare
+            func = partial(cfunc, key=key, op=op, other=value)
         elif op == 'match':
             func = partial(Predicate.match, key=key, pattern=value)
         elif op in ['not_match', 'notmatch']:
@@ -98,18 +108,29 @@ class SelectParser:
             return self.get_predicate(expressions)
 
     def parse_statement(self):
-        if self.select_statement == '':
+        statement = self.select_statement
+
+        if statement == '':
             return
 
-        select, expressions = re.split(
-            ' where ', self.select_statement,
-            maxsplit=1, flags=re.I
-        )
-        select, expressions = select.strip(), expressions.strip()
-        select = re.sub('^select +', '', select, flags=re.I)
+        if ' where ' in statement.lower():
+            select, expressions = re.split(
+                ' +where +', statement, maxsplit=1, flags=re.I
+            )
+            select, expressions = select.strip(), expressions.strip()
+            select = re.sub('^select +', '', select, flags=re.I)
+        elif self.select_statement.lower().startswith('where'):
+            select = None
+            expressions = re.sub('^where +', '', statement, flags=re.I)
+        else:
+            select = re.sub('^select +', '', statement, flags=re.I)
+            expressions = None
 
-        if select and select != '*':
-            self.select_items = re.split('[ ,]+', select.strip(), flags=re.I)
+        if select:
+            if select in ['*', '__ALL__']:
+                self.columns = []
+            else:
+                self.columns = re.split('[ ,]+', select.strip(), flags=re.I)
 
         if expressions:
             self.predicate = self.build_predicate(expressions)
