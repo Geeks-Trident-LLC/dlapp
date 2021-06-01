@@ -58,7 +58,7 @@ def validate_argument_choice(**kwargs):
     for name, value in kwargs.items():
         try:
             argument, choices = value
-        except Exception as ex:
+        except Exception as ex:     # noqa
             msg = 'Invalid argument for verifying validate_argument_choice'
             raise ArgumentError(msg)
 
@@ -71,4 +71,30 @@ def validate_argument_choice(**kwargs):
         if argument not in choices:
             fmt = '{} argument must be a choice of {}.'
             raise ArgumentValidationError(fmt.format(name, choices))
+    return True
+
+
+def validate_argument_is_not_empty(**kwargs):
+    """Validate function/method argument is/are not empty.
+
+    Parameters:
+        kwargs (dict): list of argument and its value
+
+    Return:
+        bool: True if argument(s) is/are not empty..
+
+    Exception:
+        ArgumentValidationError
+    """
+    empty_args = []
+    for name, value in kwargs.items():
+        if not value:
+            empty_args.append(name)
+
+    if empty_args:
+        if len(empty_args) == 1:
+            msg = 'a {} argument CANNOT be empty.'.format(empty_args[0])
+        else:
+            msg = '({}) arguments CANNOT be empty.'.format(', '.join(empty_args))
+        raise ArgumentValidationError(msg)
     return True
