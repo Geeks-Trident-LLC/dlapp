@@ -335,3 +335,172 @@ class TestDLQuery:
 
         with pytest.raises(TypeError):
             data_list_obj.get('0:3:1:', default=default, on_exception=True)
+
+
+@pytest.fixture
+def another_dict_data():
+    obj = {
+        "widget": {
+            "debug": "on",
+            "window": {
+                "title": "ABC Widget",
+                "name": "window abc",
+                "width": 500,
+                "height": 500
+            },
+            "image": {
+                "src": "Images/abc.png",
+                "name": "image abc",
+                "width": 100,
+                "height": 100,
+                "alignment": "center"
+            },
+            "text": {
+                "data": "Click ABC",
+                "size": 36,
+                "style": "bold",
+                "name": "text abc",
+                "width": 300,
+                "height": 20,
+                "alignment": "center",
+            }
+        }
+    }
+    return obj
+
+
+@pytest.fixture
+def another_list_data():
+    obj = [
+        {
+            "widget": {
+                "debug": "on",
+                "window": {
+                    "title": "ABC Widget",
+                    "name": "window abc",
+                    "width": 500,
+                    "height": 500
+                },
+                "image": {
+                    "src": "Images/abc.png",
+                    "name": "image abc",
+                    "width": 100,
+                    "height": 100,
+                    "alignment": "center"
+                },
+                "text": {
+                    "data": "Click ABC",
+                    "size": 36,
+                    "style": "bold",
+                    "name": "text abc",
+                    "width": 300,
+                    "height": 20,
+                    "alignment": "center",
+                }
+            }
+        },
+        {
+            "widget": {
+                "debug": "off",
+                "window": {
+                    "title": "XYZ Widget",
+                    "name": "window xyz",
+                    "width": 599,
+                    "height": 599
+                },
+                "image": {
+                    "src": "Images/xyz.png",
+                    "name": "image xyz",
+                    "width": 199,
+                    "height": 199,
+                    "alignment": "right"
+                },
+                "text": {
+                    "data": "Click XYZ",
+                    "size": 96,
+                    "style": "normal",
+                    "name": "text abc",
+                    "width": 399,
+                    "height": 29,
+                    "alignment": "left",
+                }
+            }
+        }
+    ]
+    return obj
+
+
+class TestQueryingDLQuery:
+    @pytest.mark.parametrize(
+        "lookup,select_statement,expected_result",
+        [
+            ('name=_iwildcard(*abc*)', 'src', [{'src': 'Images/abc.png'}]),
+            ('alignment=center', 'name where width eq 300', [{'name': 'text abc'}]),
+            ('alignment', 'name where width eq 300 and_ data match (?i).+ abc', [{'name': 'text abc'}])
+        ]
+    )
+    def test_find_a_lookup_and_validate_dict_obj(
+        self, another_dict_data, lookup, select_statement, expected_result
+    ):
+        dl_obj = DLQuery(another_dict_data)
+        result = dl_obj.find(lookup=lookup, select=select_statement)
+        assert result == expected_result
+
+    @pytest.mark.parametrize(
+        "lookup,select_statement,expected_result",
+        [
+            (
+                'debug=off',            # lookup
+                'window',               # select statement
+                [                       # expected_result
+                    {
+                        "window": {
+                            "title": "XYZ Widget",
+                            "name": "window xyz",
+                            "width": 599,
+                            "height": 599
+                        }
+                    }
+
+                ]
+            ),
+            (
+                'name',
+                'select name, width, height where height le 500',
+                [
+                    {"name": "window abc", "width": 500, "height": 500},
+                    {"name": "image abc", "width": 100, "height": 100},
+                    {"name": "text abc", "width": 300, "height": 20},
+                    {"name": "image xyz", "width": 199, "height": 199},
+                    {"name": "text abc", "width": 399, "height": 29}
+                ]
+            )
+        ]
+    )
+    def test_find_a_lookup_and_validate_list_obj(
+        self, another_list_data, lookup, select_statement, expected_result
+    ):
+        dl_obj = DLQuery(another_list_data)
+        result = dl_obj.find(lookup=lookup, select=select_statement)
+        assert result == expected_result
+
+    @pytest.mark.parametrize(
+        "lookup_a,select_a,lookup_b,select_b,expected_result",
+        [
+            (
+                'name',                                             # lookup1
+                'select name, width, height where height le 500',   # select1
+                'name=_iwildcard(*xyz)',                            # lookup2
+                '',                                                 # select2
+                ["image xyz"]               # expected_result
+            )
+        ]
+    )
+    def test_find_double_querying(
+        self, another_list_data, lookup_a, select_a,
+        lookup_b, select_b, expected_result
+    ):
+        dl_obj = DLQuery(another_list_data)
+        result_a = dl_obj.find(lookup=lookup_a, select=select_a)
+        result_b = dl_obj.find(node=result_a, lookup=lookup_b, select=select_b)
+        assert result_b == expected_result
