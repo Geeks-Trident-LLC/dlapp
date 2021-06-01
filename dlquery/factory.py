@@ -9,7 +9,7 @@ from dlquery import DLQuery
 def create_from_json_file(filename, **kwargs):
     """Create a dlquery instance from JSON filename.
     Parameters:
-        filename (string): JSON filename.
+        filename (str): JSON filename.
         kwargs (dict): keyword arguments which would use for JSON instantiation.
     """
     from io import IOBase
@@ -26,7 +26,7 @@ def create_from_json_file(filename, **kwargs):
 def create_from_json_data(data, **kwargs):
     """Create a dlquery instance from JSON data.
     Parameters:
-        data (string): JSON data in string format.
+        data (str): JSON data in string format.
         kwargs (dict): keyword arguments which would use for JSON instantiation.
     Return:
         DLQuery: a DLQuery instance.
@@ -39,7 +39,7 @@ def create_from_json_data(data, **kwargs):
 def create_from_yaml_file(filename, loader=yaml.SafeLoader):
     """Create a dlquery instance from YAML file.
     Parameters:
-        filename (string): a YAML file.
+        filename (str): a YAML file.
         loader (yaml.loader.Loader): a YAML loader.
     Return:
         DLQuery: a DLQuery instance.
@@ -53,7 +53,7 @@ def create_from_yaml_file(filename, loader=yaml.SafeLoader):
 def create_from_yaml_data(data, loader=yaml.SafeLoader):
     """Create a dlquery instance from YAML data.
     Parameters:
-        data (string): a YAML data in string format.
+        data (str): a YAML data in string format.
         loader (yaml.loader.Loader): a YAML loader.
     Return:
         DLQuery: a DLQuery instance.
