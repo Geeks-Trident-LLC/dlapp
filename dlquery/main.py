@@ -25,7 +25,38 @@ def show_tutorial_yaml():
     raise NotImplementedError(msg)
 
 
+def run_tutorial(options):
+    """Run a selection dlquery console CLI tutorial.
+
+    Parameters
+    ----------
+    options (argparse.Namespace): a argparse.Namespace instance.
+
+    Returns
+    -------
+    None: will call ``sys.exit(0)`` if end user requests a tutorial
+    """
+    is_need_tutorial = options.tutorial
+    is_need_tutorial |= options.tutorial_csv
+    is_need_tutorial |= options.tutorial_json
+    is_need_tutorial |= options.tutorial_yaml
+
+    if not is_need_tutorial:
+        return None
+
+    if options.tutorial:
+        show_tutorial_dlquery()
+    if options.tutorial_csv:
+        show_tutorial_csv()
+    if options.tutorial_json:
+        show_tutorial_json()
+    if options.tutorial_yaml:
+        show_tutorial_yaml()
+    sys.exit(0)
+
+
 class Cli:
+    """dlquery console CLI application."""
     def __init__(self):
         self.filename = ''
         self.filetype = ''
@@ -104,7 +135,7 @@ class Cli:
         return self.filetype in ['yml', 'yaml']
 
     def validate_filename(self, options):
-        """Validate `filename` flag which is a file type of `csv`,
+        """Validate `options.filename` flag which is a file type of `csv`,
         `json`, `yml`, or `yaml`
 
         Parameters
@@ -113,7 +144,7 @@ class Cli:
 
         Returns
         -------
-        bool: True if `filename` is valid, otherwise, ``sys.exit(1)``
+        bool: True if `options.filename` is valid, otherwise, ``sys.exit(1)``
         """
         filename, filetype = str(options.filename), str(options.filetype)
         if not filename:
@@ -156,16 +187,7 @@ class Cli:
             self.parser.print_help()
             sys.exit(1)
 
-        if options.tutorial or options.tutorial_csv or options.tutorial_json or options.tutorial_yaml:
-            if options.tutorial:
-                show_tutorial_dlquery()
-            if options.tutorial_csv:
-                show_tutorial_csv()
-            if options.tutorial_json:
-                show_tutorial_json()
-            if options.tutorial_yaml:
-                show_tutorial_yaml()
-            sys.exit(0)
+        run_tutorial(options)
 
         self.validate_filename(options)
 
