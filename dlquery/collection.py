@@ -29,8 +29,21 @@ class List(list):
         total (int): total element in list
 
     Exception:
-        ListError
+        ListIndexError
     """
+    def __getattribute__(self, attr):
+        match = re.match(r'index(?P<index>_?[0-9]+)$', attr)
+        if match:
+            index = match.group('index').replace('_', '-')
+            try:
+                value = self[int(index)]
+                return value
+            except Exception as ex:
+                raise ListIndexError(str(ex))
+        else:
+            value = super().__getattribute__(attr)
+            return value
+
     @property
     def is_empty(self):
         """Check an empty list."""
