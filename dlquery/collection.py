@@ -348,7 +348,7 @@ class ObjectDict(dict):
     def create_from_json_file(cls, filename, **kwargs):
         """Create a ObjectDict instance from JSON file.
         Parameters:
-            filename (string): YAML file.
+            filename (str): YAML file.
             kwargs (dict): the keyword arguments.
         """
         from io import IOBase
@@ -371,7 +371,7 @@ class ObjectDict(dict):
     def create_from_yaml_file(cls, filename, loader=yaml.SafeLoader):
         """Create a ObjectDict instance from YAML file.
         Parameters:
-            filename (string): YAML file.
+            filename (str): YAML file.
             loader (yaml.loader.Loader): YAML loader.
         """
         from io import IOBase
@@ -388,7 +388,7 @@ class ObjectDict(dict):
     def create_from_yaml_data(cls, data, loader=yaml.SafeLoader):
         """Create a ObjectDict instance from YAML data.
         Parameters:
-            data (string): YAML data.
+            data (str): YAML data.
             loader (yaml.loader.Loader): YAML loader.
         """
         obj = yaml.load(data, Loader=loader)
