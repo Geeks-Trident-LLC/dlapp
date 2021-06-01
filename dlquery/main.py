@@ -134,6 +134,27 @@ class Cli:
         """Return True if filetype is yml or yaml"""
         return self.filetype in ['yml', 'yaml']
 
+    def validate_cli_flags(self, options):
+        """Validate argparse `options`
+
+        Parameters
+        ----------
+        options (argparse.Namespace): a argparse.Namespace instance.
+
+        Returns
+        -------
+        bool: show ``self.parser.print_help()`` and call ``sys.exit(1)`` if
+        all flags are empty or False, otherwise, return True
+        """
+
+        chk = any(bool(i) for i in vars(options).values())
+
+        if not chk:
+            self.parser.print_help()
+            sys.exit(1)
+
+        return True
+
     def validate_filename(self, options):
         """Validate `options.filename` flag which is a file type of `csv`,
         `json`, `yml`, or `yaml`
@@ -168,9 +189,9 @@ class Cli:
                        'where filetype is csv, json, yml, or yaml.')
 
             else:
-                fmt = ('*** {} file has an extension but it is not '
-                       'csv, json, yml, or yaml.  If you think this file is'
-                       'csv, json, yml, or yaml, '
+                fmt = ('*** {} file has an extension but its extension is not '
+                       'csv, json, yml, or yaml.  If you think this file is '
+                       'csv, json, yml, or yaml file, '
                        'please rerun with --filetype=<filetype> '
                        'where filetype is csv, json, yml, or yaml.')
             print(fmt.format(filename))
@@ -181,14 +202,8 @@ class Cli:
     def run(self):
         """Take CLI arguments, parse it, and process."""
         options = self.parser.parse_args()
-        chk = any(bool(i) for i in vars(options).values())
-
-        if not chk:
-            self.parser.print_help()
-            sys.exit(1)
-
         run_tutorial(options)
-
+        self.validate_cli_flags(options)
         self.validate_filename(options)
 
 
