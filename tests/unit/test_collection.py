@@ -2,6 +2,8 @@ import pytest
 
 from dlquery.collection import Element
 from dlquery.collection import LookupCls
+from dlquery.collection import List
+from dlquery.collection import ListIndexError
 
 
 @pytest.fixture
@@ -645,3 +647,52 @@ class TestLookupCls:
         lkup_obj = LookupCls(lookup)
         result = lkup_obj.is_right_matched(data)
         assert result == expected_result
+
+
+class TestList:
+    def test_list_attribute(self):
+        lst_obj = List([5, 9.2, 3.5, 6.2, 7.9, 11])
+
+        assert lst_obj.index0 == 5
+        assert lst_obj.index1 == 9.2
+        assert lst_obj.index2 == 3.5
+        assert lst_obj.index3 == 6.2
+        assert lst_obj.index4 == 7.9
+        assert lst_obj.index5 == 11
+
+        assert lst_obj.index_1 == 11
+        assert lst_obj.index_2 == 7.9
+        assert lst_obj.index_3 == 6.2
+        assert lst_obj.index_4 == 3.5
+        assert lst_obj.index_5 == 9.2
+        assert lst_obj.index_6 == 5
+
+        with pytest.raises(ListIndexError):
+            lst_obj.index6
+
+        with pytest.raises(ListIndexError):
+            lst_obj.index_7
+
+        lst_obj = List()
+
+        with pytest.raises(ListIndexError):
+            lst_obj.index0
+
+        with pytest.raises(ListIndexError):
+            lst_obj.index_1
+
+    def test_list_property(self):
+        lst_obj = List([5, 9.2, 11])
+
+        assert lst_obj.first == 5
+        assert lst_obj.last == 11
+        assert lst_obj.total == 3
+        assert lst_obj.is_empty is False
+
+        lst_obj = List()
+
+        with pytest.raises(ListIndexError):
+            lst_obj.first
+
+        with pytest.raises(ListIndexError):
+            lst_obj.last
