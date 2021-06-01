@@ -3,6 +3,7 @@
 import sys
 import argparse
 from os import path
+from dlquery.application import Application
 
 
 def show_tutorial_dlquery():
@@ -53,6 +54,24 @@ def run_tutorial(options):
     if options.tutorial_yaml:
         show_tutorial_yaml()
     sys.exit(0)
+
+
+def run_gui_application(options):
+    """Run dlquery GUI application.
+
+    Parameters
+    ----------
+    options (argparse.Namespace): a argparse.Namespace instance.
+
+    Returns
+    -------
+    None: will invoke ``dlquery.Application().run()`` and ``sys.exit(0)``
+    if end user requests `--application`
+    """
+    if options.application:
+        app = Application()
+        app.run()
+        sys.exit(0)
 
 
 class Cli:
@@ -203,6 +222,7 @@ class Cli:
         """Take CLI arguments, parse it, and process."""
         options = self.parser.parse_args()
         run_tutorial(options)
+        run_gui_application(options)
         self.validate_cli_flags(options)
         self.validate_filename(options)
 
