@@ -3,6 +3,8 @@ import re
 import operator
 from dlquery import utils
 from dlquery.argumenthelper import validate_argument_type
+from dlquery.argumenthelper import validate_argument_is_not_empty
+from dlquery.collection import Element
 
 
 class DLQueryError(Exception):
@@ -28,6 +30,7 @@ class DLQuery:
         values() -> dict_values or odict_values
         items() -> dict_items or odict_items
         get(index, default=None) -> Any
+        find(node=None, lookup='', select='') -> List
 
     Exception:
         TypeError
@@ -184,3 +187,21 @@ class DLQuery:
                 raise ex
             else:
                 return default
+
+    def find(self, node=None, lookup='', select=''):
+        """recursively search a lookup.
+        Parameters:
+            node (dict, list): a dict, dict-like, list, or list-like instance.
+            lookup (str): a search pattern.
+            select (str): a select statement.
+        Return:
+            List: list of Any.
+        """
+        node = node or self.data
+        lookup = str(lookup).strip()
+        validate_argument_is_not_empty(lookup=lookup)
+        validate_argument_type(list, tuple, dict, node=node)
+
+        elm_obj = Element(node)
+        records = elm_obj.find(lookup, select=select)
+        return records
