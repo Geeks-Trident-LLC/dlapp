@@ -37,22 +37,18 @@ def run_tutorial(options):
     -------
     None: will call ``sys.exit(0)`` if end user requests a tutorial
     """
-    is_need_tutorial = options.tutorial
-    is_need_tutorial |= options.tutorial_csv
-    is_need_tutorial |= options.tutorial_json
-    is_need_tutorial |= options.tutorial_yaml
+    is_tutorial_needed = options.tutorial
+    is_tutorial_needed |= options.tutorial_csv
+    is_tutorial_needed |= options.tutorial_json
+    is_tutorial_needed |= options.tutorial_yaml
 
-    if not is_need_tutorial:
+    if not is_tutorial_needed:
         return None
 
-    if options.tutorial:
-        show_tutorial_dlquery()
-    if options.tutorial_csv:
-        show_tutorial_csv()
-    if options.tutorial_json:
-        show_tutorial_json()
-    if options.tutorial_yaml:
-        show_tutorial_yaml()
+    options.tutorial and show_tutorial_dlquery()
+    options.tutorial_csv and show_tutorial_csv()
+    options.tutorial_json and show_tutorial_json()
+    options.tutorial_yaml and show_tutorial_yaml()
     sys.exit(0)
 
 
