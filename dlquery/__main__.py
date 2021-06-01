@@ -1,5 +1,5 @@
 
-from dlquery.main import Application
+from dlquery.main import Cli
 
-app = Application()
-app.run()
+console = Cli()
+console.run()
