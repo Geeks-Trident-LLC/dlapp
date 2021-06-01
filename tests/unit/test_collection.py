@@ -4,29 +4,171 @@ from dlquery.collection import Element
 from dlquery.collection import LookupCls
 
 
+@pytest.fixture
+def dict_data():
+    obj = {
+        "widget": {
+            "debug": "on",
+            "window": {
+                "title": "ABC Widget",
+                "name": "window abc",
+                "width": 500,
+                "height": 500
+            },
+            "image": {
+                "src": "Images/abc.png",
+                "name": "image abc",
+                "width": 100,
+                "height": 100,
+                "alignment": "center"
+            },
+            "text": {
+                "data": "Click ABC",
+                "size": 36,
+                "style": "bold",
+                "name": "text abc",
+                "width": 300,
+                "height": 20,
+                "alignment": "center",
+            }
+        }
+    }
+    return obj
+
+
+@pytest.fixture
+def list_data():
+    obj = [
+        {
+            "widget": {
+                "debug": "on",
+                "window": {
+                    "title": "ABC Widget",
+                    "name": "window abc",
+                    "width": 500,
+                    "height": 500
+                },
+                "image": {
+                    "src": "Images/abc.png",
+                    "name": "image abc",
+                    "width": 100,
+                    "height": 100,
+                    "alignment": "center"
+                },
+                "text": {
+                    "data": "Click ABC",
+                    "size": 36,
+                    "style": "bold",
+                    "name": "text abc",
+                    "width": 300,
+                    "height": 20,
+                    "alignment": "center",
+                }
+            }
+        },
+        {
+            "widget": {
+                "debug": "off",
+                "window": {
+                    "title": "XYZ Widget",
+                    "name": "window xyz",
+                    "width": 599,
+                    "height": 599
+                },
+                "image": {
+                    "src": "Images/xyz.png",
+                    "name": "image xyz",
+                    "width": 199,
+                    "height": 199,
+                    "alignment": "right"
+                },
+                "text": {
+                    "data": "Click XYZ",
+                    "size": 96,
+                    "style": "normal",
+                    "name": "text abc",
+                    "width": 399,
+                    "height": 29,
+                    "alignment": "left",
+                }
+            }
+        }
+    ]
+    return obj
+
+
 class TestElement:
-    def test_case1(self):
-        data = dict(
-            level1a=dict(
-                level2a=dict(
-                    level3a='level1a-level2a-level3a',
-                    level3b='level1a-level2a-level3b'
-                ),
-                level2b=dict(
-                    level3a='level1a-level2b-level3a',
-                    level3b='level1a-level2b-level3b'
-                ),
-                level2c='level1a-level2c',
+    @pytest.mark.parametrize(
+        "lookup,select_statement,expected_result",
+        [
+            ('title', '', ['ABC Widget']),
+            ('width', '', [500, 100, 300]),
+            ('alignment', '', ['center', 'center']),
+        ]
+    )
+    def test_find_a_lookup(
+        self, dict_data, lookup, select_statement, expected_result
+    ):
+        elm = Element(dict_data)
+        result = elm.find(lookup, select=select_statement)
+        assert result == expected_result
+        assert result.first == result[0]
+        assert result.first == expected_result[0]
+        assert result.last == result[-1]
+        assert result.last == expected_result[-1]
+
+    @pytest.mark.parametrize(
+        "lookup,select_statement,expected_result",
+        [
+            ('name=_iwildcard(*abc*)', 'src', [{'src': 'Images/abc.png'}]),
+            ('alignment=center', 'name where width eq 300', [{'name': 'text abc'}]),
+            ('alignment', 'name where width eq 300 and_ data match (?i).+ abc', [{'name': 'text abc'}])
+        ]
+    )
+    def test_find_a_lookup_and_validate_dict_obj(
+        self, dict_data, lookup, select_statement, expected_result
+    ):
+        elm = Element(dict_data)
+        result = elm.find(lookup, select=select_statement)
+        assert result == expected_result
+
+    @pytest.mark.parametrize(
+        "lookup,select_statement,expected_result",
+        [
+            (
+                'debug=off',            # lookup
+                'window',               # select statement
+                [                       # expected_result
+                    {
+                        "window": {
+                            "title": "XYZ Widget",
+                            "name": "window xyz",
+                            "width": 599,
+                            "height": 599
+                        }
+                    }
+
+                ]
             ),
-            level1b=dict(
-                level2a='level1b-level2a',
-                level2b='level1b-level2b'
-            ),
-            level1c='level1c',
-        )
-        # import pdb; pdb.set_trace()
-        obj = Element(data)
-        print(obj.has_children)
+            (
+                'name',
+                'select name, width, height where height le 500',
+                [
+                    {"name": "window abc", "width": 500, "height": 500},
+                    {"name": "image abc", "width": 100, "height": 100},
+                    {"name": "text abc", "width": 300, "height": 20},
+                    {"name": "image xyz", "width": 199, "height": 199},
+                    {"name": "text abc", "width": 399, "height": 29}
+                ]
+            )
+        ]
+    )
+    def test_find_a_lookup_and_validate_dict_obj(
+        self, list_data, lookup, select_statement, expected_result
+    ):
+        elm = Element(list_data)
+        result = elm.find(lookup, select=select_statement)
+        assert result == expected_result
 
 
 class TestLookupCls:
@@ -76,9 +218,9 @@ class TestLookupCls:
         ]
     )
     def test_lookup_text(self, lookup, expected_left, expected_right):
-        obj = LookupCls(lookup)
-        assert obj.left == expected_left
-        assert obj.right == expected_right
+        lkup_obj = LookupCls(lookup)
+        assert lkup_obj.left == expected_left
+        assert lkup_obj.right == expected_right
 
     @pytest.mark.parametrize(
         "lookup,left_data,right_data",
@@ -148,26 +290,26 @@ class TestLookupCls:
         ]
     )
     def test_lookup_text_and_verify(self, lookup, left_data, right_data):
-        obj = LookupCls(lookup)
+        lkup_obj = LookupCls(lookup)
         left_matched_data, left_unmatched_data = left_data
 
         for data in left_matched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is True
 
         for data in left_unmatched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is False
 
         right_matched_data, right_unmatched_data = right_data
         for data in right_matched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is True
 
         for data in right_unmatched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is False
 
     @pytest.mark.parametrize(
@@ -206,9 +348,9 @@ class TestLookupCls:
         ]
     )
     def test_lookup_wildcard(self, lookup, expected_left, expected_right):
-        obj = LookupCls(lookup)
-        assert obj.left == expected_left
-        assert obj.right == expected_right
+        lkup_obj = LookupCls(lookup)
+        assert lkup_obj.left == expected_left
+        assert lkup_obj.right == expected_right
 
     @pytest.mark.parametrize(
         "lookup,left_data,right_data",
@@ -309,26 +451,26 @@ class TestLookupCls:
         ]
     )
     def test_lookup_wildcard_and_verify(self, lookup, left_data, right_data):
-        obj = LookupCls(lookup)
+        lkup_obj = LookupCls(lookup)
         left_matched_data, left_unmatched_data = left_data
 
         for data in left_matched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is True
 
         for data in left_unmatched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is False
 
         right_matched_data, right_unmatched_data = right_data
         for data in right_matched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is True
 
         for data in right_unmatched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is False
 
     @pytest.mark.parametrize(
@@ -357,9 +499,9 @@ class TestLookupCls:
         ]
     )
     def test_lookup_regex(self, lookup, expected_left, expected_right):
-        obj = LookupCls(lookup)
-        assert obj.left == expected_left
-        assert obj.right == expected_right
+        lkup_obj = LookupCls(lookup)
+        assert lkup_obj.left == expected_left
+        assert lkup_obj.right == expected_right
 
     @pytest.mark.parametrize(
         "lookup,left_data,right_data",
@@ -412,28 +554,27 @@ class TestLookupCls:
         ]
     )
     def test_lookup_regex_and_verify(self, lookup, left_data, right_data):
-        obj = LookupCls(lookup)
+        lkup_obj = LookupCls(lookup)
         left_matched_data, left_unmatched_data = left_data
 
         for data in left_matched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is True
 
         for data in left_unmatched_data:
-            is_match = obj.is_left_matched(data)
+            is_match = lkup_obj.is_left_matched(data)
             assert is_match is False
 
         right_matched_data, right_unmatched_data = right_data
         for data in right_matched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is True
 
         for data in right_unmatched_data:
-            if obj.is_right:
-                is_match = obj.is_right_matched(data)
+            if lkup_obj.is_right:
+                is_match = lkup_obj.is_right_matched(data)
                 assert is_match is False
-
 
     @pytest.mark.parametrize(
         "data,lookup,expected_result",
