@@ -2,7 +2,6 @@
 
 import sys
 import argparse
-from dlquery.acceptance import test_acceptance
 
 
 class Application:
@@ -11,11 +10,6 @@ class Application:
             prog='dlquery',
             usage='%(prog)s [options]',
             description='%(prog)s application.',
-        )
-
-        parser.add_argument(
-            '--test', action='store_true',
-            help='Executing dlquery acceptance test.'
         )
 
         parser.add_argument(
@@ -70,9 +64,6 @@ class Application:
         if not chk:
             self.parser.print_help()
             sys.exit(1)
-
-        if args.test:
-            test_acceptance()
 
         if not args.filename:
             print('*** --filename CAN NOT be empty.')
