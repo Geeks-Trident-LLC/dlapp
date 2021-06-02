@@ -14,8 +14,24 @@ class RegexConversionError(UtilsError):
 
 
 class Printer:
+    """A printer class.
+
+    Methods
+    Printer.print(data, header='', footer='', failure_msg='', print_func=None) -> None
+    Printer.print_tabular(data, **kwargs) -> None
+    """
     @classmethod
     def print(cls, data, header='', footer='', failure_msg='', print_func=None):
+        """Decorate data by organizing header, data, footer, and failure_msg
+
+        Parameters
+        ----------
+        data (str, list): a text or a list of text.
+        header (str): a header text.
+        footer (str): a footer text.
+        failure_msg (str): a failure message.
+        print_func (function): a print function.
+        """
         headers = str(header).splitlines()
         footers = str(footer).splitlines()
         data = data if isinstance(data, (list, tuple)) else [data]
@@ -43,19 +59,32 @@ class Printer:
             print_func(failure_msg)
 
     @classmethod
-    def print_tabular(cls, data):
-        pass
+    def print_tabular(cls, data, **kwargs):
+        """Print data in tabular format
+
+        Parameters
+        ----------
+        data (list): a list of dictionary.
+        kwargs (dict): keyword arguments.
+        """
+        msg = 'TODO: Need to implement Printer.print_tabular method'
+        raise NotImplementedError(msg)
 
 
 def convert_wildcard_to_regex(pattern, closed=False):
     """Convert a wildcard pattern to a regex pattern.
-    Parameters:
-        pattern (str): a wildcard pattern.
-        closed (bool): will prepend ^ symbol and append $ symbol to pattern
-                if set to True
-    Return:
-        str: a regular express pattern.
 
+    Parameters
+    ----------
+    pattern (str): a wildcard pattern.
+    closed (bool): will prepend ^ symbol and append $ symbol to pattern
+            if set to True
+    Returns
+    -------
+    str: a regular express pattern.
+
+    Notes
+    -----
     Wildcard support:
         ? (question mark): this can represent any single character.
         * (asterisk): this can represent any number of characters
@@ -84,13 +113,17 @@ def convert_wildcard_to_regex(pattern, closed=False):
 
 def foreach(data, choice='keys'):
     """"a set-like object providing a view on D's keys/values/items
-    Parameters:
-        data (Any): data
-        choice (str): keys|values|items.  Default is keys.
-    Return:
-        dict_keys or odict_keys if choice is keys
-        dict_values or odict_values if choice is values
-        dict_items or odict_items if choice is items
+
+    Parameters
+    ----------
+    data (Any): data
+    choice (str): keys|values|items.  Default is keys.
+
+    Returns
+    -------
+    dict_keys or odict_keys if choice is keys
+    dict_values or odict_values if choice is values
+    dict_items or odict_items if choice is items
     """
     if isinstance(data, dict):
         node = data
@@ -109,7 +142,16 @@ def foreach(data, choice='keys'):
 
 
 def is_number(value):
-    """Return True if value is a number"""
+    """Return True if value is a number
+
+    Parameters
+    ----------
+    value (str, int, float): a number.
+
+    Returns
+    -------
+    bool: True if value is a number, otherwise, False
+    """
     try:
         float(value)
         return True
