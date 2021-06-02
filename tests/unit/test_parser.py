@@ -6,7 +6,7 @@ from dlquery.parser import SelectParser
 @pytest.fixture
 def data():
     obj = {'a': 1.2, 'b': 3, 'c': 'abc xyz'}
-    return obj
+    yield obj
 
 
 class TestSelectParser:

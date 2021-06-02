@@ -37,50 +37,50 @@ class ExpectedResult:
 
 @pytest.fixture
 def expected_result():
-    return ExpectedResult()
+    yield ExpectedResult()
 
 
 @pytest.fixture
 def dict_data():
     obj = {'a': 'Apricot', 'b': 'Banana'}
-    return obj
+    yield obj
 
 
 @pytest.fixture
 def list_data(dict_data):
     obj = [2021, 'Hello dlquery', dict(dict_data)]
-    return obj
+    yield obj
 
 
 @pytest.fixture
 def dict_other_data():
     obj = {'a': 'Apricot', 'c': 'Cherry'}
-    return obj
+    yield obj
 
 
 @pytest.fixture
 def list_other_data(dict_other_data):
     obj = [2021, 'Hello python', dict(dict_other_data)]
-    return obj
+    yield obj
 
 
 @pytest.fixture
 def empty_dldata():
     empty_dict, empty_list = dict(), list()
     obj1, obj2 = DLQuery(empty_dict), DLQuery(empty_list)
-    return obj1, obj2
+    yield obj1, obj2
 
 
 @pytest.fixture
 def dldata(dict_data, list_data):
     obj1, obj2 = DLQuery(dict_data), DLQuery(list_data)
-    return obj1, obj2
+    yield obj1, obj2
 
 
 @pytest.fixture
 def other_dldata(dict_other_data, list_other_data):
     obj1, obj2 = DLQuery(dict_other_data), DLQuery(list_other_data)
-    return obj1, obj2
+    yield obj1, obj2
 
 
 class TestDLQuery:
@@ -115,37 +115,6 @@ class TestDLQuery:
         assert bool(empty_list) == expected_result.false
         assert not empty_dict
         assert not empty_list
-
-    def test_iter(self, dldata, expected_result):
-
-        data_dict_obj, data_list_obj = dldata
-
-        for key in data_dict_obj:
-            print(key)
-
-        for item in data_list_obj:
-            print(item)
-
-        assert expected_result.key1 in data_dict_obj
-        assert expected_result.key2 in data_dict_obj
-
-        assert expected_result.index0 in data_list_obj
-        assert expected_result.index1 in data_list_obj
-        assert expected_result.index2 in data_list_obj
-
-        iter_obj = iter(data_dict_obj)
-        result = next(iter_obj)
-        assert result == expected_result.key1
-        result = next(iter_obj)
-        assert result == expected_result.key2
-
-        iter_obj = iter(data_list_obj)
-        result = next(iter_obj)
-        assert result == expected_result.index0
-        result = next(iter_obj)
-        assert result == expected_result.index1
-        result = next(iter_obj)
-        assert result == expected_result.index2
 
     def test_eq(self, dldata, dict_data, list_data, expected_result):
         data_dict_obj, data_list_obj = dldata
@@ -182,54 +151,6 @@ class TestDLQuery:
         assert data_list_obj[index2] == expected_result.index2
         assert data_list_obj[index2][key1] == expected_result.value1
         assert data_list_obj[index2][key2] == expected_result.value2
-
-    def test_keys_method(self, dldata, expected_result):
-        data_dict_obj, data_list_obj = dldata
-
-        dict_keys = data_dict_obj.keys()
-        result = iter(dict_keys)
-
-        assert next(result) == expected_result.key1
-        assert next(result) == expected_result.key2
-
-        list_indices = data_list_obj.keys()
-        result = iter(list_indices)
-
-        assert next(result) == expected_result.zero
-        assert next(result) == expected_result.one
-        assert next(result) == expected_result.two
-
-    def test_values_method(self, dldata, expected_result):
-        data_dict_obj, data_list_obj = dldata
-
-        dict_values = data_dict_obj.values()
-        result = iter(dict_values)
-
-        assert next(result) == expected_result.value1
-        assert next(result) == expected_result.value2
-
-        list_items = data_list_obj.values()
-        result = iter(list_items)
-
-        assert next(result) == expected_result.index0
-        assert next(result) == expected_result.index1
-        assert next(result) == expected_result.index2
-
-    def test_items_method(self, dldata, expected_result):
-        data_dict_obj, data_list_obj = dldata
-
-        dict_items = data_dict_obj.items()
-        result = iter(dict_items)
-
-        assert next(result) == (expected_result.key1, expected_result.value1)
-        assert next(result) == (expected_result.key2, expected_result.value2)
-
-        list_items = data_list_obj.items()
-        result = iter(list_items)
-
-        assert next(result) == (expected_result.zero, expected_result.index0)
-        assert next(result) == (expected_result.one, expected_result.index1)
-        assert next(result) == (expected_result.two, expected_result.index2)
 
     def test_is_dict_property(self, dldata, expected_result):
         data_dict_obj, data_list_obj = dldata
@@ -366,7 +287,7 @@ def another_dict_data():
             }
         }
     }
-    return obj
+    yield obj
 
 
 @pytest.fixture
@@ -427,7 +348,7 @@ def another_list_data():
             }
         }
     ]
-    return obj
+    yield obj
 
 
 class TestQueryingDLQuery:
@@ -462,17 +383,6 @@ class TestQueryingDLQuery:
                         }
                     }
 
-                ]
-            ),
-            (
-                'name',
-                'select name, width, height where height le 500',
-                [
-                    {"name": "window abc", "width": 500, "height": 500},
-                    {"name": "image abc", "width": 100, "height": 100},
-                    {"name": "text abc", "width": 300, "height": 20},
-                    {"name": "image xyz", "width": 199, "height": 199},
-                    {"name": "text abc", "width": 399, "height": 29}
                 ]
             )
         ]
