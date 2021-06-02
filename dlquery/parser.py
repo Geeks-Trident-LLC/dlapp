@@ -11,6 +11,26 @@ logger = logging.getLogger(__file__)
 
 
 class SelectParser:
+    """A Select Parser class.
+
+    Attributes
+    ----------
+    select_statement (str): a select-statement.
+    columns (list): columns
+    predicate (function): a callable function.
+    logger (logging.Logger): a logger
+
+    Properties
+    ----------
+    is_zero_select -> bool
+    is_all_select -> bool
+
+    Methods
+    -------
+    get_predicate(expression) -> function
+    build_predicate() -> function
+    parse_statement() -> None
+    """
     def __init__(self, select_statement):
         self.select_statement = select_statement
         self.columns = [None]
@@ -19,13 +39,25 @@ class SelectParser:
 
     @property
     def is_zero_select(self):
+        """Return True if no column is selected."""
         return self.columns == [None]
 
     @property
     def is_all_select(self):
+        """Return True if all columns are selected"""
         return self.columns == []
 
     def get_predicate(self, expression):
+        """Parse an expression and convert to callable predicate function.
+
+        Parameters
+        ----------
+        expression (str): an expression.  It can be a left express or a right expression.
+
+        Returns
+        -------
+        function: a callable function.
+        """
         key, op, value = [i.strip() for i in re.split(r' +', expression, maxsplit=2)]
         key = key.replace('_SPACE_', ' ').replace('_COMMA_', ',')
         op = op.lower()
@@ -62,6 +94,16 @@ class SelectParser:
         return func
 
     def build_predicate(self, expressions):
+        """Build a predicate by parsing expressions
+
+        Parameters
+        ----------
+        expressions (str): single or multiple expressions.
+
+        Returns
+        -------
+        function: a callable function.
+        """
         def chain(data_, a_=None, b_=None, op_=''):
             result_a, result_b = a_(data_), b_(data_)
             if op_ == 'or_':
@@ -108,6 +150,8 @@ class SelectParser:
             return self.get_predicate(expressions)
 
     def parse_statement(self):
+        """Parse, analyze, and build a select-statement to selecting
+        columns and a callable predicate"""
         statement = self.select_statement
 
         if statement == '':
