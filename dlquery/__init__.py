@@ -22,10 +22,11 @@ criteria to filter record.
 For example, assuming there is a list of dictionary
 
 >>> lst_of_dict = [
->>>     {"a": "Apple", "b": "Banana", "c": "Cherry"},
->>>     {"a": "Apricot", "b": "Boysenberry", "c": "Cantaloupe"},
->>>     {"a": "Avocado", "b": "Blueberry", "c": "Clementine"},
->>> ]
+...     {"a": "Apple", "b": "Banana", "c": "Cherry"},
+...     {"a": "Apricot", "b": "Boysenberry", "c": "Cantaloupe"},
+...     {"a": "Avocado", "b": "Blueberry", "c": "Clementine"},
+... ]
+>>>
 
 we want to find any fruit beginning with letters Ap in group "a".  First,
 we need to import DLQuery library and instantiate a query_obj
