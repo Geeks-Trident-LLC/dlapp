@@ -12,15 +12,36 @@ class ArgumentValidationError(ArgumentError):
 def validate_argument_type(*args, **kwargs):
     """Validate function/method argument type.
 
-    Parameters:
-        args (tuple): list of data type
-        kwargs (dict): list of argument that needs to valid their types
+    Parameters
+    ----------
+    args (tuple): list of data type
+    kwargs (dict): list of argument that needs to valid their types
 
-    Return:
-        bool: True if arguments match their types.
+    Returns
+    -------
+    bool: True if arguments match their types.
 
-    Exception:
-        ArgumentError, ArgumentValidationError
+    Raises
+    ______
+    ArgumentError: if `args` is empty or element of `args` is not class
+    ArgumentValidationError: if value's type of (key, value) pair doesn't match
+        with a type of element in `args`
+
+    Example
+    -------
+        >>> from dlquery.argumenthelper import validate_argument_type
+        >>> def test(dict_obj):
+        ...     validate_argument_type(dict, dict_obj=dict_obj)
+        ...
+        >>> dict_obj = dict()
+        >>> test(dict_obj)
+        >>> list_obj = list()
+        >>> test(list_obj)
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+          ...
+        dlquery.argumenthelper.ArgumentValidationError: dict_obj argument must be a data type of dict.
+        >>>
     """
     if len(args) == 0:
         msg = 'Cannot validate argument with no reference data type.'
@@ -44,16 +65,39 @@ def validate_argument_type(*args, **kwargs):
 def validate_argument_choice(**kwargs):
     """Validate function/method argument choice.
 
-    Parameters:
-        kwargs (dict): list of argument that needs to valid their types
-            a value of (key, value) pair must consist
-            argument value and a list of choices.
+    Parameters
+    ----------
+    kwargs (dict): list of argument that needs to valid their types
+        a value of (key, value) pair must consist
+        argument value and a list of choices.
 
-    Return:
-        bool: True if argument matches its argument choice.
+    Returns
+    -------
+    bool: True if argument matches its argument choice.
 
-    Exception:
-        ArgumentError, ArgumentValidationError
+    Raises
+    ------
+    ArgumentError: if invalid number of arguments of (key, value) pair
+    ArgumentValidationError: if argument is not belong to choices.
+
+    Example
+    -------
+
+        >>>
+        >>> from dlquery.argumenthelper import validate_argument_choice
+        >>> def test(kind='car'):
+        ...     '''argument `kind` must be either ``car`` or ``bicycle```'''
+        ...     validate_argument_choice(kind=(kind, ('car', 'bicycle')))
+        ...
+        >>> test(kind='car')
+        >>> test(kind='bicycle')
+        >>> test(kind='house')
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+          ...
+        dlquery.argumenthelper.ArgumentValidationError: kind argument must be a choice of ('car', 'bicycle').
+        >>>
+        >>>
     """
     for name, value in kwargs.items():
         try:
@@ -77,14 +121,31 @@ def validate_argument_choice(**kwargs):
 def validate_argument_is_not_empty(**kwargs):
     """Validate function/method argument is/are not empty.
 
-    Parameters:
-        kwargs (dict): list of argument and its value
+    Parameters
+    ----------
+    kwargs (dict): list of argument and its value
 
-    Return:
-        bool: True if argument(s) is/are not empty..
+    Returns
+    -------
+    bool: True if argument(s) is/are not empty..
 
-    Exception:
-        ArgumentValidationError
+    Raise
+    -----
+    ArgumentValidationError: if argument is empty.
+
+    Example
+    -------
+        >>> from dlquery.argumenthelper import validate_argument_is_not_empty
+        >>> def test(node):
+        ...     validate_argument_is_not_empty(node=node)
+        ...
+        >>> test('abc')
+        >>> test('')
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+          ...
+        dlquery.argumenthelper.ArgumentValidationError: a node argument CANNOT be empty.
+        >>>
     """
     empty_args = []
     for name, value in kwargs.items():

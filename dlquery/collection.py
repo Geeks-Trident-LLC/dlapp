@@ -22,14 +22,16 @@ class ListIndexError(ListError):
 class List(list):
     """This is a class for List Collection.
 
-    Properties:
-        is_empty (boolean): a check point to tell an empty list or not.
-        first (Any): return a first element of a list
-        last (Any): return a last element of a list
-        total (int): total element in list
+    Properties
+    ----------
+    is_empty (boolean): a check point to tell an empty list or not.
+    first (Any): return a first element of a list
+    last (Any): return a last element of a list
+    total (int): total element in list
 
-    Exception:
-        ListIndexError
+    Raise
+    -----
+    ListIndexError: if a list is out of range.
     """
     def __getattribute__(self, attr):
         match = re.match(r'index(?P<index>_?[0-9]+)$', attr)
@@ -77,18 +79,22 @@ class ResultError(Exception):
 class Result:
     """The Result Class to store data.
 
-    Attributes:
-        data (Any): the data.
-        parent (Result): keyword arguments.
+    Attributes
+    ----------
+    data (Any): the data.
+    parent (Result): keyword arguments.
 
-    Properties:
-        has_parent -> boolean
+    Properties
+    ----------
+    has_parent -> boolean
 
-    Methods:
-        update_parent(parent: Result) -> None
+    Methods
+    -------
+    update_parent(parent: Result) -> None
 
-    Exception:
-        ResultError
+    Raise
+    -----
+    ResultError: if parent is not instance of None or Result.
     """
     def __init__(self, data, parent=None):
         self.parent = None
@@ -117,6 +123,7 @@ class Result:
 
 
 class Element(Result):
+    """Element class."""
     def __init__(self, data, index='', parent=None):
         super().__init__(data, parent=parent)
         self.index = index
@@ -197,11 +204,15 @@ class Element(Result):
 
     def filter_result(self, records, select_statement):
         """Filter a list of records based on select statement
-        Parameters:
-            records (List): a list of record.
-            select_statement (str): a select statement.
-        Return:
-            List: list of filtered records.
+
+        Parameters
+        ----------
+        records (List): a list of record.
+        select_statement (str): a select statement.
+
+        Returns
+        -------
+        List: list of filtered records.
         """
         result = List()
         select_obj = SelectParser(select_statement)
@@ -234,10 +245,12 @@ class Element(Result):
 
     def find_(self, node, lookup_obj, result):
         """Recursively search a lookup and store a found record to result
-        Parameters:
-            node (Element): a Element instance.
-            lookup_obj (LookupCls): a LookupCls instance.
-            result (List): a found result.
+
+        Parameters
+        ----------
+        node (Element): a `Element` instance.
+        lookup_obj (LookupCls): a LookupCls instance.
+        result (List): a found result.
         """
         if node.is_dict or node.is_list:
             for child in node.children:
@@ -256,11 +269,15 @@ class Element(Result):
 
     def find(self, lookup, select=''):
         """recursively search a lookup.
-        Parameter:
-            lookup (str): a search pattern.
-            select (str): a select statement.
-        Return:
-            List: list of record
+
+        Parameters
+        ---------
+        lookup (str): a search pattern.
+        select (str): a select statement.
+
+        Returns
+        -------
+        List: list of record
         """
         records = List()
         lkup_obj = LookupCls(lookup)
@@ -306,13 +323,15 @@ class ObjectDict(dict):
         """The function to recursively build a ObjectDict instance
         when the value is the dict instance.
 
-        Parameters:
-            value (Any): The value to recursively build a ObjectDict
-                    instance when value is the dict instance.
-            forward (boolean): set flag to convert dict instance to ObjectDict
-                    instance or vice versa.  Default is True.
-        Returns:
-            Any: the value or a new value.
+        Parameters
+        ----------
+        value (Any): The value to recursively build a ObjectDict
+                instance when value is the dict instance.
+        forward (boolean): set flag to convert dict instance to ObjectDict
+                instance or vice versa.  Default is True.
+        Returns
+        -------
+        Any: the value or a new value.
         """
         if isinstance(value, (dict, list, set, tuple)):
             if isinstance(value, ObjectDict):
@@ -347,9 +366,14 @@ class ObjectDict(dict):
     @classmethod
     def create_from_json_file(cls, filename, **kwargs):
         """Create a ObjectDict instance from JSON file.
-        Parameters:
-            filename (str): YAML file.
-            kwargs (dict): the keyword arguments.
+
+        Parameters
+        ----------
+        filename (str): YAML file.
+        kwargs (dict): the keyword arguments.
+
+        Returns:
+        Any: any data
         """
         from io import IOBase
         if isinstance(filename, IOBase):
@@ -370,9 +394,15 @@ class ObjectDict(dict):
     @classmethod
     def create_from_yaml_file(cls, filename, loader=yaml.SafeLoader):
         """Create a ObjectDict instance from YAML file.
-        Parameters:
-            filename (str): YAML file.
-            loader (yaml.loader.Loader): YAML loader.
+
+        Parameters
+        ----------
+        filename (str): YAML file.
+        loader (yaml.loader.Loader): YAML loader.
+
+        Returns
+        -------
+        Any: any data
         """
         from io import IOBase
         if isinstance(filename, IOBase):
@@ -387,9 +417,15 @@ class ObjectDict(dict):
     @classmethod
     def create_from_yaml_data(cls, data, loader=yaml.SafeLoader):
         """Create a ObjectDict instance from YAML data.
-        Parameters:
-            data (str): YAML data.
-            loader (yaml.loader.Loader): YAML loader.
+
+        Parameters
+        ----------
+        data (str): YAML data.
+        loader (yaml.loader.Loader): YAML loader.
+
+        Returns
+        -------
+        Any: Any data
         """
         obj = yaml.load(data, Loader=loader)
         obj_dict = ObjectDict(obj)
@@ -409,9 +445,10 @@ class ObjectDict(dict):
     def deep_apply_attributes(self, node=None, **kwargs):
         """Recursively apply attributes to ObjectDict instance.
 
-        Parameters:
-            node (ObjectDict): a ObjectDict instance
-            kwargs (dict):
+        Parameters
+        ---------
+        node (ObjectDict): a `ObjectDict` instance
+        kwargs (dict): keyword arguments
         """
 
         def assign(node_, **kwargs_):
@@ -436,12 +473,14 @@ class ObjectDict(dict):
     def to_dict(self, data=None):
         """Convert a given data to native dictionary
 
-        Parameters:
-            data (ObjectDict): a dynamic dictionary instance.
-                if data is None, it will convert current instance to dict.
+        Parameters
+        ----------
+        data (ObjectDict): a dynamic dictionary instance.
+            if data is None, it will convert current instance to dict.
 
-        Return:
-            dict: dictionary
+        Returns
+        -------
+        dict: dictionary
         """
         if data is None:
             data = dict(self)
@@ -472,10 +511,14 @@ class LookupCls:
     @classmethod
     def parse(cls, text):
         """Parse a lookup statement.
-        Parameters:
+
+        Parameters
+        ----------
             text (str): a lookup.
-        Return:
-              CustomObject: a object is holding pattern and is_regex attributes.
+
+        Returns
+        -------
+        str: a regular expression pattern.
         """
         def parse_(text_):
             vpat = '''
@@ -589,8 +632,10 @@ class LookupCls:
     def process(self):
         """Parse a lookup to two expressions: a left expression and
         a right expression.
+
         If a lookup has a right expression, it will parse and assign to right,
         else, right expression is None."""
+
         left, *lst = self.lookup.split('=', maxsplit=1)
         self.left = self.parse(left)
         if lst:
