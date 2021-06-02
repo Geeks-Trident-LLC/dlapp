@@ -35,7 +35,7 @@ def dict_data():
             }
         }
     }
-    return obj
+    yield obj
 
 
 @pytest.fixture
@@ -96,7 +96,7 @@ def list_data():
             }
         }
     ]
-    return obj
+    yield obj
 
 
 class TestElement:

@@ -37,50 +37,50 @@ class ExpectedResult:
 
 @pytest.fixture
 def expected_result():
-    return ExpectedResult()
+    yield ExpectedResult()
 
 
 @pytest.fixture
 def dict_data():
     obj = {'a': 'Apricot', 'b': 'Banana'}
-    return obj
+    yield obj
 
 
 @pytest.fixture
 def list_data(dict_data):
     obj = [2021, 'Hello dlquery', dict(dict_data)]
-    return obj
+    yield obj
 
 
 @pytest.fixture
 def dict_other_data():
     obj = {'a': 'Apricot', 'c': 'Cherry'}
-    return obj
+    yield obj
 
 
 @pytest.fixture
 def list_other_data(dict_other_data):
     obj = [2021, 'Hello python', dict(dict_other_data)]
-    return obj
+    yield obj
 
 
 @pytest.fixture
 def empty_dldata():
     empty_dict, empty_list = dict(), list()
     obj1, obj2 = DLQuery(empty_dict), DLQuery(empty_list)
-    return obj1, obj2
+    yield obj1, obj2
 
 
 @pytest.fixture
 def dldata(dict_data, list_data):
     obj1, obj2 = DLQuery(dict_data), DLQuery(list_data)
-    return obj1, obj2
+    yield obj1, obj2
 
 
 @pytest.fixture
 def other_dldata(dict_other_data, list_other_data):
     obj1, obj2 = DLQuery(dict_other_data), DLQuery(list_other_data)
-    return obj1, obj2
+    yield obj1, obj2
 
 
 class TestDLQuery:
@@ -287,7 +287,7 @@ def another_dict_data():
             }
         }
     }
-    return obj
+    yield obj
 
 
 @pytest.fixture
@@ -348,7 +348,7 @@ def another_list_data():
             }
         }
     ]
-    return obj
+    yield obj
 
 
 class TestQueryingDLQuery:
