@@ -26,7 +26,6 @@ setup(
     ),
     entry_points={
         'console_scripts': [
-            'dlquery-test = dlquery.acceptance:test_acceptance',
             'dlquery = dlquery.main:execute',
         ]
     },
