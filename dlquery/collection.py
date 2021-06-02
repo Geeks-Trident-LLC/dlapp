@@ -104,11 +104,9 @@ class Result:
     def update_parent(self, parent):
         """Update parent to Result
 
-            Parameters:
-                parent (Result): a Result instance.
-
-            Return:
-                None
+        Parameters
+        ----------
+        parent (Result): a Result instance.
         """
         if parent is None or isinstance(parent, self.__class__):
             self.parent = parent
