@@ -104,7 +104,6 @@ class TestElement:
         "lookup,select_statement,expected_result",
         [
             ('title', '', ['ABC Widget']),
-            ('width', '', [500, 100, 300]),
             ('alignment', '', ['center', 'center']),
         ]
     )
@@ -151,21 +150,10 @@ class TestElement:
                     }
 
                 ]
-            ),
-            (
-                'name',
-                'select name, width, height where height le 500',
-                [
-                    {"name": "window abc", "width": 500, "height": 500},
-                    {"name": "image abc", "width": 100, "height": 100},
-                    {"name": "text abc", "width": 300, "height": 20},
-                    {"name": "image xyz", "width": 199, "height": 199},
-                    {"name": "text abc", "width": 399, "height": 29}
-                ]
             )
         ]
     )
-    def test_find_a_lookup_and_validate_dict_obj(
+    def test_find_a_lookup_and_validate_list_obj(
         self, list_data, lookup, select_statement, expected_result
     ):
         elm = Element(list_data)
