@@ -18,22 +18,26 @@ class DLQueryDataTypeError(DLQueryError):
 class DLQuery:
     """This is a class for querying dictionary or list object.
 
-    Attributes:
-        data (list, tuple, or dict): list or dictionary instance.
+    Attributes
+    __________
+    data (list, tuple, or dict): list or dictionary instance.
 
-    Properties:
-        is_dict -> bool
-        is_list -> bool
+    Properties
+    ----------
+    is_dict -> bool
+    is_list -> bool
 
-    Methods:
-        keys() -> dict_keys or odict_keys
-        values() -> dict_values or odict_values
-        items() -> dict_items or odict_items
-        get(index, default=None) -> Any
-        find(node=None, lookup='', select='') -> List
+    Methods
+    -------
+    keys() -> dict_keys or odict_keys
+    values() -> dict_values or odict_values
+    items() -> dict_items or odict_items
+    get(index, default=None) -> Any
+    find(node=None, lookup='', select='') -> List
 
-    Exception:
-        TypeError
+    Raise
+    -----
+    TypeError: if failed to invoke ``iter`` built-in function.
     """
 
     def __init__(self, data):
@@ -120,13 +124,16 @@ class DLQuery:
         if DLQuery is a dictionary, then return the value for key (i.e index)
         if key is in the dictionary, else default.
 
-        Parameters:
-            index (int, str): a index of list or a key of dictionary.
-            default (Any): a default value if no element in list or
-                    in dictionary is found.
-            on_exception (bool): raise Exception if it is True.  Default is False.
-        Return:
-            Any: any value from DLQuery.data
+        Parameters
+        ----------
+        index (int, str): a index of list or a key of dictionary.
+        default (Any): a default value if no element in list or
+                in dictionary is found.
+        on_exception (bool): raise Exception if it is True.  Default is False.
+
+        Returns
+        -------
+        Any: any value from DLQuery.data
         """
         try:
             if self.is_list:
@@ -190,12 +197,16 @@ class DLQuery:
 
     def find(self, node=None, lookup='', select=''):
         """recursively search a lookup.
-        Parameters:
-            node (dict, list): a dict, dict-like, list, or list-like instance.
-            lookup (str): a search pattern.
-            select (str): a select statement.
-        Return:
-            List: list of Any.
+
+        Parameters
+        ----------
+        node (dict, list): a dict, dict-like, list, or list-like instance.
+        lookup (str): a search pattern.
+        select (str): a select statement.
+
+        Returns
+        -------
+        List: list of Any.
         """
         node = node or self.data
         lookup = str(lookup).strip()
