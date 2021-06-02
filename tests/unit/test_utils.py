@@ -122,9 +122,9 @@ def test_unmatched_regex_conversion(wildcard, unmatched_output):
     "data,choice,expected_result",
     [
         # data is dict
-        ({'a': 1, 'b': 2}, 'keys', ['a', 'b']),
-        ({'a': 1, 'b': 2}, 'values', [1, 2]),
-        ({'a': 1, 'b': 2}, 'items', [('a', 1), ('b', 2)]),
+        ({'a': 1}, 'keys', ['a']),
+        ({'a': 1}, 'values', [1]),
+        ({'a': 1}, 'items', [('a', 1)]),
         # data is list
         (['a', 'b'], 'keys', [0, 1]),
         (['a', 'b'], 'values', ['a', 'b']),
