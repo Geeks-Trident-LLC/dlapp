@@ -24,13 +24,17 @@ class ValidationOperatorError(ValidationError):
 
 
 def get_ip_address(addr, is_prefix=False, on_exception=True):
-    """get an IP address.
-    Parameters:
-        addr (str): an IP address
-        is_prefix(bool): check to return IP Address and prefix.  Default is False.
-        on_exception (bool): raise Exception if it is True, otherwise, return None.
-    Return:
-        IPAddress: IP address, otherwise, None.
+    """Get an IP address.
+
+    Parameters
+    ----------
+    addr (str): an IP address
+    is_prefix(bool): check to return IP Address and prefix.  Default is False.
+    on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+    Returns
+    -------
+    IPAddress: IP address, otherwise, None.
     """
     try:
         value, *grp = re.split(r'[/%]', str(addr).strip(), maxsplit=1)
@@ -65,11 +69,15 @@ def get_ip_address(addr, is_prefix=False, on_exception=True):
 
 def validate_interface(iface_name, pattern=''):
     """Verify a provided data is a network interface.
-    Parameters:
-        iface_name (str): a network interface
-        pattern (str): sub pattern for interface name.  Default is empty.
-    Return:
-        boolean: True if iface_name is a network interface, otherwise, False.
+
+    Parameters
+    ----------
+    iface_name (str): a network interface
+    pattern (str): sub pattern for interface name.  Default is empty.
+
+    Returns
+    -------
+    bool: True if iface_name is a network interface, otherwise, False.
     """
     iface_name = str(iface_name)
     pattern = r'\b' + pattern + r' *[0-9]+(/[0-9]+)?([.][0-9]+)?\b'
@@ -79,7 +87,14 @@ def validate_interface(iface_name, pattern=''):
 
 def false_on_exception_for_classmethod(func):
     """Wrap the classmethod and return False on exception.
-    Note: DO NOT nest this decorator.
+
+    Parameters
+    ----------
+    func (function): a callable function
+
+    Notes
+    -----
+    DO NOT nest this decorator.
     """
     @functools.wraps(func)
     def wrapper_func(*args, **kwargs):
@@ -105,35 +120,58 @@ def false_on_exception_for_classmethod(func):
 
 
 class RegexValidation:
+    """A regular expression validation class.
+
+    Methods
+    -------
+    RegexValidation.match(pattern, value, valid=True, on_exception=True) -> bool
+    """
     @classmethod
     @false_on_exception_for_classmethod
     def match(cls, pattern, value, valid=True, on_exception=True):
-        """Perform regexp matching.
-        Parameters:
-            pattern (str): a regex pattern.
-            value (str): data
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            bool: True if match pattern, otherwise, False.
+        """Perform regular expression matching.
+
+        Parameters
+        ----------
+        pattern (str): a regular expression pattern.
+        value (str): data
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if match pattern, otherwise, False.
         """
         match = re.match(pattern, str(value))
         return bool(match)
 
 
 class OpValidation:
+    """The operator validation class
+
+    Methods
+    -------
+    OpValidation.compare_number(value, op, other, valid=True, on_exception=True) -> bool
+    OpValidation.compare(value, op, other, valid=True, on_exception=True) -> bool
+    OpValidation.contain(value, other, valid=True, on_exception=True) -> bool
+    OpValidation.belong(value, other, valid=True, on_exception=True) -> bool
+    """
     @classmethod
     @false_on_exception_for_classmethod
     def compare_number(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for number.
-        Parameters:
-            value (str): data.
-            op (str): an operator can be lt, le, gt, ge, eq, ne
-            other (str): a number.
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            bool: True if value lt|le|gt|ge|eq|ne other, otherwise, False.
+
+        Parameters
+        ----------
+        value (str): data.
+        op (str): an operator can be lt, le, gt, ge, eq, ne
+        other (str): a number.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value lt|le|gt|ge|eq|ne other, otherwise, False.
         """
         op = str(op).lower().strip()
         valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
@@ -153,14 +191,18 @@ class OpValidation:
     @false_on_exception_for_classmethod
     def compare(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for string.
-        Parameters:
-            value (str): data.
-            op (str): an operator can be eq or ne
-            other (str): other value
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            bool: True if value eq|ne other, otherwise, False.
+
+        Parameters
+        ----------
+        value (str): data.
+        op (str): an operator can be eq or ne
+        other (str): other value
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value eq|ne other, otherwise, False.
         """
         op = str(op).lower().strip()
         valid_ops = ('eq', 'ne')
@@ -176,13 +218,17 @@ class OpValidation:
     @false_on_exception_for_classmethod
     def contain(cls, value, other, valid=True, on_exception=True):
         """Perform operator checking that value contains other.
-        Parameters:
-            value (str): data.
-            other (str): other value
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            bool: True if value contains other, otherwise, False.
+
+        Parameters
+        ----------
+        value (str): data.
+        other (str): other value
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value contains other, otherwise, False.
         """
         result = operator.contains(value, other)
         return result
@@ -191,30 +237,62 @@ class OpValidation:
     @false_on_exception_for_classmethod
     def belong(cls, value, other, valid=True, on_exception=True):
         """Perform operator checking that value belongs other.
-        Parameters:
-            value (str): data.
-            other (str): other value
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            bool: True if value belongs other, otherwise, False.
+
+        Parameters
+        ----------
+        value (str): data.
+        other (str): other value
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value belongs other, otherwise, False.
         """
         result = operator.contains(other, value)
         return result
 
 
 class CustomValidation:
+    """A custom keyword validation class.
+
+    Methods
+    -------
+    CustomValidation.validate(case, value, valid=True, on_exception=True) -> bool
+    CustomValidation.is_ip_address(addr, valid=True, on_exception=True) -> bool
+    CustomValidation.is_ipv4_address(addr, valid=True, on_exception=True) -> bool
+    CustomValidation.is_ipv6_address(addr, valid=True, on_exception=True) -> bool
+    CustomValidation.is_mac_address(addr, valid=True, on_exception=True) -> bool
+    CustomValidation.is_loopback_interface(iface_name, valid=True, on_exception=True) -> bool
+    CustomValidation.is_bundle_ether(iface_name, valid=True, on_exception=True) -> bool
+    CustomValidation.is_port_channel_interface(iface_name, valid=True, on_exception=True) -> bool
+    CustomValidation.is_hundred_gigabit_ethernet(iface_name, valid=True, on_exception=True) -> bool
+    CustomValidation.is_ten_gigabit_ethernet(iface_name, valid=True, on_exception=True) -> bool
+    CustomValidation.is_gigabit_ethernet(iface_name, valid=True, on_exception=True) -> bool
+    CustomValidation.is_fast_ethernet(iface_name, valid=True, on_exception=True) -> bool
+    CustomValidation.is_empty(value, valid=True, on_exception=True) -> bool
+    CustomValidation.is_optional_empty(value, valid=True, on_exception=True) -> bool
+    CustomValidation.is_true(value, valid=True, on_exception=True) -> bool
+    CustomValidation.is_false(value, valid=True, on_exception=True) -> bool
+    """
 
     @classmethod
     def validate(cls, case, value, valid=True, on_exception=True):
         """Look for a valid custom classmethod and process it.
-        Parameters:
-            case: custom validation keyword.
-            value: data for validation.
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            bool: True if match condition, otherwise, False.
+
+        Parameters
+        ----------
+        case: custom validation keyword.
+        value: data for validation.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if match condition, otherwise, False.
+
+        Raise:
+        NotImplementedError: if custom method doesnt exist.
         """
         case = str(case).lower()
         name = 'is_{}'.format(case)
@@ -229,12 +307,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_ip_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is an IP address.
-        Parameters:
-            addr (str): an IP address
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if addr is an IP address, otherwise, False.
+
+        Parameters
+        ----------
+        addr (str): an IP address
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if addr is an IP address, otherwise, False.
         """
         ip_addr = get_ip_address(addr, on_exception=on_exception)
         chk = True if ip_addr else False
@@ -246,12 +328,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_ipv4_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is an IPv4 address.
-        Parameters:
-            addr (str): an IPv4 address
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if addr is an IPv4 address, otherwise, False.
+
+        Parameters
+        ----------
+        addr (str): an IPv4 address
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if addr is an IPv4 address, otherwise, False.
         """
         ip_addr = get_ip_address(addr, on_exception=on_exception)
         chk = True if ip_addr and ip_addr.version == 4 else False
@@ -263,12 +349,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_ipv6_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is an IPv6 address.
-        Parameters:
-            addr (str): an IPv6 address
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if addr is an IPv6 address, otherwise, False.
+
+        Parameters
+        ----------
+        addr (str): an IPv6 address
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if addr is an IPv6 address, otherwise, False.
         """
         ip_addr = get_ip_address(addr, on_exception=on_exception)
         chk = True if ip_addr and ip_addr.version == 6 else False
@@ -280,12 +370,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_mac_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is a MAC address.
-        Parameters:
-            addr (str): a MAC address
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if addr is a MAC address, otherwise, False.
+
+        Parameters
+        ----------
+        addr (str): a MAC address
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if addr is a MAC address, otherwise, False.
         """
         addr = str(addr)
         patterns = [
@@ -302,12 +396,16 @@ class CustomValidation:
     # @false_on_exception_for_classmethod
     # def is_network_interface(cls, iface_name, valid=True, on_exception=True):
     #     """Verify a provided data is a network interface.
-    #     Parameters:
-    #         iface_name (str): a network interface
-    #         valid (bool): check for a valid result.  Default is True.
-    #         on_exception (bool): raise Exception if it is True, otherwise, return None.
-    #     Return:
-    #         boolean: True if iface_name is a network interface, otherwise, False.
+    #
+    #     Parameters
+    #     ----------
+    #     iface_name (str): a network interface
+    #     valid (bool): check for a valid result.  Default is True.
+    #     on_exception (bool): raise Exception if it is True, otherwise, return None.
+    #
+    #     Returns
+    #     -------
+    #     bool: True if iface_name is a network interface, otherwise, False.
     #     """
     #     pattern = r'[a-z]+(-?[a-z0-9]+)?'
     #     result = validate_interface(iface_name, pattern=pattern)
@@ -317,12 +415,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_loopback_interface(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a loopback interface.
-        Parameters:
-            iface_name (str): a loopback interface
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if iface_name is a loopback interface, otherwise, False.
+
+        Parameters
+        ----------
+        iface_name (str): a loopback interface
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if iface_name is a loopback interface, otherwise, False.
         """
         pattern = r'lo(opback)?'
         result = validate_interface(iface_name, pattern=pattern)
@@ -332,12 +434,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_bundle_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a bundle-ether interface.
-        Parameters:
-            iface_name (str): a bundle-ether interface
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if iface_name is a bundle-ether interface, otherwise, False.
+
+        Parameters
+        ----------
+        iface_name (str): a bundle-ether interface
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if iface_name is a bundle-ether interface, otherwise, False.
         """
         pattern = r'bundle-ether|be'
         result = validate_interface(iface_name, pattern=pattern)
@@ -347,12 +453,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_port_channel(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a port-channel interface.
-        Parameters:
-            iface_name (str): a port-channel interface
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if iface_name is a bundle-ether interface, otherwise, False.
+
+        Parameters
+        ----------
+        iface_name (str): a port-channel interface
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if iface_name is a bundle-ether interface, otherwise, False.
         """
         pattern = r'po(rt-channel)?'
         result = validate_interface(iface_name, pattern=pattern)
@@ -362,12 +472,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_hundred_gigabit_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a HundredGigaBit interface.
-        Parameters:
-            iface_name (str): a HundredGigaBitEthernet interface
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if iface_name is a HundredGigaBit interface, otherwise, False.
+
+        Parameters
+        ----------
+        iface_name (str): a HundredGigaBitEthernet interface
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if iface_name is a HundredGigaBit interface, otherwise, False.
         """
         pattern = 'Hu(ndredGigE)?'
         result = validate_interface(iface_name, pattern=pattern)
@@ -377,12 +491,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_ten_gigabit_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a TenGigaBitEthernet interface.
-        Parameters:
-            iface_name (str): a TenGigaBitEthernet interface
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if iface_name is a TenGigaBitEthernet interface, otherwise, False.
+
+        Parameters
+        ----------
+        iface_name (str): a TenGigaBitEthernet interface
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if iface_name is a TenGigaBitEthernet interface, otherwise, False.
         """
         pattern = 'Te(nGigE)?'
         result = validate_interface(iface_name, pattern=pattern)
@@ -392,12 +510,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_gigabit_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a TenGigaBitEthernet interface.
-        Parameters:
-            iface_name (str): a TenGigaBitEthernet interface
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if iface_name is a TenGigaBitEthernet interface, otherwise, False.
+
+        Parameters
+        ----------
+        iface_name (str): a TenGigaBitEthernet interface
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if iface_name is a TenGigaBitEthernet interface, otherwise, False.
         """
         pattern = 'Gi(gabitEthernet)?'
         result = validate_interface(iface_name, pattern=pattern)
@@ -407,12 +529,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_fast_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a FastEthernet interface.
-        Parameters:
-            iface_name (str): a FastEthernet interface
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if iface_name is a FastEthernet interface, otherwise, False.
+
+        Parameters
+        ----------
+        iface_name (str): a FastEthernet interface
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if iface_name is a FastEthernet interface, otherwise, False.
         """
         pattern = r'fa(stethernet)?'
         result = validate_interface(iface_name, pattern=pattern)
@@ -422,12 +548,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_empty(cls, value, valid=True, on_exception=True):
         """Verify a provided data is an empty string.
-        Parameters:
-            value (str): a string data.
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if value is an empty string, otherwise, False.
+
+        Parameters
+        ----------
+        value (str): a string data.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value is an empty string, otherwise, False.
         """
         value = str(value)
         return value == ''
@@ -436,12 +566,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_optional_empty(cls, value, valid=True, on_exception=True):
         """Verify a provided data is an optional empty string.
-        Parameters:
-            value (str): a string data.
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if value is an optional empty string, otherwise, False.
+
+        Parameters
+        ----------
+        value (str): a string data.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value is an optional empty string, otherwise, False.
         """
         value = str(value)
         result = re.match(r'\s+$', value)
@@ -451,12 +585,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_true(cls, value, valid=True, on_exception=True):
         """Verify a provided data is True.
-        Parameters:
-            value (bool or str): a boolean or string data.
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if value is a True boolean, otherwise, False.
+
+        Parameters
+        ----------
+        value (bool or str): a boolean or string data.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value is a True, otherwise, False.
         """
         if isinstance(value, bool):
             return value is True
@@ -467,12 +605,16 @@ class CustomValidation:
     @false_on_exception_for_classmethod
     def is_false(cls, value, valid=True, on_exception=True):
         """Verify a provided data is False.
-        Parameters:
-            value (bool or str): a boolean or string data.
-            valid (bool): check for a valid result.  Default is True.
-            on_exception (bool): raise Exception if it is True, otherwise, return None.
-        Return:
-            boolean: True if value is a False boolean, otherwise, False.
+
+        Parameters
+        ----------
+        value (bool or str): a boolean or string data.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value is a False, otherwise, False.
         """
         if isinstance(value, bool):
             return value is False
