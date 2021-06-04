@@ -1,4 +1,4 @@
-"""Module containing the logic for the dlquery GUI application."""
+"""Module containing the logic for the dlquery GUI."""
 
 import tkinter as tk
 from tkinter import ttk
@@ -16,6 +16,9 @@ from dlquery import create_from_yaml_data
 
 __version__ = '1.0.0'
 version = __version__
+
+__edition__ = 'Community Edition'
+edition = __edition__
 
 
 def get_relative_center_location(parent, width, height):
@@ -172,7 +175,7 @@ class Content:
 
 
 class Application:
-    """A dlquery GUI application class.
+    """A dlquery GUI class.
 
     Attributes
     ----------
@@ -193,20 +196,32 @@ class Application:
         self._base_title = 'DLQuery GUI'
         self.root = tk.Tk()
         self.root.geometry('800x600+100+100')
+        self.root.minsize(200, 200)
         self.root.option_add('*tearOff', False)
         self.content = None
 
-        self.set_title(self.root)
+        self.panedwindow = None
+        self.text_frame = None
+        self.entry_frame = None
+        self.result_frame = None
+
+        self.textarea = None
+
+        self.set_title()
         self.build_menu()
+        self.build_frame()
+        self.build_textarea()
+        self.build_entry()
+        self.build_result()
 
     @property
     def is_ready(self):
-        """Check if dlquery application is ready to run."""
+        """Check if dlquery GUI is ready to run."""
         if isinstance(self.content, Content):
             return self.content.is_ready
         return False
 
-    def set_title(self, node, title=''):
+    def set_title(self, node=None, title=''):
         """Set a new title for tkinter component.
 
         Parameters
@@ -214,6 +229,7 @@ class Application:
         node (tkinter): a tkinter component.
         title (str): a title.  Default is empty.
         """
+        node = node or self.root
         btitle = self._base_title
         title = '{} - {}'.format(title, btitle) if title else btitle
         node.title(title)
@@ -225,13 +241,17 @@ class Application:
     def callback_file_open(self):
         """Callback for Menu File > Open."""
         filetypes = [
-            ('CSV Files', '*csv'),
             ('JSON Files', '*json'),
             ('YAML Files', '*yaml'),
-            ('YML Files', '*yml')
+            ('YML Files', '*yml'),
+            ('CSV Files', '*csv')
         ]
         filename = filedialog.askopenfilename(filetypes=filetypes)
         self.content = Content(filename=filename)
+        if self.content.is_ready:
+            self.set_title(title=filename)
+            self.textarea.delete("1.0", "end")
+            self.textarea.insert(tk.INSERT, self.content.data)
 
     def callback_help_getting_started(self):
         """Callback for Menu Help > Getting Started."""
@@ -255,14 +275,15 @@ class Application:
             webbrowser.open_new_tab(url_lbl.link)
 
         about = tk.Toplevel(self.root)
-        self.set_title(about, title='About')
+        self.set_title(node=about, title='About')
         width, height = 400, 400
         x, y = get_relative_center_location(self.root, width, height)
         about.geometry('{}x{}+{}+{}'.format(width, height, x, y))
         about.resizable(False, False)
 
         # company
-        company_lbl = tk.Label(about, text='DLQuery GUI v{}'.format(version))
+        fmt = 'DLQuery GUI v{} ({})'
+        company_lbl = tk.Label(about, text=fmt.format(version, edition))
         company_lbl.place(x=10, y=10)
 
         # URL
@@ -286,7 +307,7 @@ class Application:
         txtbox = tk.Text(lframe, width=45, height=14, wrap='word')
         txtbox.grid(row=0, column=0)
         scrollbar = ttk.Scrollbar(lframe, orient=tk.VERTICAL, command=txtbox.yview)
-        scrollbar.grid(row=0, column=1, sticky='ns')
+        scrollbar.grid(row=0, column=1, sticky='nsew')
         txtbox.config(yscrollcommand=scrollbar.set)
         txtbox.insert(tk.INSERT, Data.get_license())
         txtbox.config(state=tk.DISABLED)
@@ -296,7 +317,7 @@ class Application:
         footer.place(x=10, y=360)
 
     def build_menu(self):
-        """Build menubar for dlquery application."""
+        """Build menubar for dlquery GUI."""
         menu_bar = tk.Menu(self.root)
         self.root.config(menu=menu_bar)
         file = tk.Menu(menu_bar)
@@ -316,12 +337,55 @@ class Application:
         help_.add_separator()
         help_.add_command(label='About', command=lambda: self.callback_help_about())
 
+    def build_frame(self):
+        """Build layout for dlquery GUI."""
+        self.panedwindow = ttk.Panedwindow(self.root, orient=tk.VERTICAL)
+        self.panedwindow.pack(fill=tk.BOTH, expand=True)
+
+        self.text_frame = ttk.Frame(
+            self.panedwindow, width=600, height=400, relief=tk.RIDGE
+        )
+        self.entry_frame = ttk.Frame(
+            self.panedwindow, width=600, height=100, relief=tk.RIDGE
+        )
+        self.result_frame = ttk.Frame(
+            self.panedwindow, width=600, height=100, relief=tk.RIDGE
+        )
+        self.panedwindow.add(self.text_frame, weight=7)
+        self.panedwindow.add(self.entry_frame)
+        self.panedwindow.add(self.result_frame, weight=2)
+
+    def build_textarea(self):
+        """Build input text for dlquery GUI."""
+
+        self.text_frame.rowconfigure(0, weight=1)
+        self.text_frame.columnconfigure(0, weight=1)
+        self.textarea = tk.Text(self.text_frame, width=20, height=5, wrap='none')
+        self.textarea.grid(row=0, column=0, sticky='nswe')
+        vscrollbar = ttk.Scrollbar(
+            self.text_frame, orient=tk.VERTICAL, command=self.textarea.yview
+        )
+        vscrollbar.grid(row=0, column=1, sticky='ns')
+        hscrollbar = ttk.Scrollbar(
+            self.text_frame, orient=tk.HORIZONTAL, command=self.textarea.xview
+        )
+        hscrollbar.grid(row=1, column=0, sticky='ew')
+        self.textarea.config(
+            yscrollcommand=vscrollbar.set, xscrollcommand=hscrollbar.set
+        )
+
+    def build_entry(self):
+        """Build input entry for dlquery GUI."""
+
+    def build_result(self):
+        """Build result text"""
+
     def run(self):
-        """Launch dlquery application."""
+        """Launch dlquery GUI."""
         self.root.mainloop()
 
 
 def execute():
-    """Launch dlquery GUI application."""
+    """Launch dlquery GUI."""
     app = Application()
     app.run()
