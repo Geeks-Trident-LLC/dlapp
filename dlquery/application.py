@@ -17,6 +17,9 @@ from dlquery import create_from_yaml_data
 __version__ = '1.0.0'
 version = __version__
 
+__edition__ = 'Community Edition'
+edition = __edition__
+
 
 def get_relative_center_location(parent, width, height):
     """get relative a center location of parent window.
@@ -279,7 +282,8 @@ class Application:
         about.resizable(False, False)
 
         # company
-        company_lbl = tk.Label(about, text='DLQuery GUI v{}'.format(version))
+        fmt = 'DLQuery GUI v{} ({})'
+        company_lbl = tk.Label(about, text=fmt.format(version, edition))
         company_lbl.place(x=10, y=10)
 
         # URL
