@@ -308,7 +308,7 @@ def run_gui_application(options):
     None: will invoke ``dlquery.Application().run()`` and ``sys.exit(0)``
     if end user requests `--application`
     """
-    if options.application:
+    if options.gui:
         app = Application()
         app.run()
         sys.exit(0)
@@ -328,7 +328,7 @@ class Cli:
         )
 
         parser.add_argument(
-            '--application', action='store_true',
+            '--gui', action='store_true',
             help='launch a dlquery GUI application'
         )
 
