@@ -1,8 +1,7 @@
 """Module containing the logic for the dlquery GUI application."""
 
-# from tkinter import *
 import tkinter as tk
-from tkinter import ttk
+# from tkinter import ttk
 from tkinter import filedialog
 from os import path
 import webbrowser
@@ -12,6 +11,10 @@ from dlquery import create_from_json_file
 from dlquery import create_from_json_data
 from dlquery import create_from_yaml_file
 from dlquery import create_from_yaml_data
+
+
+__version__ = '1.0.0'
+version = __version__
 
 
 class Content:
@@ -119,9 +122,10 @@ class Application:
     callback_help_about() -> None
     """
     def __init__(self):
+        self._base_title = 'DLQuery Application'
         self.root = tk.Tk()
         self.root.geometry('800x600+100+100')
-        self.root.title('DLQuery Application')
+        self.root.title(self._base_title)
         self.root.option_add('*tearOff', False)
         self.content = None
 
