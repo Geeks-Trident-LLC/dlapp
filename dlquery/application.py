@@ -125,10 +125,10 @@ class Application:
         self._base_title = 'DLQuery Application'
         self.root = tk.Tk()
         self.root.geometry('800x600+100+100')
-        self.root.title(self._base_title)
         self.root.option_add('*tearOff', False)
         self.content = None
 
+        self.set_title(self.root)
         self.build_menu()
 
     @property
@@ -137,6 +137,18 @@ class Application:
         if isinstance(self.content, Content):
             return self.content.is_ready
         return False
+
+    def set_title(self, node, title=''):
+        """Set a new title for tkinter component.
+
+        Parameters
+        ----------
+        node (tkinter): a tkinter component.
+        title (str): a title.  Default is empty.
+        """
+        btitle = self._base_title
+        title = '{} - {}'.format(title, btitle) if title else btitle
+        node.title(title)
 
     def callback_file_exit(self):
         """Callback for Menu File > Exit."""
