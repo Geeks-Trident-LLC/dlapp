@@ -196,7 +196,7 @@ class Application:
         self.root.option_add('*tearOff', False)
         self.content = None
 
-        self.set_title(self.root)
+        self.set_title()
         self.build_menu()
 
     @property
@@ -206,7 +206,7 @@ class Application:
             return self.content.is_ready
         return False
 
-    def set_title(self, node, title=''):
+    def set_title(self, node=None, title=''):
         """Set a new title for tkinter component.
 
         Parameters
@@ -214,6 +214,7 @@ class Application:
         node (tkinter): a tkinter component.
         title (str): a title.  Default is empty.
         """
+        node = node or self.root
         btitle = self._base_title
         title = '{} - {}'.format(title, btitle) if title else btitle
         node.title(title)
@@ -255,7 +256,7 @@ class Application:
             webbrowser.open_new_tab(url_lbl.link)
 
         about = tk.Toplevel(self.root)
-        self.set_title(about, title='About')
+        self.set_title(node=about, title='About')
         width, height = 400, 400
         x, y = get_relative_center_location(self.root, width, height)
         about.geometry('{}x{}+{}+{}'.format(width, height, x, y))
