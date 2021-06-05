@@ -215,6 +215,7 @@ class Application:
         self.result = None
 
         self.textarea = None
+        self.result_textarea = None
         self.csv_radio_btn = None
         self.json_radio_btn = None
         self.yaml_radio_btn = None
@@ -397,8 +398,8 @@ class Application:
             try:
                 result = content.query_obj.find(lookup=lookup, select=select)
                 self.result = result
-                print('------------------')
-                print(result)
+                self.result_textarea.delete("1.0", "end")
+                self.result_textarea.insert(tk.INSERT, str(result))
 
             except Exception as ex:
                 msg = 'TODO: entry-run {}: {}'.format(type(ex), ex)
@@ -494,6 +495,26 @@ class Application:
 
     def build_result(self):
         """Build result text"""
+        self.result_frame.rowconfigure(0, weight=1)
+        self.result_frame.columnconfigure(0, weight=1)
+        self.result_textarea = tk.Text(
+            self.result_frame, width=20, height=5, wrap='none'
+        )
+        self.result_textarea.grid(row=0, column=0, sticky='nswe')
+        vscrollbar = ttk.Scrollbar(
+            self.result_frame, orient=tk.VERTICAL,
+            command=self.result_textarea.yview
+        )
+        vscrollbar.grid(row=0, column=1, sticky='ns')
+        hscrollbar = ttk.Scrollbar(
+            self.result_frame, orient=tk.HORIZONTAL,
+            command=self.result_textarea.xview
+        )
+        hscrollbar.grid(row=1, column=0, sticky='ew')
+        self.result_textarea.config(
+            yscrollcommand=vscrollbar.set, xscrollcommand=hscrollbar.set
+        )
+
 
     def run(self):
         """Launch dlquery GUI."""
