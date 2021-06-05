@@ -6,11 +6,8 @@ from tkinter import filedialog
 from os import path
 import webbrowser
 from textwrap import dedent
-# from dlquery import create_from_csv_file
 from dlquery import create_from_csv_data
-# from dlquery import create_from_json_file
 from dlquery import create_from_json_data
-# from dlquery import create_from_yaml_file
 from dlquery import create_from_yaml_data
 
 
@@ -45,10 +42,10 @@ def get_relative_center_location(parent, width, height):
 
 class Data:
     license_name = 'BSD 3-Clause License'
-    license_url = 'https://github.com/Geeks-Trident-LLC/dlquery/blob/main/LICENSE'
     repo_url = 'https://github.com/Geeks-Trident-LLC/dlquery'
-    # TODO: Need to update wiki page for getting_started_url instead of README.md.
-    getting_started_url = 'https://github.com/Geeks-Trident-LLC/dlquery/blob/develop/README.md'
+    license_url = path.join(repo_url, 'blob/main/LICENSE')
+    # TODO: Need to update wiki page for documentation_url instead of README.md.
+    documentation_url = path.join(repo_url, 'blob/develop/README.md')
     copyright_text = 'Copyright @ 2021 Geeks Trident LLC.  All rights reserved.'
 
     @classmethod
@@ -192,7 +189,7 @@ class Application:
     run() -> None
     callback_file_open() -> None
     callback_file_exit() -> None
-    callback_help_getting_started() -> None
+    callback_help_documentation() -> None
     callback_help_view_licenses() -> None
     callback_help_about() -> None
     """
@@ -260,9 +257,9 @@ class Application:
                 self.textarea.insert(tk.INSERT, content.data)
                 self.radio_btn_var.set(content.filetype)
 
-    def callback_help_getting_started(self):
+    def callback_help_documentation(self):
         """Callback for Menu Help > Getting Started."""
-        webbrowser.open_new_tab(Data.getting_started_url)
+        webbrowser.open_new_tab(Data.documentation_url)
 
     def callback_help_view_licenses(self):
         """Callback for Menu Help > View Licenses."""
@@ -337,8 +334,8 @@ class Application:
         file.add_separator()
         file.add_command(label='Quit', command=lambda: self.callback_file_exit())
 
-        help_.add_command(label='Getting Started',
-                          command=lambda: self.callback_help_getting_started())
+        help_.add_command(label='Documentation',
+                          command=lambda: self.callback_help_documentation())
         help_.add_command(label='View Licenses',
                           command=lambda: self.callback_help_view_licenses())
         help_.add_separator()
