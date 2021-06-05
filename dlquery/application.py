@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from os import path
+from pprint import pformat
 import webbrowser
 from textwrap import dedent
 from dlquery import create_from_csv_data
@@ -215,6 +216,7 @@ class Application:
         self.result = None
 
         self.textarea = None
+        self.result_textarea = None
         self.csv_radio_btn = None
         self.json_radio_btn = None
         self.yaml_radio_btn = None
@@ -397,16 +399,26 @@ class Application:
             try:
                 result = content.query_obj.find(lookup=lookup, select=select)
                 self.result = result
-                print('------------------')
-                print(result)
+                self.result_textarea.delete("1.0", "end")
+                self.result_textarea.insert(tk.INSERT, str(result))
 
             except Exception as ex:
                 msg = 'TODO: entry-run {}: {}'.format(type(ex), ex)
                 raise NotImplementedError(msg)
 
+        def callback_pprint_btn():
+            if self.result:
+                pretty_result = pformat(self.result)
+                self.result_textarea.delete("1.0", "end")
+                self.result_textarea.insert(tk.INSERT, pretty_result)
+
         def callback_clear_text_btn():
             self.textarea.delete("1.0", "end")
+            self.result_textarea.delete("1.0", "end")
             self.radio_btn_var.set('')
+            self.lookup_entry_var.set('')
+            self.select_entry_var.set('')
+            self.result = None
             self.set_title()
 
         def callback_paste_text_btn():
@@ -466,6 +478,11 @@ class Application:
         )
         self.yaml_radio_btn.place(x=450, y=10)
 
+        # pprint button
+        pprint_btn = ttk.Button(self.entry_frame, text='pprint',
+                                command=callback_pprint_btn)
+        pprint_btn.place(x=520, y=10)
+
         # lookup entry
         lbl = ttk.Label(self.entry_frame, text='Lookup')
         lbl.place(x=10, y=40)
@@ -494,6 +511,26 @@ class Application:
 
     def build_result(self):
         """Build result text"""
+        self.result_frame.rowconfigure(0, weight=1)
+        self.result_frame.columnconfigure(0, weight=1)
+        self.result_textarea = tk.Text(
+            self.result_frame, width=20, height=5, wrap='none'
+        )
+        self.result_textarea.grid(row=0, column=0, sticky='nswe')
+        vscrollbar = ttk.Scrollbar(
+            self.result_frame, orient=tk.VERTICAL,
+            command=self.result_textarea.yview
+        )
+        vscrollbar.grid(row=0, column=1, sticky='ns')
+        hscrollbar = ttk.Scrollbar(
+            self.result_frame, orient=tk.HORIZONTAL,
+            command=self.result_textarea.xview
+        )
+        hscrollbar.grid(row=1, column=0, sticky='ew')
+        self.result_textarea.config(
+            yscrollcommand=vscrollbar.set, xscrollcommand=hscrollbar.set
+        )
+
 
     def run(self):
         """Launch dlquery GUI."""
