@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from os import path
+from pprint import pformat
 import webbrowser
 from textwrap import dedent
 from dlquery import create_from_csv_data
@@ -405,9 +406,19 @@ class Application:
                 msg = 'TODO: entry-run {}: {}'.format(type(ex), ex)
                 raise NotImplementedError(msg)
 
+        def callback_pprint_btn():
+            if self.result:
+                pretty_result = pformat(self.result)
+                self.result_textarea.delete("1.0", "end")
+                self.result_textarea.insert(tk.INSERT, pretty_result)
+
         def callback_clear_text_btn():
             self.textarea.delete("1.0", "end")
+            self.result_textarea.delete("1.0", "end")
             self.radio_btn_var.set('')
+            self.lookup_entry_var.set('')
+            self.select_entry_var.set('')
+            self.result = None
             self.set_title()
 
         def callback_paste_text_btn():
@@ -466,6 +477,11 @@ class Application:
             value='yaml'
         )
         self.yaml_radio_btn.place(x=450, y=10)
+
+        # pprint button
+        pprint_btn = ttk.Button(self.entry_frame, text='pprint',
+                                command=callback_pprint_btn)
+        pprint_btn.place(x=520, y=10)
 
         # lookup entry
         lbl = ttk.Label(self.entry_frame, text='Lookup')
