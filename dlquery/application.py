@@ -193,6 +193,9 @@ class Application:
     callback_help_view_licenses() -> None
     callback_help_about() -> None
     """
+
+    browser = webbrowser
+
     def __init__(self):
         self._base_title = 'DLQuery GUI'
         self.root = tk.Tk()
@@ -259,11 +262,11 @@ class Application:
 
     def callback_help_documentation(self):
         """Callback for Menu Help > Getting Started."""
-        webbrowser.open_new_tab(Data.documentation_url)
+        self.browser.open_new_tab(Data.documentation_url)
 
     def callback_help_view_licenses(self):
         """Callback for Menu Help > View Licenses."""
-        webbrowser.open_new_tab(Data.license_url)
+        self.browser.open_new_tab(Data.license_url)
 
     def callback_help_about(self):
         """Callback for Menu Help > About"""
@@ -276,7 +279,7 @@ class Application:
             url_lbl.config(cursor='arrow')
 
         def mouse_press(event):
-            webbrowser.open_new_tab(url_lbl.link)
+            self.browser.open_new_tab(url_lbl.link)
 
         about = tk.Toplevel(self.root)
         self.set_title(node=about, title='About')
