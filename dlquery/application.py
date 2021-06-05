@@ -6,11 +6,11 @@ from tkinter import filedialog
 from os import path
 import webbrowser
 from textwrap import dedent
-from dlquery import create_from_csv_file
+# from dlquery import create_from_csv_file
 from dlquery import create_from_csv_data
-from dlquery import create_from_json_file
+# from dlquery import create_from_json_file
 from dlquery import create_from_json_data
-from dlquery import create_from_yaml_file
+# from dlquery import create_from_yaml_file
 from dlquery import create_from_yaml_data
 
 
@@ -97,11 +97,12 @@ class Content:
 
 
     """
-    def __init__(self, data='', filename=''):
+    def __init__(self, data='', filename='', filetype=''):
         self.data = data
         self.filename = filename
-        self.filetype = ''
+        self.filetype = filetype
         self.ready = False
+        self.query_obj = None
         self.process()
 
     @property
@@ -124,54 +125,57 @@ class Content:
         """Check if content is ready to use."""
         return self.ready
 
-    def process(self):
-        """Analyze `self.filename` or `self.data` and
-        assign equivalent `self.filetype`"""
+    def process_filename(self):
         if self.filename:
             _, ext = path.splitext(self.filename)
             ext = ext.lower()
             if ext in ['.csv', '.json', '.yml', '.yaml']:
-                self.filetype = ext[1:]
+                ext = ext[1:]
+                ext = 'yaml' if ext in ['yml', 'yaml'] else ext
+                self.filetype = ext
 
             with open(self.filename, newline='') as stream:
-                self.data = stream.read()
-                if self.is_csv:
-                    try:
-                        create_from_csv_file(self.filename)
-                        self.ready = True
-                    except Exception as ex:
-                        raise ex
-                elif self.is_json:
-                    try:
-                        create_from_json_file(self.filename)
-                        self.ready = True
-                    except Exception as ex:
-                        raise ex
-                elif self.is_yaml:
-                    try:
-                        create_from_yaml_file(self.filename)
-                        self.ready = True
-                    except Exception as ex:
-                        raise ex
-        else:
-            if not self.data:
-                return
+                self.data = stream.read().strip()
+
+                if not self.data:
+                    msg = 'TODO: implement case file - Content.data is empty'
+                    raise NotImplementedError(msg)
+
+    def process_data(self):
+        if not self.data:
+            msg = 'TODO: implement case Content.data is emtpy'
+            raise NotImplementedError(msg)
+        if not self.filetype:
+            msg = 'TODO: implement case data - Content.filetype is empty'
+            raise NotImplementedError(msg)
+
+        if self.is_yaml:
             try:
-                create_from_csv_data(self.data)
-                self.filetype = 'csv'
+                self.query_obj = create_from_yaml_data(self.data)
                 self.ready = True
-            except Exception as ex:     # noqa
-                try:
-                    create_from_json_data(self.data)
-                    self.filetype = 'json'
-                    self.ready = True
-                except Exception as ex:         # noqa
-                    try:
-                        create_from_yaml_data(self.data)
-                        self.filetype = 'yaml'
-                        self.ready = True
-                    except Exception as ex:     # noqa
-                        raise ex
+            except Exception as ex:
+                msg = '{}: {}'.format(type(ex), ex)
+                raise NotImplementedError(msg)
+        elif self.is_json:
+            try:
+                self.query_obj = create_from_json_data(self.data)
+                self.ready = True
+            except Exception as ex:
+                msg = '{}: {}'.format(type(ex), ex)
+                raise NotImplementedError(msg)
+        elif self.is_csv:
+            try:
+                self.query_obj = create_from_csv_data(self.data)
+                self.ready = True
+            except Exception as ex:
+                msg = '{}: {}'.format(type(ex), ex)
+                raise NotImplementedError(msg)
+
+    def process(self):
+        """Analyze `self.filename` or `self.data` and
+        assign equivalent `self.filetype`"""
+        self.process_filename()
+        self.process_data()
 
 
 class Application:
@@ -205,7 +209,15 @@ class Application:
         self.entry_frame = None
         self.result_frame = None
 
+        self.radio_btn_var = tk.StringVar()
+        self.lookup_entry_var = tk.StringVar()
+        self.select_entry_var = tk.StringVar()
+        self.result = None
+
         self.textarea = None
+        self.csv_radio_btn = None
+        self.json_radio_btn = None
+        self.yaml_radio_btn = None
 
         self.set_title()
         self.build_menu()
@@ -213,13 +225,6 @@ class Application:
         self.build_textarea()
         self.build_entry()
         self.build_result()
-
-    @property
-    def is_ready(self):
-        """Check if dlquery GUI is ready to run."""
-        if isinstance(self.content, Content):
-            return self.content.is_ready
-        return False
 
     def set_title(self, node=None, title=''):
         """Set a new title for tkinter component.
@@ -247,11 +252,13 @@ class Application:
             ('CSV Files', '*csv')
         ]
         filename = filedialog.askopenfilename(filetypes=filetypes)
-        self.content = Content(filename=filename)
-        if self.content.is_ready:
-            self.set_title(title=filename)
-            self.textarea.delete("1.0", "end")
-            self.textarea.insert(tk.INSERT, self.content.data)
+        if filename:
+            content = Content(filename=filename)
+            if content.is_ready:
+                self.set_title(title=filename)
+                self.textarea.delete("1.0", "end")
+                self.textarea.insert(tk.INSERT, content.data)
+                self.radio_btn_var.set(content.filetype)
 
     def callback_help_getting_started(self):
         """Callback for Menu Help > Getting Started."""
@@ -376,6 +383,114 @@ class Application:
 
     def build_entry(self):
         """Build input entry for dlquery GUI."""
+        def callback_run_btn():
+            data = self.textarea.get('1.0', 'end').strip()
+            filetype = self.radio_btn_var.get()
+            lookup = self.lookup_entry_var.get()
+            select = self.select_entry_var.get()
+
+            content = Content(data=data, filetype=filetype)
+            if not content.is_ready:
+                msg = 'TODO: show error message'
+                raise NotImplementedError(msg)
+
+            try:
+                result = content.query_obj.find(lookup=lookup, select=select)
+                self.result = result
+                print('------------------')
+                print(result)
+
+            except Exception as ex:
+                msg = 'TODO: entry-run {}: {}'.format(type(ex), ex)
+                raise NotImplementedError(msg)
+
+        def callback_clear_text_btn():
+            self.textarea.delete("1.0", "end")
+            self.radio_btn_var.set('')
+            self.set_title()
+
+        def callback_paste_text_btn():
+            data = self.root.clipboard_get()
+            if data:
+                self.set_title(title='<<PASTE - Clipboard>>')
+                self.textarea.delete("1.0", "end")
+                self.content = Content(data=data)
+                if self.content.is_ready:
+                    self.textarea.insert(tk.INSERT, data)
+                    self.radio_btn_var.set(self.content.filetype)
+                else:
+                    raise NotImplementedError('TODO: Need to show error in Result Frame')
+
+        def callback_clear_lookup_entry():
+            self.lookup_entry_var.set('')
+
+        def callback_clear_select_entry():
+            self.select_entry_var.set('')
+
+        # run button
+        run_btn = ttk.Button(self.entry_frame, text='Run',
+                             command=callback_run_btn)
+        run_btn.place(x=10, y=10)
+
+        # open button
+        open_file_btn = ttk.Button(self.entry_frame, text='Open',
+                                   command=self.callback_file_open)
+        open_file_btn.place(x=90, y=10)
+
+        # paste button
+        paste_text_btn = ttk.Button(self.entry_frame, text='Paste',
+                                    command=callback_paste_text_btn)
+        paste_text_btn.place(x=170, y=10)
+
+        # clear button
+        clear_text_btn = ttk.Button(self.entry_frame, text='Clear',
+                                    command=callback_clear_text_btn)
+        clear_text_btn.place(x=250, y=10)
+
+        # radio buttons
+        self.csv_radio_btn = ttk.Radiobutton(
+            self.entry_frame, text='csv', variable=self.radio_btn_var,
+            value='csv'
+        )
+        self.csv_radio_btn.place(x=340, y=10)
+
+        self.json_radio_btn = ttk.Radiobutton(
+            self.entry_frame, text='json', variable=self.radio_btn_var,
+            value='json'
+        )
+        self.json_radio_btn.place(x=390, y=10)
+
+        self.yaml_radio_btn = ttk.Radiobutton(
+            self.entry_frame, text='yaml', variable=self.radio_btn_var,
+            value='yaml'
+        )
+        self.yaml_radio_btn.place(x=450, y=10)
+
+        # lookup entry
+        lbl = ttk.Label(self.entry_frame, text='Lookup')
+        lbl.place(x=10, y=40)
+        lookup_entry = ttk.Entry(self.entry_frame, width=107,
+                                 textvariable=self.lookup_entry_var)
+        lookup_entry.place(x=60, y=40)
+        lookup_entry.bind('<Return>', lambda event: callback_run_btn())
+
+        # clear button
+        clear_lookup_btn = ttk.Button(self.entry_frame, text='Clear',
+                                      command=callback_clear_lookup_entry)
+        clear_lookup_btn.place(x=715, y=40)
+
+        # select statement entry
+        lbl = ttk.Label(self.entry_frame, text='Select')
+        lbl.place(x=10, y=68)
+        select_entry = ttk.Entry(self.entry_frame, width=107,
+                                 textvariable=self.select_entry_var)
+        select_entry.place(x=60, y=68)
+        select_entry.bind('<Return>', lambda event: callback_run_btn())
+
+        # clear button
+        clear_select_btn = ttk.Button(self.entry_frame, text='Clear',
+                                      command=callback_clear_select_entry)
+        clear_select_btn.place(x=715, y=68)
 
     def build_result(self):
         """Build result text"""
