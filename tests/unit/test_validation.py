@@ -1,6 +1,7 @@
 from dlquery.validation import RegexValidation
 from dlquery.validation import OpValidation
 from dlquery.validation import CustomValidation
+from dlquery.validation import VersionValidation
 import pytest
 
 
@@ -274,4 +275,27 @@ class TestOpValidation:
     def test_string_a_not_belong_b(self, data, other):
         """Test string a contains string b."""
         chk = OpValidation.belong(data, other, valid=False, on_exception=False)
+        assert chk is True
+
+
+class TestVersionValidation:
+    """Test class for validating Operator."""
+    @pytest.mark.parametrize(
+        "data,op,other",
+        [
+            ('b', 'gt', 'a'),               # version a > version b
+            ('b', 'gt', 'a.b.c.d'),         # version a > version b
+            ('3', 'gt', '2'),               # version a > version b
+            ('6.4', 'gt', '6.3.9-a'),       # version a > version b
+            ('3.1', 'ge', '2.9'),           # version a >= version b
+            ('6.3.9', 'lt', '6.4'),         # version a < version b
+            ('6.3.9', 'le', '6.4'),         # version a <= version b
+            ('5.3.5', 'eq', '5.3.5'),       # version a == version b
+            ('1.0.1.a', 'eq', '1.0.1.a'),   # version a == version b
+            ('6.3.9', 'ne', '6.4.1'),       # version a != version b
+        ]
+    )
+    def test_compare_version(self, data, op, other):
+        """Test version a gt|ge|lt|le|eq|ne version b."""
+        chk = VersionValidation.compare_version(data, op, other, on_exception=False)
         assert chk is True
