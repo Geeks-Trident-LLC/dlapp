@@ -6,6 +6,7 @@ from ipaddress import ip_address
 import functools
 import traceback
 import logging
+from compare_versions.core import verify_list as version_compare
 
 DEBUG = 0
 logger = logging.getLogger(__file__)
@@ -620,3 +621,66 @@ class CustomValidation:
             return value is False
         value = str(value)
         return value.lower() == 'false'
+
+
+class VersionValidation:
+    """The Version comparison validation class
+
+    Methods
+    -------
+    OpValidation.compare_string(value, op, other, valid=True, on_exception=True) -> bool
+    OpValidation.compare_semantic(value, op, other, valid=True, on_exception=True) -> bool
+    """
+    @classmethod
+    @false_on_exception_for_classmethod
+    def compare_version(cls, value, op, other, valid=True, on_exception=True):
+        """Perform operator comparison for version.
+
+        Parameters
+        ----------
+        value (str): data.
+        op (str): an operator can be lt, le, gt, ge, eq, ne
+        other (str): a number.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value lt|le|gt|ge|eq|ne other, otherwise, False.
+        """
+        op = str(op).lower().strip()
+        valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
+        if op not in valid_ops:
+            fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
+            raise ValidationOperatorError(fmt.format(op, valid_ops))
+
+        value, other = str(value), str(other)
+        result = version_compare([value, other], comparison=op, scheme='string')
+        return result
+
+    @classmethod
+    @false_on_exception_for_classmethod
+    def compare_semantic_version(cls, value, op, other, valid=True, on_exception=True):
+        """Perform operator comparison for semantic version.
+
+        Parameters
+        ----------
+        value (str): data.
+        op (str): an operator can be lt, le, gt, ge, eq, ne
+        other (str): a number.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value lt|le|gt|ge|eq|ne other, otherwise, False.
+        """
+        op = str(op).lower().strip()
+        valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
+        if op not in valid_ops:
+            fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
+            raise ValidationOperatorError(fmt.format(op, valid_ops))
+
+        value, other = str(value), str(other)
+        result = version_compare([value, other], comparison=op, scheme='semver')
+        return result

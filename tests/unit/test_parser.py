@@ -267,6 +267,9 @@ class TestSelectParser:
     @pytest.mark.parametrize(
         "data,statement",
         [
+            #####################
+            # number comparison #
+            #####################
             (
                 {'a': 20, 'b': 2},              # data
                 'select b where a gt 10',       # select statement
@@ -295,6 +298,9 @@ class TestSelectParser:
                 {'a': 5, 'b': 2},               # data
                 'select b where a ne 3',        # select statement
             ),
+            #####################
+            # string comparison #
+            #####################
             (
                 {'a': 'abc', 'b': 2},           # data
                 'select b where a eq abc',      # select statement
@@ -326,6 +332,64 @@ class TestSelectParser:
             (
                 {'a': 'middle', 'b': 2},                    # data
                 'select b where a not_belong first, last',  # select statement
+            ),
+            ######################
+            # version comparison #
+            ######################
+            (
+                {'a': 'b', 'b': '2'},                   # data
+                'select a where a gt version(a)',       # select statement
+            ),
+            (
+                {'a': 'b', 'b': '2'},                   # data
+                'select a where a gt version(a.b.c.d)',  # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a gt version(6.3.0)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a lt version(7.0.1)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a le version(7.0.1-a)',     # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},  # data
+                'select a where a eq version(6.3.4)',  # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a ne version(6.3.5)',   # select statement
+            ),
+            ###############################
+            # semantic version comparison #
+            ###############################
+            (
+                {'a': '6.4.0', 'b': '2'},                           # data
+                'select a where a gt semantic_version(6.3.9-a)',    # select statement
+            ),
+            (
+                {'a': '3.1.0', 'b': '2'},                           # data
+                'select a where a ge semantic_version(2.9.9)',      # select statement
+            ),
+            (
+                {'a': '6.3.9', 'b': '2'},                           # data
+                'select a where a lt semantic_version(6.4.0)',      # select statement
+            ),
+            (
+                {'a': '6.3.9', 'b': '2'},                           # data
+                'select a where a le semantic_version(6.4.0)',      # select statement
+            ),
+            (
+                {'a': '1.0.1-a', 'b': '2'},                         # data
+                'select a where a eq semantic_version(1.0.1-a)',    # select statement
+            ),
+            (
+                {'a': '6.3.9', 'b': '2'},                           # data
+                'select a where a ne semantic_version(6.4.1)',      # select statement
             ),
         ]
     )
