@@ -3,6 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
+from tkinter import messagebox
 from os import path
 from pprint import pformat
 import webbrowser
@@ -97,6 +98,7 @@ class Content:
 
     """
     def __init__(self, data='', filename='', filetype=''):
+        self.case = 'file' if filename else 'data' if data else 'unknown'
         self.data = data
         self.filename = filename
         self.filetype = filetype
@@ -127,48 +129,72 @@ class Content:
     def process_filename(self):
         if self.filename:
             _, ext = path.splitext(self.filename)
-            ext = ext.lower()
-            if ext in ['.csv', '.json', '.yml', '.yaml']:
-                ext = ext[1:]
+            extension = ext[1:]
+            ext = ext.lower()[1:]
+            if ext in ['csv', 'json', 'yml', 'yaml']:
                 ext = 'yaml' if ext in ['yml', 'yaml'] else ext
                 self.filetype = ext
+            else:
+                if not ext:
+                    message = ('Make sure to select file with '
+                               'extension json, yaml, yml, or csv.')
+                else:
+                    fmt = ('Selecting file extension is {}.  Make sure it is '
+                           'in form of json, yaml, yml, or csv.')
+                    message = fmt.format(extension)
+
+                title = 'File extension'
+                messagebox.showwarning(title=title, message=message)
 
             with open(self.filename, newline='') as stream:
                 self.data = stream.read().strip()
 
                 if not self.data:
-                    msg = 'TODO: implement case file - Content.data is empty'
-                    raise NotImplementedError(msg)
+                    message = 'This {} file is empty.'.format(self.filename)
+                    title = 'File extension'
+                    messagebox.showwarning(title=title, message=message)
 
     def process_data(self):
         if not self.data:
-            msg = 'TODO: implement case Content.data is emtpy'
-            raise NotImplementedError(msg)
+            if self.case != 'file':
+                title = 'Empty data'
+                message = 'data is empty.'
+                messagebox.showwarning(title=title, message=message)
+
+            return
+
         if not self.filetype:
-            msg = 'TODO: implement case data - Content.filetype is empty'
-            raise NotImplementedError(msg)
+            if self.case != 'file':
+                title = 'Unselecting file extension'
+                message = ('Need to check filetype radio button '
+                           'such as json, yaml, or csv.')
+                messagebox.showwarning(title=title, message=message)
+                return
 
         if self.is_yaml:
             try:
                 self.query_obj = create_from_yaml_data(self.data)
                 self.ready = True
             except Exception as ex:
-                msg = '{}: {}'.format(type(ex), ex)
-                raise NotImplementedError(msg)
+                title = 'Processing YAML data'
+                message = '{}: {}'.format(type(ex), ex)
+                messagebox.showerror(title=title, message=message)
         elif self.is_json:
             try:
                 self.query_obj = create_from_json_data(self.data)
                 self.ready = True
             except Exception as ex:
-                msg = '{}: {}'.format(type(ex), ex)
-                raise NotImplementedError(msg)
+                title = 'Processing JSON data'
+                message = '{}: {}'.format(type(ex), ex)
+                messagebox.showerror(title=title, message=message)
         elif self.is_csv:
             try:
                 self.query_obj = create_from_csv_data(self.data)
                 self.ready = True
             except Exception as ex:
-                msg = '{}: {}'.format(type(ex), ex)
-                raise NotImplementedError(msg)
+                title = 'Processing CSV data'
+                message = '{}: {}'.format(type(ex), ex)
+                messagebox.showerror(title=title, message=message)
 
     def process(self):
         """Analyze `self.filename` or `self.data` and
@@ -394,8 +420,7 @@ class Application:
 
             content = Content(data=data, filetype=filetype)
             if not content.is_ready:
-                msg = 'TODO: show error message'
-                raise NotImplementedError(msg)
+                return
 
             try:
                 result = content.query_obj.find(lookup=lookup, select=select)
@@ -404,8 +429,9 @@ class Application:
                 self.result_textarea.insert(tk.INSERT, str(result))
 
             except Exception as ex:
-                msg = 'TODO: entry-run {}: {}'.format(type(ex), ex)
-                raise NotImplementedError(msg)
+                title = 'Query problem'
+                message = '{}: {}'.format(type(ex).__name__, ex)
+                messagebox.showerror(title=title, message=message)
 
         def callback_tabular_btn():
             if self.result:
@@ -431,14 +457,13 @@ class Application:
         def callback_paste_text_btn():
             data = self.root.clipboard_get()
             if data:
-                self.set_title(title='<<PASTE - Clipboard>>')
                 self.textarea.delete("1.0", "end")
-                self.content = Content(data=data)
+                filetype = self.radio_btn_var.get()
+                self.content = Content(data=data, filetype=filetype)
                 if self.content.is_ready:
+                    self.set_title(title='<<PASTE - Clipboard>>')
                     self.textarea.insert(tk.INSERT, data)
                     self.radio_btn_var.set(self.content.filetype)
-                else:
-                    raise NotImplementedError('TODO: Need to show error in Result Frame')
 
         def callback_clear_lookup_entry():
             self.lookup_entry_var.set('')
