@@ -10,6 +10,7 @@ from textwrap import dedent
 from dlquery import create_from_csv_data
 from dlquery import create_from_json_data
 from dlquery import create_from_yaml_data
+from dlquery.collection import Tabular
 
 
 __version__ = '1.0.0'
@@ -406,11 +407,17 @@ class Application:
                 msg = 'TODO: entry-run {}: {}'.format(type(ex), ex)
                 raise NotImplementedError(msg)
 
-        def callback_pprint_btn():
+        def callback_tabular_btn():
             if self.result:
-                pretty_result = pformat(self.result)
+                tabular_obj = Tabular(self.result)
+                if tabular_obj.is_tabular:
+                    result = tabular_obj.get()
+                else:
+                    fmt = 'CANNOT convert to tabular format because {!r}\n{}\n{}'
+                    pretty_result = pformat(self.result)
+                    result = fmt.format(tabular_obj.failure, '-' * 40, pretty_result)
                 self.result_textarea.delete("1.0", "end")
-                self.result_textarea.insert(tk.INSERT, pretty_result)
+                self.result_textarea.insert(tk.INSERT, result)
 
         def callback_clear_text_btn():
             self.textarea.delete("1.0", "end")
@@ -479,9 +486,9 @@ class Application:
         self.yaml_radio_btn.place(x=450, y=10)
 
         # pprint button
-        pprint_btn = ttk.Button(self.entry_frame, text='pprint',
-                                command=callback_pprint_btn)
-        pprint_btn.place(x=520, y=10)
+        tabular_btn = ttk.Button(self.entry_frame, text='Tabular',
+                                 command=callback_tabular_btn)
+        tabular_btn.place(x=520, y=10)
 
         # lookup entry
         lbl = ttk.Label(self.entry_frame, text='Lookup')
@@ -530,7 +537,6 @@ class Application:
         self.result_textarea.config(
             yscrollcommand=vscrollbar.set, xscrollcommand=hscrollbar.set
         )
-
 
     def run(self):
         """Launch dlquery GUI."""
