@@ -212,6 +212,28 @@ class Predicate:
         return result
 
     @classmethod
+    def compare_semantic_version(cls, data, key='', op='', other='', on_exception=True):
+        """A compare_semantic_version keyword for expression validation.
+
+        Parameters
+        ----------
+        data (dict): a dict or dict-like instance.
+        key (str): a key of dict or dict-like instance.
+        op (str): an operator such lt, le, gt, ge, eq or ne.
+        other (str): an other data.
+        on_exception (bool): raise `Exception` if set True, otherwise, return False.
+
+        Returns
+        -------
+        bool: True if meet operator comparison, otherwise, False.
+        """
+        value = get_value(data, key)
+        result = VersionValidation.compare_semantic_version(
+            value, op, other, on_exception=on_exception
+        )
+        return result
+
+    @classmethod
     def contain(cls, data, key='', other='', on_exception=True):
         """A contain keyword for expression validation.
 
