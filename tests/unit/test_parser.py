@@ -327,6 +327,34 @@ class TestSelectParser:
                 {'a': 'middle', 'b': 2},                    # data
                 'select b where a not_belong first, last',  # select statement
             ),
+            (
+                {'a': 'b', 'b': '2'},                   # data
+                'select a where a gt version(a)',       # select statement
+            ),
+            (
+                {'a': 'b', 'b': '2'},                   # data
+                'select a where a gt version(a.b.c.d)',  # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a gt version(6.3.0)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a lt version(7.0.1)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a le version(7.0.1-a)',     # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},  # data
+                'select a where a eq version(6.3.4)',  # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a ne version(6.3.5)',   # select statement
+            ),
         ]
     )
     def test_parse_statement_validating_operator(self, data, statement):
