@@ -116,6 +116,22 @@ class TestPredicateVersion:
         ]
     )
     def test_compare_version(self, data, key, op, other):
-        """Test comparing number a vs number b."""
+        """Test comparing version a vs version b."""
+        chk = Predicate.compare_version(data, key=key, op=op, other=other)
+        assert chk is True
+
+    @pytest.mark.parametrize(
+        "data,key,op,other",
+        [
+            (dict(key='6.4.0'), 'key', 'gt', '6.3.9-a'),    # semantic version a > semantic version b
+            (dict(key='3.1.0'), 'key', 'ge', '2.9.9'),      # semantic version a >= semantic version b
+            (dict(key='6.3.9'), 'key', 'lt', '6.4.0'),      # semantic version a < semantic version b
+            (dict(key='6.3.9'), 'key', 'le', '6.4.0'),      # semantic version a <= semantic version b
+            (dict(key='1.0.1-a'), 'key', 'eq', '1.0.1-a'),  # semantic version a == semantic version b
+            (dict(key='6.3.9'), 'key', 'ne', '6.4.1'),      # semantic version a != semantic version b
+        ]
+    )
+    def test_compare_semantic_version(self, data, key, op, other):
+        """Test comparing semantic version a vs semantic version b."""
         chk = Predicate.compare_version(data, key=key, op=op, other=other)
         assert chk is True
