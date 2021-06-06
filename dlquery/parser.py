@@ -68,10 +68,37 @@ class SelectParser:
         elif op in ['is_not', 'isnot']:
             func = partial(Predicate.isnot, key=key, custom=value)
         elif op in ['lt', 'le', 'gt', 'ge']:
-            func = partial(Predicate.compare_number, key=key, op=op, other=value)
+            val = str(value).strip()
+            pattern = r'''
+                (?i)((?P<semantic>semantic)_)?
+                version[(](?P<expected_version>.+)[)]$
+            '''
+            match_version = re.match(pattern, val, flags=re.VERBOSE)
+            if match_version:
+                semantic = match_version.group('semantic')
+                expected_version = match_version.group('expected_version')
+                if not semantic:
+                    func = partial(Predicate.compare_version, key=key,
+                                   op=op, other=expected_version)
+            else:
+                func = partial(Predicate.compare_number, key=key,
+                               op=op, other=value)
         elif op in ['eq', 'ne']:
-            cfunc = Predicate.compare_number if is_number(value) else Predicate.compare
-            func = partial(cfunc, key=key, op=op, other=value)
+            val = str(value).strip()
+            pattern = r'''
+                (?i)((?P<semantic>semantic)_)?
+                version[(](?P<expected_version>.+)[)]$
+            '''
+            match_version = re.match(pattern, val, flags=re.VERBOSE)
+            if match_version:
+                semantic = match_version.group('semantic')
+                expected_version = match_version.group('expected_version')
+                if not semantic:
+                    func = partial(Predicate.compare_version, key=key,
+                                   op=op, other=expected_version)
+            else:
+                cfunc = Predicate.compare_number if is_number(value) else Predicate.compare
+                func = partial(cfunc, key=key, op=op, other=value)
         elif op == 'match':
             func = partial(Predicate.match, key=key, pattern=value)
         elif op in ['not_match', 'notmatch']:
