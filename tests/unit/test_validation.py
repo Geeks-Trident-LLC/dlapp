@@ -299,3 +299,21 @@ class TestVersionValidation:
         """Test version a gt|ge|lt|le|eq|ne version b."""
         chk = VersionValidation.compare_version(data, op, other, on_exception=False)
         assert chk is True
+
+    @pytest.mark.parametrize(
+        "data,op,other",
+        [
+            ('6.4.0', 'gt', '6.3.9-a'),         # semantic version a > semantic version b
+            ('3.1.0', 'ge', '2.9.9'),           # semantic version a >= semantic version b
+            ('6.3.9', 'lt', '6.4.0'),           # semantic version a < semantic version b
+            ('6.3.9', 'le', '6.4.0'),           # semantic version a <= semantic version b
+            ('1.0.1-a', 'eq', '1.0.1-a'),       # semantic version a == semantic version b
+            ('6.3.9', 'ne', '6.4.1'),           # semantic version a != semantic version b
+        ]
+    )
+    def test_compare_semantic_version(self, data, op, other):
+        """Test version a gt|ge|lt|le|eq|ne version b."""
+        chk = VersionValidation.compare_semantic_version(
+            data, op, other, on_exception=False
+        )
+        assert chk is True
