@@ -80,6 +80,9 @@ class SelectParser:
                 if not semantic:
                     func = partial(Predicate.compare_version, key=key,
                                    op=op, other=expected_version)
+                else:
+                    func = partial(Predicate.compare_semantic_version,
+                                   key=key, op=op, other=expected_version)
             else:
                 func = partial(Predicate.compare_number, key=key,
                                op=op, other=value)
@@ -96,6 +99,9 @@ class SelectParser:
                 if not semantic:
                     func = partial(Predicate.compare_version, key=key,
                                    op=op, other=expected_version)
+                else:
+                    func = partial(Predicate.compare_semantic_version,
+                                   key=key, op=op, other=expected_version)
             else:
                 cfunc = Predicate.compare_number if is_number(value) else Predicate.compare
                 func = partial(cfunc, key=key, op=op, other=value)
