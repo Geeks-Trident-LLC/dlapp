@@ -6,6 +6,7 @@ from ipaddress import ip_address
 import functools
 import traceback
 import logging
+from datetime import datetime
 from compare_versions.core import verify_list as version_compare
 
 DEBUG = 0
@@ -683,4 +684,106 @@ class VersionValidation:
 
         value, other = str(value), str(other)
         result = version_compare([value, other], comparison=op, scheme='semver')
+        return result
+
+
+class DatetimeValidation:
+    """The Datetime comparison validation class
+
+    Methods
+    -------
+    DatetimeValidation.parse_custom_date(data) -> tuple
+    DatetimeValidation.apply_skips(data, skips) -> str
+    DatetimeValidation.compare_date(value, op, other, valid=True, on_exception=True) -> bool
+    """
+
+    @classmethod
+    def parse_custom_date(cls, data):
+        """parse custom datetime and return date, format, and skips
+
+        Parameters
+        ----------
+        data (str): datetime format=...? skips=...?
+
+        Returns
+        -------
+        tuple: datetime, format, skips
+        """
+        if 'format=' not in data and 'skips=' not in data:
+            return data, '', []
+        pattern = '(?i) +(format|skips.?)='
+        start = 0
+        date_val, fmt, skips = '', '', []
+        match_data = ''
+        for m in re.finditer(pattern, data):
+            before_match_data = m.string[start:m.start()]
+            if not date_val:
+                date_val = before_match_data
+            elif not fmt and match_data.startswith('format='):
+                fmt = before_match_data.strip()
+            elif not skips and match_data.startswith('skips'):
+                m1 = re.search(r'skips(?P<separator>.?)=', match_data)
+                separator = m1.group('separator')
+                separator = separator or ','
+                skips = before_match_data.rstrip(separator).split(separator)
+            match_data = m.group().strip()
+            start = m.end()
+        else:
+            if not fmt and match_data.startswith('format='):
+                fmt = m.string[m.end():].strip()
+            elif not skips and match_data.startswith('skips'):
+                m1 = re.search(r'skips(?P<separator>.?)=', match_data)
+                separator = m1.group('separator')
+                separator = separator or ','
+                skips = m.string[m.end():].rstrip(separator).split(separator)
+        return date_val, fmt, skips
+
+    @classmethod
+    def apply_skips(cls, data, skips):
+        """Take out any skip data and return datetime without skip data
+
+        Parameters
+        ----------
+        data (str): datetime <skip data>
+        skips (list): a list of skip data
+
+        Returns
+        -------
+        str: new datetime without skip data
+        """
+        for skip in skips:
+            try:
+                compile_pattern = re.compile(skip)
+                pattern = skip
+            except Exception as ex:     # noqa
+                pattern = re.escape(skip)
+
+            data = re.sub(pattern, '', data, re.I)
+        return data.strip()
+
+    @classmethod
+    @false_on_exception_for_classmethod
+    def compare_date(cls, value, op, other, valid=True, on_exception=True):
+        """Perform operator comparison for Date.
+
+        Parameters
+        ----------
+        value (str): a date.
+        op (str): an operator can be lt, le, gt, ge, eq, ne
+        other (str): an other date.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if a date lt|le|gt|ge|eq|ne other date, otherwise, False.
+        """
+        other_date_str, fmt, skips = DatetimeValidation.parse_custom_date(other)
+        fmt = fmt or '%m/%d/%Y'
+
+        a_data_str = DatetimeValidation.apply_skips(value, skips)
+        other_date_str = DatetimeValidation.apply_skips(other_date_str, skips)
+        a_date = datetime.strptime(a_data_str, fmt)
+        other_date = datetime.strptime(other_date_str, fmt)
+        result = getattr(operator, op)(a_date, other_date)
         return result
