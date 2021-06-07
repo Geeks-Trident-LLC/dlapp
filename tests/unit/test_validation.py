@@ -2,6 +2,7 @@ from dlquery.validation import RegexValidation
 from dlquery.validation import OpValidation
 from dlquery.validation import CustomValidation
 from dlquery.validation import VersionValidation
+from dlquery.validation import DatetimeValidation
 import pytest
 
 
@@ -317,3 +318,33 @@ class TestVersionValidation:
             data, op, other, on_exception=False
         )
         assert chk is True
+
+
+class TestDatetimeValidation:
+    """Test class for validating Datetime comparison."""
+    @pytest.mark.parametrize(
+        "data,op,other",
+        [
+            ('06/06/2021', 'gt', '01/01/2021'),                     # a date > other date
+            ('6/6/2021', 'gt', '01/01/2021'),                       # a date > other date
+            ('06-06-2021', 'gt', '01-01-2021 format=%m-%d-%Y'),     # a date > other date with format
+            (
+                # a date > other date with custom format and skips
+                '2021Jun06 PDT',                                    # a date
+                'gt',                                               # operator greater than
+                '2021Jan01 PST format=%Y%b%d skips= PDT, PST'       # other day with format and skips
+            ),
+            ('Jun 3, 2021', 'ge', 'Jan 29, 2021 format=%b %d, %Y'),     # a date >= other date
+            ('01/01/2021', 'lt', '06/06/2021'),                         # a date < other date
+            ('01/01/2021', 'le', '06/06/2021'),                         # a date < other date
+            ('06/06/2021', 'eq', '06/06/2021'),                         # a date == other date
+            ('01/01/2021', 'ne', '06/06/2021'),                         # a date != other date
+
+        ]
+    )
+    def test_compare_version(self, data, op, other):
+        """Test a date gt|ge|lt|le|eq|ne other date."""
+        result = DatetimeValidation.compare_date(
+            data, op, other, on_exception=False
+        )
+        assert result is True
