@@ -694,7 +694,7 @@ class DatetimeValidation:
     -------
     DatetimeValidation.parse_custom_date(data) -> tuple
     DatetimeValidation.apply_skips(data, skips) -> str
-    DatetimeValidation.compare_date(value, op, other, valid=True, on_exception=True) -> bool
+    DatetimeValidation.compare_datetime(value, op, other, valid=True, on_exception=True) -> bool
     """
 
     @classmethod
@@ -763,20 +763,20 @@ class DatetimeValidation:
 
     @classmethod
     @false_on_exception_for_classmethod
-    def compare_date(cls, value, op, other, valid=True, on_exception=True):
-        """Perform operator comparison for Date.
+    def compare_datetime(cls, value, op, other, valid=True, on_exception=True):
+        """Perform operator comparison for datetime.
 
         Parameters
         ----------
-        value (str): a date.
+        value (str): a datetime.
         op (str): an operator can be lt, le, gt, ge, eq, ne
-        other (str): an other date.
+        other (str): an other datetime.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
         Returns
         -------
-        bool: True if a date lt|le|gt|ge|eq|ne other date, otherwise, False.
+        bool: True if a datetime lt|le|gt|ge|eq|ne other datetime, otherwise, False.
         """
         other_date_str, fmt, skips = DatetimeValidation.parse_custom_date(other)
         fmt = fmt or '%m/%d/%Y'
