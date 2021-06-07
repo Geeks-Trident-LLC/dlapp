@@ -628,8 +628,8 @@ class VersionValidation:
 
     Methods
     -------
-    OpValidation.compare_string(value, op, other, valid=True, on_exception=True) -> bool
-    OpValidation.compare_semantic(value, op, other, valid=True, on_exception=True) -> bool
+    VersionValidation.compare_version(value, op, other, valid=True, on_exception=True) -> bool
+    VersionValidation.compare_semantic_version(value, op, other, valid=True, on_exception=True) -> bool
     """
     @classmethod
     @false_on_exception_for_classmethod
@@ -638,15 +638,15 @@ class VersionValidation:
 
         Parameters
         ----------
-        value (str): data.
+        value (str): a version.
         op (str): an operator can be lt, le, gt, ge, eq, ne
-        other (str): a number.
+        other (str): an other version.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
         Returns
         -------
-        bool: True if value lt|le|gt|ge|eq|ne other, otherwise, False.
+        bool: True if a version lt|le|gt|ge|eq|ne other version, otherwise, False.
         """
         op = str(op).lower().strip()
         valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
@@ -665,15 +665,15 @@ class VersionValidation:
 
         Parameters
         ----------
-        value (str): data.
+        value (str): a version.
         op (str): an operator can be lt, le, gt, ge, eq, ne
-        other (str): a number.
+        other (str): an other version.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
         Returns
         -------
-        bool: True if value lt|le|gt|ge|eq|ne other, otherwise, False.
+        bool: True if a version lt|le|gt|ge|eq|ne other version, otherwise, False.
         """
         op = str(op).lower().strip()
         valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
