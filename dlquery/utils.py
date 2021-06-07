@@ -18,7 +18,6 @@ class Printer:
 
     Methods
     Printer.print(data, header='', footer='', failure_msg='', print_func=None) -> None
-    Printer.print_tabular(data, **kwargs) -> None
     """
     @classmethod
     def print(cls, data, header='', footer='', failure_msg='', print_func=None):
@@ -57,18 +56,6 @@ class Printer:
 
         if failure_msg:
             print_func(failure_msg)
-
-    @classmethod
-    def print_tabular(cls, data, **kwargs):
-        """Print data in tabular format
-
-        Parameters
-        ----------
-        data (list): a list of dictionary.
-        kwargs (dict): keyword arguments.
-        """
-        msg = 'TODO: Need to implement Printer.print_tabular method'
-        raise NotImplementedError(msg)
 
 
 def convert_wildcard_to_regex(pattern, closed=False):
