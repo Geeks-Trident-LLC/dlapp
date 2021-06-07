@@ -5,6 +5,7 @@ from dlquery.validation import RegexValidation
 from dlquery.validation import OpValidation
 from dlquery.validation import CustomValidation
 from dlquery.validation import VersionValidation
+from dlquery.validation import DatetimeValidation
 
 
 logger = logging.getLogger(__file__)
@@ -229,6 +230,28 @@ class Predicate:
         """
         value = get_value(data, key)
         result = VersionValidation.compare_semantic_version(
+            value, op, other, on_exception=on_exception
+        )
+        return result
+
+    @classmethod
+    def compare_date(cls, data, key='', op='', other='', on_exception=True):
+        """A compare_date keyword for expression validation.
+
+        Parameters
+        ----------
+        data (dict): a dict or dict-like instance.
+        key (str): a key of dict or dict-like instance.
+        op (str): an operator such lt, le, gt, ge, eq or ne.
+        other (str): an other data.
+        on_exception (bool): raise `Exception` if set True, otherwise, return False.
+
+        Returns
+        -------
+        bool: True if meet operator comparison, otherwise, False.
+        """
+        value = get_value(data, key)
+        result = DatetimeValidation.compare_date(
             value, op, other, on_exception=on_exception
         )
         return result
