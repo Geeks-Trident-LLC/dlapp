@@ -26,36 +26,39 @@ class Printer:
         Parameters
         ----------
         data (str, list): a text or a list of text.
-        header (str): a header text.
-        footer (str): a footer text.
-        failure_msg (str): a failure message.
-        print_func (function): a print function.
+        header (str): a header text.  Default is empty.
+        footer (str): a footer text.  Default is empty.
+        failure_msg (str): a failure message.  Default is empty.
+        print_func (function): a print function.  Default is None.
         """
         headers = str(header).splitlines()
         footers = str(footer).splitlines()
         data = data if isinstance(data, (list, tuple)) else [data]
         lst = []
+        result = []
         for item in data:
             lst.extend(str(item).splitlines())
         width = max(len(str(i)) for i in lst + headers + footers)
-        print_func = print if print_func is None else print_func
-        print_func('+-{}-+'.format('-' * width))
+        result.append('+-{}-+'.format('-' * width))
         if header:
             for item in headers:
-                print_func('| {} |'.format(item.ljust(width)))
-            print_func('+-{}-+'.format('-' * width))
+                result.append('| {} |'.format(item.ljust(width)))
+            result.append('+-{}-+'.format('-' * width))
 
         for item in lst:
-            print_func('| {} |'.format(item.ljust(width)))
-        print_func('+-{}-+'.format('-' * width))
+            result.append('| {} |'.format(item.ljust(width)))
+        result.append('+-{}-+'.format('-' * width))
 
         if footer:
             for item in footers:
-                print_func('| {} |'.format(item.ljust(width)))
-            print_func('+-{}-+'.format('-' * width))
+                result.append('| {} |'.format(item.ljust(width)))
+            result.append('+-{}-+'.format('-' * width))
 
         if failure_msg:
-            print_func(failure_msg)
+            result.append(failure_msg)
+
+        print_func = print_func if callable(print_func) else print
+        print_func('\n'.join(result))
 
 
 def convert_wildcard_to_regex(pattern, closed=False):
