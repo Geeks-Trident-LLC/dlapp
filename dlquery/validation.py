@@ -687,6 +687,10 @@ class VersionValidation:
         return result
 
 
+class DatetimeValidationError(Exception):
+    """Use to capture DatetimeValidation error."""
+
+
 class DatetimeValidation:
     """The Datetime comparison validation class
 
@@ -739,6 +743,97 @@ class DatetimeValidation:
         return date_val, fmt, skips
 
     @classmethod
+    def get_default_datetime_format(cls, data):
+        """Return a default format for a datetime
+
+        Parameters
+        ----------
+        data (str): a datetime.
+
+        Returns
+        -------
+        str: a default format for datetime
+
+        Raises
+        ------
+        DatetimeValidationError: if datetime format is unknown or not found.
+        """
+        def get_default_date_format(v):
+            """get default date format.
+
+            Parameters
+            ----------
+            v (str): a date data.
+
+            Returns
+            -------
+            str: return a date format if matched, otherwise, empty string.
+            """
+            v = str(v).strip()
+            pattern = r'[0-9]{1,2}([/-])[0-9]{1,2}\1[0-9]{4}$'
+            match = re.match(pattern, v)
+            if match:
+                return '%m/%d/%Y' if '/' in match.string else '%m-%d-%Y'
+
+            return ''
+
+        def get_default_time_format(v):
+            """get default time format.
+
+            Parameters
+            ----------
+            v (str): a time data.
+
+            Returns
+            -------
+            str: return a time format if matched, otherwise, empty string.
+            """
+            v = str(v).strip()
+            time_pattern = r'''
+                (?i)[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}
+                (?P<microsecond>[.][0-9]+)?
+                (?P<ampm> ?([ap]m)?)$
+            '''
+            time_pattern = r'''
+                (?i)[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}
+                (?P<microsecond>[.][0-9]+)?
+            '''
+            match = re.match(time_pattern, v, flags=re.VERBOSE)
+            if match:
+                fmt = '%H:%M:%S'
+                if match.group('microsecond'):
+                    fmt += '.%f'
+                if v.lower().endswith(' am') or v.lower().endswith(' pm'):
+                    fmt += ' %p'
+                    fmt = fmt.replace('%H', '%I')
+                return fmt
+            return ''
+
+        date_fmt = get_default_date_format(data)
+        if date_fmt:
+            return date_fmt
+
+        time_fmt = get_default_time_format(data)
+        if time_fmt:
+            return time_fmt
+
+        lst = data.split(' ', maxsplit=1)
+        if len(lst) == 2:
+            date_val, time_val = lst
+            date_fmt = get_default_date_format(date_val)
+            time_fmt = get_default_time_format(time_val)
+            if date_fmt and time_val:
+                return '{} {}'.format(date_fmt, time_fmt)
+            else:
+                msg = ('{!r} is a custom datetime.  '
+                       'Need to end-user provide a custom format.')
+                raise DatetimeValidationError(msg)
+        else:
+            msg = ('{!r} is a custom datetime.  '
+                   'Need to end-user provide a custom format.')
+            raise DatetimeValidationError(msg)
+
+    @classmethod
     def apply_skips(cls, data, skips):
         """Take out any skip data and return datetime without skip data
 
@@ -753,7 +848,7 @@ class DatetimeValidation:
         """
         for skip in skips:
             try:
-                compile_pattern = re.compile(skip)
+                re.compile(skip)
                 pattern = skip
             except Exception as ex:     # noqa
                 pattern = re.escape(skip)
@@ -779,11 +874,15 @@ class DatetimeValidation:
         bool: True if a datetime lt|le|gt|ge|eq|ne other datetime, otherwise, False.
         """
         other_date_str, fmt, skips = DatetimeValidation.parse_custom_date(other)
-        fmt = fmt or '%m/%d/%Y'
 
-        a_data_str = DatetimeValidation.apply_skips(value, skips)
+        a_date_str = DatetimeValidation.apply_skips(value, skips)
         other_date_str = DatetimeValidation.apply_skips(other_date_str, skips)
-        a_date = datetime.strptime(a_data_str, fmt)
+
+        if not fmt:
+            fmt = DatetimeValidation.get_default_datetime_format(other_date_str)
+
+        a_date = datetime.strptime(a_date_str, fmt)
         other_date = datetime.strptime(other_date_str, fmt)
+
         result = getattr(operator, op)(a_date, other_date)
         return result
