@@ -391,6 +391,41 @@ class TestSelectParser:
                 {'a': '6.3.9', 'b': '2'},                           # data
                 'select a where a ne semantic_version(6.4.1)',      # select statement
             ),
+            ###############################
+            # date comparison             #
+            ###############################
+            (
+                {'a': '06/06/2021'},                                # data
+                'select a where a gt date(01/01/2021)',             # select statement
+            ),
+            (
+                {'a': '6-6-2021'},                                   # data
+                'select a where a gt date(01-01-2021 format=%m-%d-%Y)',  # select statement
+            ),
+            (
+                {'a': '2021Jun06 PDT'},                                                     # data
+                'select a where a gt date(2021Jan01 PST format=%Y%b%d skips= PDT, PST)',    # select statement
+            ),
+            (
+                {'a': 'Jun  3, 2021'},                                      # data
+                'select a where a ge date(Jan 29, 2021 format=%b %d, %Y)',  # select statement
+            ),
+            (
+                {'a': '01/1/2021'},                        # data
+                'select a where a lt date(6/06/2021)',     # select statement
+            ),
+            (
+                {'a': '01/01/2021'},                        # data
+                'select a where a le date(06/06/2021)',     # select statement
+            ),
+            (
+                {'a': '6/6/2021'},                          # data
+                'select a where a eq date(06/06/2021)',     # select statement
+            ),
+            (
+                {'a': '01/01/2021'},                        # data
+                'select a where a ne date(06/06/2021)',     # select statement
+            ),
         ]
     )
     def test_parse_statement_validating_operator(self, data, statement):
