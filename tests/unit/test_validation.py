@@ -325,26 +325,26 @@ class TestDatetimeValidation:
     @pytest.mark.parametrize(
         "data,op,other",
         [
-            ('06/06/2021', 'gt', '01/01/2021'),                     # a date > other date
-            ('6/6/2021', 'gt', '01/01/2021'),                       # a date > other date
-            ('06-06-2021', 'gt', '01-01-2021 format=%m-%d-%Y'),     # a date > other date with format
+            ('06/06/2021', 'gt', '01/01/2021'),                     # case default date: a date > other date
+            ('6/6/2021', 'gt', '01/01/2021'),                       # case default date: a date > other date
+            ('06-06-2021', 'gt', '01-01-2021 format=%m-%d-%Y'),     # case custom date: a date > other date with format
             (
-                # a date > other date with custom format and skips
+                # case custom date: a date > other date with custom format and skips
                 '2021Jun06 PDT',                                    # a date
                 'gt',                                               # operator greater than
                 '2021Jan01 PST format=%Y%b%d skips= PDT, PST'       # other day with format and skips
             ),
-            ('Jun 3, 2021', 'ge', 'Jan 29, 2021 format=%b %d, %Y'),     # a date >= other date
-            ('01/01/2021', 'lt', '06/06/2021'),                         # a date < other date
-            ('01/01/2021', 'le', '06/06/2021'),                         # a date < other date
-            ('06/06/2021', 'eq', '06/06/2021'),                         # a date == other date
-            ('01/01/2021', 'ne', '06/06/2021'),                         # a date != other date
+            ('Jun 3, 2021', 'ge', 'Jan 29, 2021 format=%b %d, %Y'),     # case custom date: a date >= other date
+            ('01/01/2021', 'lt', '06/06/2021'),                         # case default date: a date < other date
+            ('01/01/2021', 'le', '06/06/2021'),                         # case default date: a date < other date
+            ('06/06/2021', 'eq', '06/06/2021'),                         # case default date: a date == other date
+            ('01/01/2021', 'ne', '06/06/2021'),                         # case default date: a date != other date
 
         ]
     )
-    def test_compare_version(self, data, op, other):
-        """Test a date gt|ge|lt|le|eq|ne other date."""
-        result = DatetimeValidation.compare_date(
+    def test_compare_datetime(self, data, op, other):
+        """Test a datetime gt|ge|lt|le|eq|ne other datetime."""
+        result = DatetimeValidation.compare_datetime(
             data, op, other, on_exception=False
         )
         assert result is True
