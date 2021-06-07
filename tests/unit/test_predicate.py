@@ -135,3 +135,35 @@ class TestPredicateVersion:
         """Test comparing semantic version a vs semantic version b."""
         chk = Predicate.compare_version(data, key=key, op=op, other=other)
         assert chk is True
+
+
+class TestPredicateDate:
+    """Test class for validating Date Comparison."""
+    @pytest.mark.parametrize(
+        "data,key,op,other",
+        [
+            (dict(key='06/06/2021'), 'key', 'gt', '01/01/2021'),    # a day > other day
+            (dict(key='6/6/2021'), 'key', 'gt', '01/01/2021'),      # a day > other day
+            (   # a date > other date with format
+                dict(key='06-06-2021'),
+                'key',
+                'gt',
+                '01-01-2021 format=%m-%d-%Y'
+            ),
+            (   # a date > other date with custom format and skips
+                dict(key='2021Jun06 PDT'),
+                'key',
+                'gt',
+                '2021Jan01 PST format=%Y%b%d skips= PDT, PST'
+            ),
+            (dict(key='Jun 3, 2021'), 'key', 'ge', 'Jan 29, 2021 format=%b %d, %Y'),    # a day >= other day
+            (dict(key='01/01/2021'), 'key', 'lt', '06/06/2021'),    # a day < other day
+            (dict(key='01/01/2021'), 'key', 'le', '06/06/2021'),    # a day < other day
+            (dict(key='6/6/2021'), 'key', 'eq', '06/06/2021'),      # a day < other day
+            (dict(key='01/01/2021'), 'key', 'ne', '06/06/2021'),    # a day < other day
+        ]
+    )
+    def test_compare_date(self, data, key, op, other):
+        """Test comparing version a vs version b."""
+        chk = Predicate.compare_date(data, key=key, op=op, other=other)
+        assert chk is True

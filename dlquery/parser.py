@@ -74,6 +74,14 @@ class SelectParser:
                 version[(](?P<expected_version>.+)[)]$
             '''
             match_version = re.match(pattern, val, flags=re.VERBOSE)
+
+            pattern = r'''
+                (?i)(?P<name>datetime|date|time)[(]
+                (?P<datetime_str>.+)
+                [)]$
+            '''
+            match_datetime = re.match(pattern, val, flags=re.VERBOSE)
+
             if match_version:
                 semantic = match_version.group('semantic')
                 expected_version = match_version.group('expected_version')
@@ -83,6 +91,12 @@ class SelectParser:
                 else:
                     func = partial(Predicate.compare_semantic_version,
                                    key=key, op=op, other=expected_version)
+            elif match_datetime:
+                name = match_datetime.group('name').lower()
+                datetime_str = match_datetime.group('datetime_str')
+                if name == 'date':
+                    func = partial(Predicate.compare_date, key=key,
+                                   op=op, other=datetime_str)
             else:
                 func = partial(Predicate.compare_number, key=key,
                                op=op, other=value)
@@ -93,6 +107,14 @@ class SelectParser:
                 version[(](?P<expected_version>.+)[)]$
             '''
             match_version = re.match(pattern, val, flags=re.VERBOSE)
+
+            pattern = r'''
+                (?i)(?P<name>datetime|date|time)[(]
+                (?P<datetime_str>.+)
+                [)]$
+            '''
+            match_datetime = re.match(pattern, val, flags=re.VERBOSE)
+
             if match_version:
                 semantic = match_version.group('semantic')
                 expected_version = match_version.group('expected_version')
@@ -102,6 +124,12 @@ class SelectParser:
                 else:
                     func = partial(Predicate.compare_semantic_version,
                                    key=key, op=op, other=expected_version)
+            elif match_datetime:
+                name = match_datetime.group('name').lower()
+                datetime_str = match_datetime.group('datetime_str')
+                if name == 'date':
+                    func = partial(Predicate.compare_date, key=key,
+                                   op=op, other=datetime_str)
             else:
                 cfunc = Predicate.compare_number if is_number(value) else Predicate.compare
                 func = partial(cfunc, key=key, op=op, other=value)
