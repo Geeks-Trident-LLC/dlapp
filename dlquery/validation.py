@@ -687,6 +687,10 @@ class VersionValidation:
         return result
 
 
+class DatetimeParedFormatError(Exception):
+    """Use to capture during parsing datetime format for DatetimeValidation error."""
+
+
 class DatetimeValidation:
     """The Datetime comparison validation class
 
@@ -694,7 +698,7 @@ class DatetimeValidation:
     -------
     DatetimeValidation.parse_custom_date(data) -> tuple
     DatetimeValidation.apply_skips(data, skips) -> str
-    DatetimeValidation.compare_date(value, op, other, valid=True, on_exception=True) -> bool
+    DatetimeValidation.compare_datetime(value, op, other, valid=True, on_exception=True) -> bool
     """
 
     @classmethod
@@ -709,18 +713,29 @@ class DatetimeValidation:
         -------
         tuple: datetime, format, skips
         """
-        if 'format=' not in data and 'skips=' not in data:
-            return data, '', []
-        pattern = '(?i) +(format|skips.?)='
+        pattern = '(?i) +(format.?|skips.?)='
+
+        if not re.search(pattern, data):
+            return data, [], []
+
         start = 0
-        date_val, fmt, skips = '', '', []
+        date_val, fmt, skips = '', [], []
         match_data = ''
         for m in re.finditer(pattern, data):
             before_match_data = m.string[start:m.start()]
             if not date_val:
                 date_val = before_match_data
-            elif not fmt and match_data.startswith('format='):
-                fmt = before_match_data.strip()
+            elif not fmt and match_data.startswith('format'):
+                m1 = re.search(r'format(?P<separator>.?)=', match_data)
+                separator = m1.group('separator')
+                if separator:
+                    if separator in before_match_data:
+                        val = before_match_data.rstrip(separator)
+                        fmt = [item.strip() for item in val.split(separator, 1)]
+                    else:
+                        fmt = [before_match_data.strip(), before_match_data.strip()]
+                else:
+                    fmt = [before_match_data.strip(), before_match_data.strip()]
             elif not skips and match_data.startswith('skips'):
                 m1 = re.search(r'skips(?P<separator>.?)=', match_data)
                 separator = m1.group('separator')
@@ -729,14 +744,112 @@ class DatetimeValidation:
             match_data = m.group().strip()
             start = m.end()
         else:
-            if not fmt and match_data.startswith('format='):
-                fmt = m.string[m.end():].strip()
+            if not fmt and match_data.startswith('format'):
+                remaining = m.string[m.end():].strip()
+                m1 = re.search(r'format(?P<separator>.?)=', match_data)
+                separator = m1.group('separator')
+                if separator:
+                    if separator in remaining:
+                        val = remaining.rstrip(separator)
+                        fmt = [item.strip() for item in val.split(separator, 1)]
+                    else:
+                        fmt = [remaining.strip(), remaining.strip()]
+                else:
+                    fmt = [remaining.strip(), remaining.strip()]
+
             elif not skips and match_data.startswith('skips'):
                 m1 = re.search(r'skips(?P<separator>.?)=', match_data)
                 separator = m1.group('separator')
                 separator = separator or ','
                 skips = m.string[m.end():].rstrip(separator).split(separator)
         return date_val, fmt, skips
+
+    @classmethod
+    def get_default_datetime_format(cls, data):
+        """Return a default format for a datetime
+
+        Parameters
+        ----------
+        data (str): a datetime.
+
+        Returns
+        -------
+        str: a default format for datetime
+
+        Raises
+        ------
+        DatetimeParedFormatError: if datetime format is unknown or not found.
+        """
+        def get_default_date_format(v):
+            """get default date format.
+
+            Parameters
+            ----------
+            v (str): a date data.
+
+            Returns
+            -------
+            str: return a date format if matched, otherwise, empty string.
+            """
+            v = str(v).strip()
+            pattern = r'[0-9]{1,2}([/-])[0-9]{1,2}\1[0-9]{4}$'
+            match = re.match(pattern, v)
+            if match:
+                return '%m/%d/%Y' if '/' in match.string else '%m-%d-%Y'
+
+            return ''
+
+        def get_default_time_format(v):
+            """get default time format.
+
+            Parameters
+            ----------
+            v (str): a time data.
+
+            Returns
+            -------
+            str: return a time format if matched, otherwise, empty string.
+            """
+            v = str(v).strip()
+            time_pattern = r'''
+                (?i)[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}
+                (?P<microsecond>[.][0-9]+)?
+            '''
+            match = re.match(time_pattern, v, flags=re.VERBOSE)
+            if match:
+                fmt = '%H:%M:%S'
+                if match.group('microsecond'):
+                    fmt += '.%f'
+                if v.lower().endswith(' am') or v.lower().endswith(' pm'):
+                    fmt += ' %p'
+                    fmt = fmt.replace('%H', '%I')
+                return fmt
+            return ''
+
+        date_fmt = get_default_date_format(data)
+        if date_fmt:
+            return date_fmt, date_fmt
+
+        time_fmt = get_default_time_format(data)
+        if time_fmt:
+            return time_fmt, time_fmt
+
+        lst = data.split(' ', maxsplit=1)
+        if len(lst) == 2:
+            date_val, time_val = lst
+            date_fmt = get_default_date_format(date_val)
+            time_fmt = get_default_time_format(time_val)
+            if date_fmt and time_val:
+                datetime_fmt = '{} {}'.format(date_fmt, time_fmt)
+                return datetime_fmt, datetime_fmt
+            else:
+                msg = ('{!r} is a custom datetime.  '
+                       'Need to end-user provide a custom format.')
+                raise DatetimeParedFormatError(msg)
+        else:
+            msg = ('{!r} is a custom datetime.  '
+                   'Need to end-user provide a custom format.')
+            raise DatetimeParedFormatError(msg)
 
     @classmethod
     def apply_skips(cls, data, skips):
@@ -753,7 +866,7 @@ class DatetimeValidation:
         """
         for skip in skips:
             try:
-                compile_pattern = re.compile(skip)
+                re.compile(skip)
                 pattern = skip
             except Exception as ex:     # noqa
                 pattern = re.escape(skip)
@@ -763,27 +876,33 @@ class DatetimeValidation:
 
     @classmethod
     @false_on_exception_for_classmethod
-    def compare_date(cls, value, op, other, valid=True, on_exception=True):
-        """Perform operator comparison for Date.
+    def compare_datetime(cls, value, op, other, valid=True, on_exception=True):
+        """Perform operator comparison for datetime.
 
         Parameters
         ----------
-        value (str): a date.
+        value (str): a datetime.
         op (str): an operator can be lt, le, gt, ge, eq, ne
-        other (str): an other date.
+        other (str): an other datetime.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
         Returns
         -------
-        bool: True if a date lt|le|gt|ge|eq|ne other date, otherwise, False.
+        bool: True if a datetime lt|le|gt|ge|eq|ne other datetime, otherwise, False.
         """
         other_date_str, fmt, skips = DatetimeValidation.parse_custom_date(other)
-        fmt = fmt or '%m/%d/%Y'
 
-        a_data_str = DatetimeValidation.apply_skips(value, skips)
+        a_date_str = DatetimeValidation.apply_skips(value, skips)
         other_date_str = DatetimeValidation.apply_skips(other_date_str, skips)
-        a_date = datetime.strptime(a_data_str, fmt)
-        other_date = datetime.strptime(other_date_str, fmt)
+
+        if not fmt:
+            fmt = DatetimeValidation.get_default_datetime_format(other_date_str)
+
+        a_date_fmt, other_date_fmt = fmt
+
+        a_date = datetime.strptime(a_date_str, a_date_fmt)
+        other_date = datetime.strptime(other_date_str, other_date_fmt)
+
         result = getattr(operator, op)(a_date, other_date)
         return result

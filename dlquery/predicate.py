@@ -235,8 +235,8 @@ class Predicate:
         return result
 
     @classmethod
-    def compare_date(cls, data, key='', op='', other='', on_exception=True):
-        """A compare_date keyword for expression validation.
+    def compare_datetime(cls, data, key='', op='', other='', on_exception=True):
+        """A compare_datetime keyword for expression validation.
 
         Parameters
         ----------
@@ -251,7 +251,7 @@ class Predicate:
         bool: True if meet operator comparison, otherwise, False.
         """
         value = get_value(data, key)
-        result = DatetimeValidation.compare_date(
+        result = DatetimeValidation.compare_datetime(
             value, op, other, on_exception=on_exception
         )
         return result
