@@ -687,8 +687,8 @@ class VersionValidation:
         return result
 
 
-class DatetimeValidationError(Exception):
-    """Use to capture DatetimeValidation error."""
+class DatetimeParedFormatError(Exception):
+    """Use to capture during parsing datetime format for DatetimeValidation error."""
 
 
 class DatetimeValidation:
@@ -713,18 +713,29 @@ class DatetimeValidation:
         -------
         tuple: datetime, format, skips
         """
-        if 'format=' not in data and 'skips=' not in data:
-            return data, '', []
-        pattern = '(?i) +(format|skips.?)='
+        pattern = '(?i) +(format.?|skips.?)='
+
+        if not re.search(pattern, data):
+            return data, [], []
+
         start = 0
-        date_val, fmt, skips = '', '', []
+        date_val, fmt, skips = '', [], []
         match_data = ''
         for m in re.finditer(pattern, data):
             before_match_data = m.string[start:m.start()]
             if not date_val:
                 date_val = before_match_data
-            elif not fmt and match_data.startswith('format='):
-                fmt = before_match_data.strip()
+            elif not fmt and match_data.startswith('format'):
+                m1 = re.search(r'format(?P<separator>.?)=', match_data)
+                separator = m1.group('separator')
+                if separator:
+                    if separator in before_match_data:
+                        val = before_match_data.rstrip(separator)
+                        fmt = [item.strip() for item in val.split(separator, 1)]
+                    else:
+                        fmt = [before_match_data.strip(), before_match_data.strip()]
+                else:
+                    fmt = [before_match_data.strip(), before_match_data.strip()]
             elif not skips and match_data.startswith('skips'):
                 m1 = re.search(r'skips(?P<separator>.?)=', match_data)
                 separator = m1.group('separator')
@@ -733,8 +744,19 @@ class DatetimeValidation:
             match_data = m.group().strip()
             start = m.end()
         else:
-            if not fmt and match_data.startswith('format='):
-                fmt = m.string[m.end():].strip()
+            if not fmt and match_data.startswith('format'):
+                remaining = m.string[m.end():].strip()
+                m1 = re.search(r'format(?P<separator>.?)=', match_data)
+                separator = m1.group('separator')
+                if separator:
+                    if separator in remaining:
+                        val = remaining.rstrip(separator)
+                        fmt = [item.strip() for item in val.split(separator, 1)]
+                    else:
+                        fmt = [remaining.strip(), remaining.strip()]
+                else:
+                    fmt = [remaining.strip(), remaining.strip()]
+
             elif not skips and match_data.startswith('skips'):
                 m1 = re.search(r'skips(?P<separator>.?)=', match_data)
                 separator = m1.group('separator')
@@ -756,7 +778,7 @@ class DatetimeValidation:
 
         Raises
         ------
-        DatetimeValidationError: if datetime format is unknown or not found.
+        DatetimeParedFormatError: if datetime format is unknown or not found.
         """
         def get_default_date_format(v):
             """get default date format.
@@ -792,11 +814,6 @@ class DatetimeValidation:
             time_pattern = r'''
                 (?i)[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}
                 (?P<microsecond>[.][0-9]+)?
-                (?P<ampm> ?([ap]m)?)$
-            '''
-            time_pattern = r'''
-                (?i)[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}
-                (?P<microsecond>[.][0-9]+)?
             '''
             match = re.match(time_pattern, v, flags=re.VERBOSE)
             if match:
@@ -811,11 +828,11 @@ class DatetimeValidation:
 
         date_fmt = get_default_date_format(data)
         if date_fmt:
-            return date_fmt
+            return date_fmt, date_fmt
 
         time_fmt = get_default_time_format(data)
         if time_fmt:
-            return time_fmt
+            return time_fmt, time_fmt
 
         lst = data.split(' ', maxsplit=1)
         if len(lst) == 2:
@@ -823,15 +840,16 @@ class DatetimeValidation:
             date_fmt = get_default_date_format(date_val)
             time_fmt = get_default_time_format(time_val)
             if date_fmt and time_val:
-                return '{} {}'.format(date_fmt, time_fmt)
+                datetime_fmt = '{} {}'.format(date_fmt, time_fmt)
+                return datetime_fmt, datetime_fmt
             else:
                 msg = ('{!r} is a custom datetime.  '
                        'Need to end-user provide a custom format.')
-                raise DatetimeValidationError(msg)
+                raise DatetimeParedFormatError(msg)
         else:
             msg = ('{!r} is a custom datetime.  '
                    'Need to end-user provide a custom format.')
-            raise DatetimeValidationError(msg)
+            raise DatetimeParedFormatError(msg)
 
     @classmethod
     def apply_skips(cls, data, skips):
@@ -881,8 +899,10 @@ class DatetimeValidation:
         if not fmt:
             fmt = DatetimeValidation.get_default_datetime_format(other_date_str)
 
-        a_date = datetime.strptime(a_date_str, fmt)
-        other_date = datetime.strptime(other_date_str, fmt)
+        a_date_fmt, other_date_fmt = fmt
+
+        a_date = datetime.strptime(a_date_str, a_date_fmt)
+        other_date = datetime.strptime(other_date_str, other_date_fmt)
 
         result = getattr(operator, op)(a_date, other_date)
         return result
