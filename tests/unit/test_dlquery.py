@@ -355,9 +355,11 @@ class TestQueryingDLQuery:
     @pytest.mark.parametrize(
         "lookup,select_statement,expected_result",
         [
+            ('=_iwildcard(*.png)', '', ['Images/abc.png']),
+            ('=_iwildcard(*.png)', 'src', [{'src': 'Images/abc.png'}]),
             ('name=_iwildcard(*abc*)', 'src', [{'src': 'Images/abc.png'}]),
             ('alignment=center', 'name where width eq 300', [{'name': 'text abc'}]),
-            ('alignment', 'name where width eq 300 and_ data match (?i).+ abc', [{'name': 'text abc'}])
+            ('alignment', 'name where width eq 300 and_ data match (?i).+ abc', [{'name': 'text abc'}]),
         ]
     )
     def test_find_a_lookup_and_validate_dict_obj(
@@ -370,6 +372,16 @@ class TestQueryingDLQuery:
     @pytest.mark.parametrize(
         "lookup,select_statement,expected_result",
         [
+            (
+                '=_iwildcard(*.png)',                   # lookup
+                '',                                     # select statement
+                ['Images/abc.png', 'Images/xyz.png']    # expected_result
+            ),
+            (
+                '=_iwildcard(*.png)',                                       # lookup
+                'src',                                                      # select statement
+                [{'src': 'Images/abc.png'}, {'src': 'Images/xyz.png'}]      # expected_result
+            ),
             (
                 'debug=off',            # lookup
                 'window',               # select statement
