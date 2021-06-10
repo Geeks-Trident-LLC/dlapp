@@ -1,12 +1,11 @@
 """Packaging dlquery."""
 
 from setuptools import setup, find_packages
-from dlquery import version
 
 
 setup(
     name='dlquery',
-    version=version,
+    version='1.0.1',
     license='BSD-3-Clause',
     license_files=['LICENSE'],
     description='Python module for querying dictionary or list object.',
@@ -16,7 +15,7 @@ setup(
     author_email='tuyen@geekstrident.com',
     maintainer='Geeks Trident LLC',
     maintainer_email='tuyen@geekstrident.com',
-    install_requires=['pyyaml'],
+    install_requires=['pyyaml', 'compare_versions'],
     url='https://github.com/Geeks-Trident-LLC/dlquery',
     packages=find_packages(
         exclude=(
@@ -24,10 +23,11 @@ setup(
             'build*', 'dist*', 'docs*', 'venv*'
         )
     ),
+    test_suite='tests',
     entry_points={
         'console_scripts': [
-            'dlquery-test = dlquery.acceptance:test_acceptance',
             'dlquery = dlquery.main:execute',
+            'dlquery-gui = dlquery.application:execute'
         ]
     },
     classifiers=[

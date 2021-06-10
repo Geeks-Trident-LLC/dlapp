@@ -4,19 +4,60 @@ import re
 import logging
 from functools import partial
 from dlquery.predicate import Predicate
+from dlquery.utils import is_number
 
 
 logger = logging.getLogger(__file__)
 
 
 class SelectParser:
+    """A Select Parser class.
+
+    Attributes
+    ----------
+    select_statement (str): a select-statement.
+    columns (list): columns
+    predicate (function): a callable function.
+    logger (logging.Logger): a logger
+
+    Properties
+    ----------
+    is_zero_select -> bool
+    is_all_select -> bool
+
+    Methods
+    -------
+    get_predicate(expression) -> function
+    build_predicate() -> function
+    parse_statement() -> None
+    """
     def __init__(self, select_statement):
         self.select_statement = select_statement
-        self.select_items = []
+        self.columns = [None]
         self.predicate = None
         self.logger = logger
 
+    @property
+    def is_zero_select(self):
+        """Return True if no column is selected."""
+        return self.columns == [None]
+
+    @property
+    def is_all_select(self):
+        """Return True if all columns are selected"""
+        return self.columns == []
+
     def get_predicate(self, expression):
+        """Parse an expression and convert to callable predicate function.
+
+        Parameters
+        ----------
+        expression (str): an expression.  It can be a left express or a right expression.
+
+        Returns
+        -------
+        function: a callable function.
+        """
         key, op, value = [i.strip() for i in re.split(r' +', expression, maxsplit=2)]
         key = key.replace('_SPACE_', ' ').replace('_COMMA_', ',')
         op = op.lower()
@@ -27,9 +68,59 @@ class SelectParser:
         elif op in ['is_not', 'isnot']:
             func = partial(Predicate.isnot, key=key, custom=value)
         elif op in ['lt', 'le', 'gt', 'ge']:
-            func = partial(Predicate.compare_number, key=key, op=op, other=value)
+            val = str(value).strip()
+            pattern = r'''
+                (?i)((?P<semantic>semantic)_)?
+                version[(](?P<expected_version>.+)[)]$
+            '''
+            match_version = re.match(pattern, val, flags=re.VERBOSE)
+
+            pattern = r'(?i)datetime[(](?P<datetime_str>.+)[)]$'
+            match_datetime = re.match(pattern, val)
+
+            if match_version:
+                semantic = match_version.group('semantic')
+                expected_version = match_version.group('expected_version')
+                if not semantic:
+                    func = partial(Predicate.compare_version, key=key,
+                                   op=op, other=expected_version)
+                else:
+                    func = partial(Predicate.compare_semantic_version,
+                                   key=key, op=op, other=expected_version)
+            elif match_datetime:
+                datetime_str = match_datetime.group('datetime_str')
+                func = partial(Predicate.compare_datetime, key=key,
+                               op=op, other=datetime_str)
+            else:
+                func = partial(Predicate.compare_number, key=key,
+                               op=op, other=value)
         elif op in ['eq', 'ne']:
-            func = partial(Predicate.compare, key=key, op=op, other=value)
+            val = str(value).strip()
+            pattern = r'''
+                (?i)((?P<semantic>semantic)_)?
+                version[(](?P<expected_version>.+)[)]$
+            '''
+            match_version = re.match(pattern, val, flags=re.VERBOSE)
+
+            pattern = r'(?i)datetime[(](?P<datetime_str>.+)[)]$'
+            match_datetime = re.match(pattern, val)
+
+            if match_version:
+                semantic = match_version.group('semantic')
+                expected_version = match_version.group('expected_version')
+                if not semantic:
+                    func = partial(Predicate.compare_version, key=key,
+                                   op=op, other=expected_version)
+                else:
+                    func = partial(Predicate.compare_semantic_version,
+                                   key=key, op=op, other=expected_version)
+            elif match_datetime:
+                datetime_str = match_datetime.group('datetime_str')
+                func = partial(Predicate.compare_datetime, key=key,
+                               op=op, other=datetime_str)
+            else:
+                cfunc = Predicate.compare_number if is_number(value) else Predicate.compare
+                func = partial(cfunc, key=key, op=op, other=value)
         elif op == 'match':
             func = partial(Predicate.match, key=key, pattern=value)
         elif op in ['not_match', 'notmatch']:
@@ -52,6 +143,16 @@ class SelectParser:
         return func
 
     def build_predicate(self, expressions):
+        """Build a predicate by parsing expressions
+
+        Parameters
+        ----------
+        expressions (str): single or multiple expressions.
+
+        Returns
+        -------
+        function: a callable function.
+        """
         def chain(data_, a_=None, b_=None, op_=''):
             result_a, result_b = a_(data_), b_(data_)
             if op_ == 'or_':
@@ -98,18 +199,31 @@ class SelectParser:
             return self.get_predicate(expressions)
 
     def parse_statement(self):
-        if self.select_statement == '':
+        """Parse, analyze, and build a select-statement to selecting
+        columns and a callable predicate"""
+        statement = self.select_statement
+
+        if statement == '':
             return
 
-        select, expressions = re.split(
-            ' where ', self.select_statement,
-            maxsplit=1, flags=re.I
-        )
-        select, expressions = select.strip(), expressions.strip()
-        select = re.sub('^select +', '', select, flags=re.I)
+        if ' where ' in statement.lower():
+            select, expressions = re.split(
+                ' +where +', statement, maxsplit=1, flags=re.I
+            )
+            select, expressions = select.strip(), expressions.strip()
+            select = re.sub('^select +', '', select, flags=re.I)
+        elif self.select_statement.lower().startswith('where'):
+            select = None
+            expressions = re.sub('^where +', '', statement, flags=re.I)
+        else:
+            select = re.sub('^select +', '', statement, flags=re.I)
+            expressions = None
 
-        if select and select != '*':
-            self.select_items = re.split('[ ,]+', select.strip(), flags=re.I)
+        if select:
+            if select in ['*', '__ALL__']:
+                self.columns = []
+            else:
+                self.columns = re.split('[ ,]+', select.strip(), flags=re.I)
 
         if expressions:
             self.predicate = self.build_predicate(expressions)

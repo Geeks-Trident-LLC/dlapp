@@ -2,8 +2,14 @@
 
 import yaml
 import json
-# import re
+import re
+from functools import partial
+from pprint import pprint
 from dlquery.argumenthelper import validate_argument_type
+from dlquery import utils
+from dlquery.parser import SelectParser
+from dlquery.validation import OpValidation
+from dlquery.validation import CustomValidation
 
 
 class ListError(Exception):
@@ -17,15 +23,30 @@ class ListIndexError(ListError):
 class List(list):
     """This is a class for List Collection.
 
-    Properties:
-        is_empty (boolean): a check point to tell an empty list or not.
-        first (anything): return a first element of a list
-        last (anything): return a last element of a list
-        total (int): total element in list
+    Properties
+    ----------
+    is_empty (boolean): a check point to tell an empty list or not.
+    first (Any): return a first element of a list
+    last (Any): return a last element of a list
+    total (int): total element in list
 
-    Exception:
-        ListError
+    Raise
+    -----
+    ListIndexError: if a list is out of range.
     """
+    def __getattribute__(self, attr):
+        match = re.match(r'index(?P<index>_?[0-9]+)$', attr)
+        if match:
+            index = match.group('index').replace('_', '-')
+            try:
+                value = self[int(index)]
+                return value
+            except Exception as ex:
+                raise ListIndexError(str(ex))
+        else:
+            value = super().__getattribute__(attr)
+            return value
+
     @property
     def is_empty(self):
         """Check an empty list."""
@@ -59,31 +80,34 @@ class ResultError(Exception):
 class Result:
     """The Result Class to store data.
 
-    Attributes:
-        data (anything): the data.
-        parent (Result): keyword arguments.
+    Attributes
+    ----------
+    data (Any): the data.
+    parent (Result): keyword arguments.
 
-    Properties:
-        has_parent -> boolean
+    Properties
+    ----------
+    has_parent -> boolean
 
-    Methods:
-        update_parent(parent: Result) -> None
+    Methods
+    -------
+    update_parent(parent: Result) -> None
 
-    Exception:
-        ResultError
+    Raise
+    -----
+    ResultError: if parent is not instance of None or Result.
     """
     def __init__(self, data, parent=None):
+        self.parent = None
         self.data = data
         self.update_parent(parent)
 
     def update_parent(self, parent):
         """Update parent to Result
 
-            Parameters:
-                parent (Result): a Result instance.
-
-            Return:
-                None
+        Parameters
+        ----------
+        parent (Result): a Result instance.
         """
         if parent is None or isinstance(parent, self.__class__):
             self.parent = parent
@@ -98,6 +122,7 @@ class Result:
 
 
 class Element(Result):
+    """Element class."""
     def __init__(self, data, index='', parent=None):
         super().__init__(data, parent=parent)
         self.index = index
@@ -146,34 +171,124 @@ class Element(Result):
             self.type = 'object'
             self.value = data
 
+    @property
     def has_children(self):
         """Return True if an element has children."""
         return bool(self.children)
 
+    @property
     def is_element(self):
         """Return True if an element has children."""
-        return self.has_children()
+        return self.has_children
 
+    @property
     def is_leaf(self):
         """Return True if an element doesnt have children."""
-        return not self.has_children()
+        return not self.has_children
 
+    @property
     def is_scalar(self):
         """Return True if an element is a scalar type."""
         return isinstance(self.data, (int, float, bool, str, None))
 
-    def find(self, lookup, i=False):
-        """recursively search a lookup."""
-        # lookup = re.sub(r'([*?])', r'.\1', lookup)
-        # lookup = lookup.replace('[!', '[^')
-        # lookup+= r'\s*$'
-        # items = re.split(' +', lookup.strip())
-        raise NotImplementedError('TODO - Need to implement Element.find')
+    @property
+    def is_list(self):
+        """Return True if an element is a list type."""
+        return self.type == 'list'
+
+    @property
+    def is_dict(self):
+        """Return True if an element is a list type."""
+        return self.type == 'dict'
+
+    def filter_result(self, records, select_statement):
+        """Filter a list of records based on select statement
+
+        Parameters
+        ----------
+        records (List): a list of record.
+        select_statement (str): a select statement.
+
+        Returns
+        -------
+        List: list of filtered records.
+        """
+        result = List()
+        select_obj = SelectParser(select_statement)
+        select_obj.parse_statement()
+
+        if callable(select_obj.predicate):
+            lst = List()
+            for record in records:
+                is_found = select_obj.predicate(record.parent.data)
+                if is_found:
+                    lst.append(record)
+        else:
+            lst = records[:]
+
+        if select_obj.is_zero_select:
+            for item in lst:
+                result.append(item.data)
+        elif select_obj.is_all_select:
+            for item in lst:
+                result.append(item.parent.data)
+        else:
+            for item in lst:
+                new_data = item.parent.data.fromkeys(select_obj.columns)
+                is_added = True
+                for key in new_data:
+                    is_added &= key in item.parent.data
+                    new_data[key] = item.parent.data.get(key, None)
+                is_added and result.append(new_data)
+        return result
+
+    def find_(self, node, lookup_obj, result):
+        """Recursively search a lookup and store a found record to result
+
+        Parameters
+        ----------
+        node (Element): a `Element` instance.
+        lookup_obj (LookupCls): a LookupCls instance.
+        result (List): a found result.
+        """
+        if node.is_dict or node.is_list:
+            for child in node.children:
+                if node.is_list:
+                    if child.is_element:
+                        self.find_(child, lookup_obj, result)
+                else:
+                    if lookup_obj.is_left_matched(child.index):
+                        if lookup_obj.is_right:
+                            if lookup_obj.is_right_matched(child.data):
+                                result.append(child)
+                        else:
+                            result.append(child)
+                    if child.is_element:
+                        self.find_(child, lookup_obj, result)
+
+    def find(self, lookup, select=''):
+        """recursively search a lookup.
+
+        Parameters
+        ---------
+        lookup (str): a search pattern.
+        select (str): a select statement.
+
+        Returns
+        -------
+        List: list of record
+        """
+        records = List()
+        lkup_obj = LookupCls(lookup)
+        self.find_(self, lkup_obj, records)
+        result = self.filter_result(records, select)
+        return result
 
 
 class ObjectDict(dict):
     """The ObjectDict can retrieve value of key as attribute style."""
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.update(*args, **kwargs)
 
     ############################################################################
@@ -207,13 +322,15 @@ class ObjectDict(dict):
         """The function to recursively build a ObjectDict instance
         when the value is the dict instance.
 
-        Parameters:
-            value (anything): The value to recursively build a ObjectDict
-                    instance when value is the dict instance.
-            forward (boolean): set flag to convert dict instance to ObjectDict
-                    instance or vice versa.  Default is True.
-        Returns:
-            anything: the value or a new value.
+        Parameters
+        ----------
+        value (Any): The value to recursively build a ObjectDict
+                instance when value is the dict instance.
+        forward (boolean): set flag to convert dict instance to ObjectDict
+                instance or vice versa.  Default is True.
+        Returns
+        -------
+        Any: the value or a new value.
         """
         if isinstance(value, (dict, list, set, tuple)):
             if isinstance(value, ObjectDict):
@@ -248,9 +365,15 @@ class ObjectDict(dict):
     @classmethod
     def create_from_json_file(cls, filename, **kwargs):
         """Create a ObjectDict instance from JSON file.
-        Parameters:
-            filename (string): YAML file.
-            kwargs (dict): the keyword arguments.
+
+        Parameters
+        ----------
+        filename (str): YAML file.
+        kwargs (dict): the keyword arguments.
+
+        Returns
+        -------
+        Any: any data
         """
         from io import IOBase
         if isinstance(filename, IOBase):
@@ -269,30 +392,42 @@ class ObjectDict(dict):
         return obj_dict
 
     @classmethod
-    def create_from_yaml_file(cls, filename, Loader=yaml.SafeLoader):
+    def create_from_yaml_file(cls, filename, loader=yaml.SafeLoader):
         """Create a ObjectDict instance from YAML file.
-        Parameters:
-            filename (string): YAML file.
-            Loader (yaml.loader.Loader): YAML loader.
+
+        Parameters
+        ----------
+        filename (str): YAML file.
+        loader (yaml.loader.Loader): YAML loader.
+
+        Returns
+        -------
+        Any: any data
         """
         from io import IOBase
         if isinstance(filename, IOBase):
-            obj = yaml.load(filename, Loader=Loader)
+            obj = yaml.load(filename, Loader=loader)
         else:
             with open(filename) as stream:
-                obj = yaml.load(stream, Loader=Loader)
+                obj = yaml.load(stream, Loader=loader)
 
         obj_dict = ObjectDict(obj)
         return obj_dict
 
     @classmethod
-    def create_from_yaml_data(cls, data, Loader=yaml.SafeLoader):
+    def create_from_yaml_data(cls, data, loader=yaml.SafeLoader):
         """Create a ObjectDict instance from YAML data.
-        Parameters:
-            data (string): YAML data.
-            Loader (yaml.loader.Loader): YAML loader.
+
+        Parameters
+        ----------
+        data (str): YAML data.
+        loader (yaml.loader.Loader): YAML loader.
+
+        Returns
+        -------
+        Any: Any data
         """
-        obj = yaml.load(data, Loader=Loader)
+        obj = yaml.load(data, Loader=loader)
         obj_dict = ObjectDict(obj)
         return obj_dict
 
@@ -310,9 +445,10 @@ class ObjectDict(dict):
     def deep_apply_attributes(self, node=None, **kwargs):
         """Recursively apply attributes to ObjectDict instance.
 
-        Parameters:
-            node (ObjectDict): a ObjectDict instance
-            kwargs (dict):
+        Parameters
+        ---------
+        node (ObjectDict): a `ObjectDict` instance
+        kwargs (dict): keyword arguments
         """
 
         def assign(node_, **kwargs_):
@@ -337,12 +473,14 @@ class ObjectDict(dict):
     def to_dict(self, data=None):
         """Convert a given data to native dictionary
 
-        Parameters:
-            data (ObjectDict): a dynamic dictionary instance.
-                if data is None, it will convert current instance to dict.
+        Parameters
+        ----------
+        data (ObjectDict): a dynamic dictionary instance.
+            if data is None, it will convert current instance to dict.
 
-        Return:
-            dict: dictionary
+        Returns
+        -------
+        dict: dictionary
         """
         if data is None:
             data = dict(self)
@@ -352,3 +490,407 @@ class ObjectDict(dict):
         return result
 
     todict = to_dict
+
+
+class LookupClsError(Exception):
+    """Use to capture error for LookupObject instance"""
+
+
+class LookupCls:
+    """To build a lookup object."""
+    def __init__(self, lookup):
+        self.lookup = str(lookup)
+        self.left = None
+        self.right = None
+        self.process()
+
+    @property
+    def is_right(self):
+        return bool(self.right)
+
+    @classmethod
+    def parse(cls, text):
+        """Parse a lookup statement.
+
+        Parameters
+        ----------
+            text (str): a lookup.
+
+        Returns
+        -------
+        str: a regular expression pattern.
+        """
+        def parse_(text_):
+            vpat = '''
+                _(?P<options>i?)                    # options
+                (?P<method>text|wildcard|regex)     # method is wildcard or regex
+                [(]
+                (?P<pattern>.+)                     # wildcard or regex pattern
+                [)]
+            '''
+            match_ = re.search(vpat, text_, re.VERBOSE)
+            options_ = match_.group('options').lower()
+            method_ = match_.group('method').lower()
+            pattern_ = match_.group('pattern')
+
+            ignorecase_ = 'i' in options_
+            if method_ == 'wildcard':
+                pattern_ = utils.convert_wildcard_to_regex(pattern_)
+            elif method_ == 'text':
+                pattern_ = re.escape(pattern_)
+            return pattern_, ignorecase_
+
+        def parse_other_(text_):
+            vpat1_ = '''
+                (?i)(?P<custom_name>
+                is_empty|is_not_empty|
+                is_mac_address|is_not_mac_address|
+                is_ip_address|is_not_ip_address|
+                is_ipv4_address|is_not_ipv4_address|
+                is_ipv6_address|is_not_ipv6_address|
+                is_true|is_not_true|
+                is_false|is_not_false)
+                [(][)]$
+            '''
+            vpat2_ = '''
+                (?i)(?P<op>lt|le|gt|ge|eq|ne)
+                [(]
+                (?P<other>([0-9]+)?[.]?[0-9]+)
+                [)]$
+            '''
+            vpat3_ = '''
+                (?i)(?P<op>eq|ne)
+                [(]
+                (?P<other>.*[^0-9].*)
+                [)]$
+            '''
+            data_ = text_.lower()
+            match1_ = re.match(vpat1_, data_, flags=re.VERBOSE)
+            if match1_:
+                custom_name = match1_.group('custom_name')
+                valid = False if '_not_' in custom_name else True
+                custom_name = custom_name.replace('not_', '')
+                method = getattr(CustomValidation, custom_name)
+                pfunc = partial(method, valid=valid, on_exception=False)
+                return pfunc
+            else:
+                match2_ = re.match(vpat2_, data_, flags=re.VERBOSE)
+                if match2_:
+                    op = match2_.group('op')
+                    other = match2_.group('other')
+                    pfunc = partial(
+                        OpValidation.compare_number,
+                        op=op, other=other, on_exception=False
+                    )
+                    return pfunc
+                else:
+                    match3_ = re.match(vpat3_, data_, flags=re.VERBOSE)
+                    if match3_:
+                        op = match3_.group('op')
+                        other = match3_.group('other')
+                        pfunc = partial(
+                            OpValidation.compare,
+                            op=op, other=other, on_exception=False
+                        )
+                        return pfunc
+                    else:
+                        pattern_ = '^{}$'.format(re.escape(text_))
+                        return pattern_
+
+        pat = r'_i?(text|wildcard|regex)[(].+[)]'
+
+        if not re.search(pat, text):
+            result = parse_other_(text)
+            return result
+        lst = []
+        start = 0
+        is_ignorecase = False
+        for node in re.finditer(pat, text):
+            predata = text[start:node.start()]
+            lst.append(re.escape(predata))
+            data = node.group()
+            pattern, ignorecase = parse_(data)
+            lst.append(pattern)
+            start = node.end()
+            is_ignorecase |= ignorecase
+        else:
+            if lst:
+                postdata = text[start:]
+                lst.append(re.escape(postdata))
+
+        pattern = ''.join(lst)
+        if pattern:
+            ss = '' if pattern[0] == '^' else '^'
+            es = '' if pattern[-1] == '$' else '$'
+            ic = '(?i)' if is_ignorecase else ''
+            pattern = '{}{}{}{}'.format(ic, ss, pattern, es)
+            return pattern
+        else:
+            fmt = 'Failed to parse this lookup : {!r}'
+            raise LookupClsError(fmt.format(text))
+
+    def process(self):
+        """Parse a lookup to two expressions: a left expression and
+        a right expression.
+
+        If a lookup has a right expression, it will parse and assign to right,
+        else, right expression is None."""
+
+        left, *lst = self.lookup.split('=', maxsplit=1)
+        left = left.strip()
+        if left:
+            self.left = self.parse(left)
+        if lst:
+            self.right = self.parse(lst[0])
+
+    def is_left_matched(self, data):
+        if not isinstance(data, str):
+            return False
+
+        if self.left:
+            result = re.search(self.left, data)
+            return bool(result)
+        else:
+            return True if self.right else False
+
+    def is_right_matched(self, data):
+        if not self.right:
+            return True
+        else:
+            if callable(self.right):
+                result = self.right(data)
+                return result
+            else:
+                if not isinstance(data, str):
+                    return False
+                result = re.search(self.right, data)
+                return bool(result)
+
+
+class ObjectArgumentError(Exception):
+    """To capture error for Object class."""
+
+
+class Object:
+    """To build an object.
+
+    Attributes
+    ----------
+    args (list): a position arguments.
+    kwargs (dict): a keyword arguments.
+
+    Raise
+    -----
+    ObjectArgumentError: if a position argument is not a dictionary object.
+    """
+    def __init__(self, *args, **kwargs):
+        errors = []
+        for index, arg in enumerate(args, 1):
+            if not isinstance(arg, dict):
+                errors.append(index)
+            else:
+                self.__dict__.update(arg)
+        if errors:
+            if len(errors) == 1:
+                fmt = 'a position argument #{} is not a dictionary.'
+                msg = fmt.format(errors[0])
+            else:
+                fmt = 'position arguments # {} are not a dictionary'
+                msg = fmt.format(tuple(errors))
+            raise ObjectArgumentError(msg)
+        self.__dict__.update(kwargs)
+
+    def __len__(self):
+        return len(self.__dict__)
+
+    def __bool__(self):
+        return len(self) > 0
+
+
+class Tabular:
+    """Construct Tabular Format
+
+    Attributes
+    _________
+    data (list): a list of dictionary or a dictionary.
+    columns (list): a list of selecting headers.  Default is None.
+    justify (str): left|right|center.  Default is a left justification.
+    missing (str): report missing value if column is not found.
+            Default is not_found.
+
+    Methods
+    -------
+    validate_argument_list_of_dict() -> None
+    build_width_table(columns) -> dict
+    align_string(value, width) -> str
+    build_headers_string(columns, width_tbl) -> str
+    build_tabular_string(columns, width_tbl) -> str
+    process() -> None
+    get() -> str or raw data
+    print() -> None
+
+    """
+    def __init__(self, data, columns=None, justify='left', missing='not_found'):
+        self.result = ''
+        if isinstance(data, dict):
+            self.data = [data]
+        else:
+            self.data = data
+        self.columns = columns
+        self.justify = str(justify).lower()
+        self.missing = missing
+        self.is_ready = True
+        self.is_tabular = False
+        self.failure = ''
+        self.validate_argument_list_of_dict()
+        self.process()
+
+    def validate_argument_list_of_dict(self):
+        """Validate a list of dictionary for tabular format."""
+        if not isinstance(self.data, (list, tuple)):
+            self.is_ready = False
+            self.failure = 'data MUST be a list.'
+            return
+
+        if not self.data:
+            self.is_ready = False
+            self.failure = 'data MUST be NOT an empty list.'
+            return
+
+        chk_keys = list()
+        for a_dict in self.data:
+            if isinstance(a_dict, dict):
+                if not a_dict:
+                    self.is_ready = False
+                    self.failure = 'all dict elements MUST be NOT empty.'
+                    return
+
+                keys = list(a_dict.keys())
+                if not chk_keys:
+                    chk_keys = keys
+                else:
+                    if keys != chk_keys:
+                        self.is_ready = False
+                        self.failure = 'dict element MUST have same keys.'
+                        return
+            else:
+                self.is_ready = False
+                self.failure = 'all elements of list MUST be dictionary.'
+                return
+
+    def build_width_table(self, columns):
+        """return mapping table of string length.
+
+        Parameters
+        ----------
+        columns (list): headers of tabular data
+
+        Returns
+        -------
+        dict: a mapping table of string length.
+        """
+        width_tbl = dict(zip(columns, (len(str(k)) for k in columns)))
+
+        for a_dict in self.data:
+            for col, width in width_tbl.items():
+                curr_width = len(str(a_dict.get(col, self.missing)))
+                new_width = max(width, curr_width)
+                width_tbl[col] = new_width
+        return width_tbl
+
+    def align_string(self, value, width):
+        """return a align string
+
+        Parameters
+        ----------
+        value (Any): a data.
+        width (int): a width for data alignment.
+
+        Returns
+        -------
+        str: a string.
+        """
+        value = str(value)
+        if self.justify == 'center':
+            return str.center(value, width)
+        elif self.justify == 'right':
+            return str.rjust(value, width)
+        else:
+            return str.ljust(value, width)
+
+    def build_headers_string(self, columns, width_tbl):
+        """Return headers as string
+
+        Parameters
+        ----------
+        columns (list): a list of headers.
+        width_tbl (dict): a mapping table of string length.
+
+        Returns
+        -------
+        str: headers as string.
+        """
+        lst = []
+        for col in columns:
+            width = width_tbl.get(col)
+            new_col = self.align_string(col, width)
+            lst.append(new_col)
+        return '| {} |'.format(' | '.join(lst))
+
+    def build_tabular_string(self, columns, width_tbl):
+        """Build data to tabular format
+
+        Parameters
+        ----------
+        columns (list): a list of headers.
+        width_tbl (dict): a mapping table of string length.
+
+        Returns
+        -------
+        str: a tabular data.
+        """
+        lst_of_str = []
+        for a_dict in self.data:
+            lst = []
+            for col in columns:
+                val = a_dict.get(col, self.missing)
+                width = width_tbl.get(col)
+                new_val = self.align_string(val, width)
+                lst.append(new_val)
+            lst_of_str.append('| {} |'.format(' | '.join(lst)))
+
+        return '\n'.join(lst_of_str)
+
+    def process(self):
+        """Process data to tabular format."""
+        if not self.is_ready:
+            return
+
+        try:
+            keys = list(self.data[0].keys())
+            columns = self.columns or keys
+            width_tbl = self.build_width_table(columns)
+            deco = ['-' * width_tbl.get(c) for c in columns]
+            deco_str = '+-{}-+'.format('-+-'.join(deco))
+            headers_str = self.build_headers_string(columns, width_tbl)
+            tabular_data = self.build_tabular_string(columns, width_tbl)
+
+            lst = [deco_str, headers_str, deco_str, tabular_data, deco_str]
+            self.result = '\n'.join(lst)
+            self.is_tabular = True
+        except Exception as ex:
+            self.failure = '{}: {}'.format(type(ex).__name__, ex)
+            self.is_tabular = False
+
+    def get(self):
+        """Return result if a provided data is tabular format, otherwise, data"""
+        tabular_data = self.result if self.is_tabular else self.data
+        return tabular_data
+
+    def print(self):
+        """Print the tabular content"""
+        tabular_data = self.get()
+        if isinstance(tabular_data, (dict, list, tuple, set)):
+            pprint(tabular_data)
+        else:
+            print(tabular_data)
