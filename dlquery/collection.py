@@ -637,15 +637,21 @@ class LookupCls:
         else, right expression is None."""
 
         left, *lst = self.lookup.split('=', maxsplit=1)
-        self.left = self.parse(left)
+        left = left.strip()
+        if left:
+            self.left = self.parse(left)
         if lst:
             self.right = self.parse(lst[0])
 
     def is_left_matched(self, data):
         if not isinstance(data, str):
             return False
-        result = re.search(self.left, data)
-        return bool(result)
+
+        if self.left:
+            result = re.search(self.left, data)
+            return bool(result)
+        else:
+            return True if self.right else False
 
     def is_right_matched(self, data):
         if not self.right:
