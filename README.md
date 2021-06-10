@@ -13,6 +13,10 @@ pip install dlquery
 - support SQL-like select statement
 - support GUI application
 
+## Dependencies
+- [compare_version](https://pypi.org/project/compare_versions/)
+- [pyyaml](https://pypi.org/project/PyYAML/)
+
 ## Usage
 
 ### Development
