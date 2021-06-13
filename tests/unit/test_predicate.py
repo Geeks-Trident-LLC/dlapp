@@ -29,6 +29,7 @@ class TestPredicateOperator:
         "data,key,op,other",
         [
             # greater than
+            (dict(key1=5), 'key1', '>', 3),              # compare number a > b
             (dict(key1=5), 'key1', 'gt', 3),             # compare number a > b
             (dict(key1='5.0'), 'key1', 'gt', 3.5),       # compare number a > b
             (dict(key1='5'), 'key1', 'gt', '-3.3'),      # compare number a > b
@@ -37,6 +38,7 @@ class TestPredicateOperator:
             (dict(key1='True'), 'key1', 'gt', -1),       # compare number a > b
 
             # greater or equal
+            (dict(key1=5), 'key1', '>=', 3),             # compare number a >= b
             (dict(key1=5), 'key1', 'ge', 3),             # compare number a >= b
             (dict(key1='5.0'), 'key1', 'ge', 5),         # compare number a >= b
             (dict(key1='5'), 'key1', 'ge', '5.0'),       # compare number a >= b
@@ -44,6 +46,7 @@ class TestPredicateOperator:
             (dict(key1=True), 'key1', 'ge', '1'),        # compare number a >= b
 
             # less than
+            (dict(key1=2), 'key1', '<', 3),              # compare number a < b
             (dict(key1=2), 'key1', 'lt', 3),             # compare number a < b
             (dict(key1='2.0'), 'key1', 'lt', 3.5),       # compare number a < b
             (dict(key1='2'), 'key1', 'lt', '3.3'),       # compare number a < b
@@ -52,13 +55,15 @@ class TestPredicateOperator:
             (dict(key1='false'), 'key1', 'lt', 2),       # compare number a < b
 
             # less than or equal
+            (dict(key1=2), 'key1', '<=', 3),             # compare number a <= b
             (dict(key1=2), 'key1', 'le', 3),             # compare number a <= b
             (dict(key1=2), 'key1', 'le', '2.0'),         # compare number a <= b
             (dict(key1='2'), 'key1', 'le', '2.0'),       # compare number a <= b
             (dict(key1=True), 'key1', 'le', '1'),        # compare number a <= b
-            (dict(key1=0), 'key1', 'le', 'false'),   # compare number a <= b
+            (dict(key1=0), 'key1', 'le', 'false'),       # compare number a <= b
 
             # equal
+            (dict(key1=2), 'key1', '==', 2.0),           # compare number a == b
             (dict(key1=2), 'key1', 'eq', 2.0),           # compare number a == b
             (dict(key1=2.0), 'key1', 'eq', '2'),         # compare number a == b
             (dict(key1='2'), 'key1', 'eq', '2.0'),       # compare number a == b
@@ -66,6 +71,7 @@ class TestPredicateOperator:
             (dict(key1=True), 'key1', 'eq', 1),          # compare number a == b
 
             # not equal
+            (dict(key1=2), 'key1', '!=', 2.5),           # compare number a != b
             (dict(key1=2), 'key1', 'ne', 2.5),           # compare number a != b
             (dict(key1=2.5), 'key1', 'ne', '2'),         # compare number a != b
             (dict(key1='2'), 'key1', 'ne', '2.5'),       # compare number a != b
@@ -82,11 +88,13 @@ class TestPredicateOperator:
         "data,key,op,other",
         [
             # equal
+            (dict(key1='abc'), 'key1', '==', 'abc'),     # compare string a == string b
             (dict(key1='abc'), 'key1', 'eq', 'abc'),     # compare string a == string b
             (dict(key1='1.0'), 'key1', 'eq', '1.0'),     # compare string a == string b
             (dict(key1='True'), 'key1', 'eq', 'True'),   # compare string a == string b
 
             # not equal
+            (dict(key1='abc'), 'key1', '!=', 'xyz'),     # compare string a != string b
             (dict(key1='abc'), 'key1', 'ne', 'xyz'),     # compare string a != string b
             (dict(key1='1.0'), 'key1', 'ne', '1'),       # compare string a != string b
             (dict(key1='True'), 'key1', 'ne', 'true'),   # compare string a != string b
@@ -103,15 +111,21 @@ class TestPredicateVersion:
     @pytest.mark.parametrize(
         "data,key,op,other",
         [
+            (dict(key='b'), 'key', '>', 'a'),               # version a > version b
             (dict(key='b'), 'key', 'gt', 'a'),              # version a > version b
             (dict(key='b'), 'key', 'gt', 'a.b.c.d'),        # version a > version b
             (dict(key='3'), 'key', 'gt', '2'),              # version a > version b
             (dict(key='6.4'), 'key', 'gt', '6.3.9-a'),      # version a > version b
+            (dict(key='3.1'), 'key', '>=', '2.9'),          # version a >= version b
             (dict(key='3.1'), 'key', 'ge', '2.9'),          # version a >= version b
+            (dict(key='6.3.9'), 'key', '<', '6.4'),         # version a < version b
             (dict(key='6.3.9'), 'key', 'lt', '6.4'),        # version a < version b
+            (dict(key='6.3.9'), 'key', '<=', '6.4'),        # version a <= version b
             (dict(key='6.3.9'), 'key', 'le', '6.4'),        # version a <= version b
+            (dict(key='5.3.5'), 'key', '==', '5.3.5'),      # version a == version b
             (dict(key='5.3.5'), 'key', 'eq', '5.3.5'),      # version a == version b
             (dict(key='1.0.1.a'), 'key', 'eq', '1.0.1.a'),  # version a == version b
+            (dict(key='6.3.9'), 'key', '!=', '6.4.1'),      # version a != version b
             (dict(key='6.3.9'), 'key', 'ne', '6.4.1'),      # version a != version b
         ]
     )
@@ -123,11 +137,17 @@ class TestPredicateVersion:
     @pytest.mark.parametrize(
         "data,key,op,other",
         [
+            (dict(key='6.4.0'), 'key', '>', '6.3.9-a'),     # semantic version a > semantic version b
             (dict(key='6.4.0'), 'key', 'gt', '6.3.9-a'),    # semantic version a > semantic version b
+            (dict(key='3.1.0'), 'key', '>=', '2.9.9'),      # semantic version a >= semantic version b
             (dict(key='3.1.0'), 'key', 'ge', '2.9.9'),      # semantic version a >= semantic version b
+            (dict(key='6.3.9'), 'key', '<', '6.4.0'),       # semantic version a < semantic version b
             (dict(key='6.3.9'), 'key', 'lt', '6.4.0'),      # semantic version a < semantic version b
+            (dict(key='6.3.9'), 'key', '<=', '6.4.0'),      # semantic version a <= semantic version b
             (dict(key='6.3.9'), 'key', 'le', '6.4.0'),      # semantic version a <= semantic version b
+            (dict(key='1.0.1-a'), 'key', '==', '1.0.1-a'),  # semantic version a == semantic version b
             (dict(key='1.0.1-a'), 'key', 'eq', '1.0.1-a'),  # semantic version a == semantic version b
+            (dict(key='6.3.9'), 'key', '!=', '6.4.1'),      # semantic version a != semantic version b
             (dict(key='6.3.9'), 'key', 'ne', '6.4.1'),      # semantic version a != semantic version b
         ]
     )
@@ -156,6 +176,7 @@ class TestPredicateDate:
             #       %m-%d-%Y %I:%M:%S %p           #
             #       %m-%d-%Y %I:%M:%S.%f %p        #
             ########################################
+            (dict(key='06/06/2021 13:30:10'), 'key', '>', '01/01/2021 11:20:10'),
             (dict(key='06/06/2021 13:30:10'), 'key', 'gt', '01/01/2021 11:20:10'),
             (dict(key='06/06/2021 13:30:10.111222'), 'key', 'gt', '01/01/2021 11:20:10.111222'),
             (dict(key='06/06/2021 11:30:10 PM'), 'key', 'gt', '06/06/2021 11:30:10 AM'),
