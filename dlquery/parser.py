@@ -67,7 +67,7 @@ class SelectParser:
             func = partial(Predicate.is_, key=key, custom=value)
         elif op in ['is_not', 'isnot']:
             func = partial(Predicate.isnot, key=key, custom=value)
-        elif op in ['lt', 'le', 'gt', 'ge']:
+        elif op in ['lt', 'le', 'gt', 'ge', '<', '<=', '>', '>=']:
             val = str(value).strip()
             pattern = r'''
                 (?i)((?P<semantic>semantic)_)?
@@ -94,7 +94,7 @@ class SelectParser:
             else:
                 func = partial(Predicate.compare_number, key=key,
                                op=op, other=value)
-        elif op in ['eq', 'ne']:
+        elif op in ['eq', 'ne', '==', '!=']:
             val = str(value).strip()
             pattern = r'''
                 (?i)((?P<semantic>semantic)_)?
