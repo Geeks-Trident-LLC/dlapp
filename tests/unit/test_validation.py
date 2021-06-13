@@ -173,6 +173,9 @@ class TestOpValidation:
         chk = OpValidation.compare_number(data, 'gt', other, on_exception=False)
         assert chk is True
 
+        chk = OpValidation.compare_number(data, '>', other, on_exception=False)
+        assert chk is True
+
     @pytest.mark.parametrize(
         "data,other",
         [
@@ -185,6 +188,9 @@ class TestOpValidation:
         chk = OpValidation.compare_number(data, 'ge', other, on_exception=False)
         assert chk is True
 
+        chk = OpValidation.compare_number(data, '>=', other, on_exception=False)
+        assert chk is True
+
     @pytest.mark.parametrize(
         "data,other",
         [(2, 3), (2, 3.5), (2, '3.3')]
@@ -192,6 +198,9 @@ class TestOpValidation:
     def test_compare_number_a_lt_b(self, data, other):
         """Test number a lt number b."""
         chk = OpValidation.compare_number(data, 'lt', other, on_exception=False)
+        assert chk is True
+
+        chk = OpValidation.compare_number(data, '<', other, on_exception=False)
         assert chk is True
 
     @pytest.mark.parametrize(
@@ -206,6 +215,9 @@ class TestOpValidation:
         chk = OpValidation.compare_number(data, 'le', other, on_exception=False)
         assert chk is True
 
+        chk = OpValidation.compare_number(data, '<=', other, on_exception=False)
+        assert chk is True
+
     @pytest.mark.parametrize(
         "data,other",
         [(2, 2), (2, 2.0), (2, '2.0')]
@@ -213,6 +225,9 @@ class TestOpValidation:
     def test_compare_number_a_eq_b(self, data, other):
         """Test number a eq number b."""
         chk = OpValidation.compare_number(data, 'eq', other, on_exception=False)
+        assert chk is True
+
+        chk = OpValidation.compare_number(data, '==', other, on_exception=False)
         assert chk is True
 
     @pytest.mark.parametrize(
@@ -224,6 +239,9 @@ class TestOpValidation:
         chk = OpValidation.compare_number(data, 'ne', other, on_exception=False)
         assert chk is True
 
+        chk = OpValidation.compare_number(data, '!=', other, on_exception=False)
+        assert chk is True
+
     @pytest.mark.parametrize(
         "data,other",
         [('abc', 'abc')]
@@ -233,6 +251,9 @@ class TestOpValidation:
         chk = OpValidation.compare(data, 'eq', other, on_exception=False)
         assert chk is True
 
+        chk = OpValidation.compare(data, '==', other, on_exception=False)
+        assert chk is True
+
     @pytest.mark.parametrize(
         "data,other",
         [('abc', 'xyz')]
@@ -240,6 +261,9 @@ class TestOpValidation:
     def test_compare_string_a_ne_b(self, data, other):
         """Test string a ne string b."""
         chk = OpValidation.compare(data, 'ne', other, on_exception=False)
+        assert chk is True
+
+        chk = OpValidation.compare(data, '!=', other, on_exception=False)
         assert chk is True
 
     @pytest.mark.parametrize(
@@ -284,15 +308,21 @@ class TestVersionValidation:
     @pytest.mark.parametrize(
         "data,op,other",
         [
+            ('b', '>', 'a'),                # version a > version b
             ('b', 'gt', 'a'),               # version a > version b
             ('b', 'gt', 'a.b.c.d'),         # version a > version b
             ('3', 'gt', '2'),               # version a > version b
             ('6.4', 'gt', '6.3.9-a'),       # version a > version b
+            ('3.1', '>=', '2.9'),           # version a >= version b
             ('3.1', 'ge', '2.9'),           # version a >= version b
+            ('6.3.9', '<', '6.4'),          # version a < version b
             ('6.3.9', 'lt', '6.4'),         # version a < version b
+            ('6.3.9', '<=', '6.4'),         # version a <= version b
             ('6.3.9', 'le', '6.4'),         # version a <= version b
+            ('5.3.5', '==', '5.3.5'),       # version a == version b
             ('5.3.5', 'eq', '5.3.5'),       # version a == version b
             ('1.0.1.a', 'eq', '1.0.1.a'),   # version a == version b
+            ('6.3.9', '!=', '6.4.1'),       # version a != version b
             ('6.3.9', 'ne', '6.4.1'),       # version a != version b
         ]
     )
@@ -304,11 +334,17 @@ class TestVersionValidation:
     @pytest.mark.parametrize(
         "data,op,other",
         [
+            ('6.4.0', '>', '6.3.9-a'),          # semantic version a > semantic version b
             ('6.4.0', 'gt', '6.3.9-a'),         # semantic version a > semantic version b
+            ('3.1.0', '>=', '2.9.9'),           # semantic version a >= semantic version b
             ('3.1.0', 'ge', '2.9.9'),           # semantic version a >= semantic version b
+            ('6.3.9', '<', '6.4.0'),            # semantic version a < semantic version b
             ('6.3.9', 'lt', '6.4.0'),           # semantic version a < semantic version b
+            ('6.3.9', '<=', '6.4.0'),           # semantic version a <= semantic version b
             ('6.3.9', 'le', '6.4.0'),           # semantic version a <= semantic version b
+            ('1.0.1-a', '==', '1.0.1-a'),       # semantic version a == semantic version b
             ('1.0.1-a', 'eq', '1.0.1-a'),       # semantic version a == semantic version b
+            ('6.3.9', '!=', '6.4.1'),           # semantic version a != semantic version b
             ('6.3.9', 'ne', '6.4.1'),           # semantic version a != semantic version b
         ]
     )
@@ -339,6 +375,7 @@ class TestDatetimeValidation:
             #       %m-%d-%Y %I:%M:%S %p           #
             #       %m-%d-%Y %I:%M:%S.%f %p        #
             ########################################
+            ('06/06/2021 13:30:10', '>', '01/01/2021 11:20:10'),
             ('06/06/2021 13:30:10', 'gt', '01/01/2021 11:20:10'),
             ('06/06/2021 13:30:10.111222', 'gt', '01/01/2021 11:20:10.111222'),
             ('06/06/2021 11:30:10 PM', 'gt', '06/06/2021 11:30:10 AM'),
