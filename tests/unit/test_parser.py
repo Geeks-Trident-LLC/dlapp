@@ -272,6 +272,10 @@ class TestSelectParser:
             #####################
             (
                 {'a': 20, 'b': 2},              # data
+                'select b where a > 10',        # select statement
+            ),
+            (
+                {'a': 20, 'b': 2},              # data
                 'select b where a gt 10',       # select statement
             ),
             (
@@ -280,7 +284,15 @@ class TestSelectParser:
             ),
             (
                 {'a': 20, 'b': 2},              # data
+                'select b where a >= 20.0',     # select statement
+            ),
+            (
+                {'a': 20, 'b': 2},              # data
                 'select b where a ge 20.0',     # select statement
+            ),
+            (
+                {'a': 5, 'b': 2},               # data
+                'select b where a < 10',        # select statement
             ),
             (
                 {'a': 5, 'b': 2},               # data
@@ -288,11 +300,23 @@ class TestSelectParser:
             ),
             (
                 {'a': 5.0, 'b': 2},             # data
+                'select b where a <= 5',        # select statement
+            ),
+            (
+                {'a': 5.0, 'b': 2},             # data
                 'select b where a le 5',        # select statement
             ),
             (
                 {'a': 5, 'b': 2},               # data
+                'select b where a == 5.0',      # select statement
+            ),
+            (
+                {'a': 5, 'b': 2},               # data
                 'select b where a eq 5.0',      # select statement
+            ),
+            (
+                {'a': 5, 'b': 2},               # data
+                'select b where a != 3',        # select statement
             ),
             (
                 {'a': 5, 'b': 2},               # data
@@ -303,7 +327,15 @@ class TestSelectParser:
             #####################
             (
                 {'a': 'abc', 'b': 2},           # data
+                'select b where a == abc',      # select statement
+            ),
+            (
+                {'a': 'abc', 'b': 2},           # data
                 'select b where a eq abc',      # select statement
+            ),
+            (
+                {'a': 'abc', 'b': 2},           # data
+                'select b where a != xyz',      # select statement
             ),
             (
                 {'a': 'abc', 'b': 2},           # data
@@ -338,6 +370,10 @@ class TestSelectParser:
             ######################
             (
                 {'a': 'b', 'b': '2'},                   # data
+                'select a where a > version(a)',        # select statement
+            ),
+            (
+                {'a': 'b', 'b': '2'},                   # data
                 'select a where a gt version(a)',       # select statement
             ),
             (
@@ -346,7 +382,15 @@ class TestSelectParser:
             ),
             (
                 {'a': '6.3.4', 'b': '2'},               # data
-                'select a where a gt version(6.3.0)',   # select statement
+                'select a where a >= version(6.3.0)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a ge version(6.3.0)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a < version(7.0.1)',    # select statement
             ),
             (
                 {'a': '6.3.4', 'b': '2'},               # data
@@ -354,11 +398,23 @@ class TestSelectParser:
             ),
             (
                 {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a <= version(7.0.1-a)',  # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
                 'select a where a le version(7.0.1-a)',     # select statement
             ),
             (
-                {'a': '6.3.4', 'b': '2'},  # data
-                'select a where a eq version(6.3.4)',  # select statement
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a == version(6.3.4)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a eq version(6.3.4)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a != version(6.3.5)',   # select statement
             ),
             (
                 {'a': '6.3.4', 'b': '2'},               # data
