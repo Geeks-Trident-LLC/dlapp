@@ -166,16 +166,20 @@ class OpValidation:
         Parameters
         ----------
         value (str): data.
-        op (str): an operator can be lt, le, gt, ge, eq, ne
+        op (str): an operator can be lt, le, gt, ge, eq, ne, <, <=, >, >=, ==, or !=
         other (str): a number.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
         Returns
         -------
-        bool: True if value lt|le|gt|ge|eq|ne other, otherwise, False.
+        bool: True if a value lt|le|gt|ge|eq|ne other value, otherwise, False.
+                or    a value < | <= | > | >= | == | != other value
         """
         op = str(op).lower().strip()
+        op = 'lt' if op == '<' else 'le' if op == '<=' else op
+        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
         valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
         if op not in valid_ops:
             fmt = 'Invalid {!r} operator for validating number.  It MUST be {}.'
@@ -197,16 +201,18 @@ class OpValidation:
         Parameters
         ----------
         value (str): data.
-        op (str): an operator can be eq or ne
+        op (str): an operator can be eq, ne, ==, or !=
         other (str): other value
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
         Returns
         -------
-        bool: True if value eq|ne other, otherwise, False.
+        bool: True if a value eq|ne other value, otherwise, False.
+                or    a value == | != other value
         """
         op = str(op).lower().strip()
+        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
         valid_ops = ('eq', 'ne')
         if op not in valid_ops:
             fmt = ('Invalid {!r} operator for checking equal '
@@ -640,7 +646,7 @@ class VersionValidation:
         Parameters
         ----------
         value (str): a version.
-        op (str): an operator can be lt, le, gt, ge, eq, ne
+        op (str): an operator can be lt, le, gt, ge, eq, ne, <, <=, >, >=, ==, or !=
         other (str): an other version.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
@@ -648,8 +654,12 @@ class VersionValidation:
         Returns
         -------
         bool: True if a version lt|le|gt|ge|eq|ne other version, otherwise, False.
+                or    a version < | <= | > | >= | == | != other version
         """
         op = str(op).lower().strip()
+        op = 'lt' if op == '<' else 'le' if op == '<=' else op
+        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
         valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
         if op not in valid_ops:
             fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
@@ -667,7 +677,7 @@ class VersionValidation:
         Parameters
         ----------
         value (str): a version.
-        op (str): an operator can be lt, le, gt, ge, eq, ne
+        op (str): an operator can be lt, le, gt, ge, eq, ne, <, <=, >, >=, ==, or !=
         other (str): an other version.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
@@ -675,8 +685,12 @@ class VersionValidation:
         Returns
         -------
         bool: True if a version lt|le|gt|ge|eq|ne other version, otherwise, False.
+                or    a version < | <= | > | >= | == | != other version
         """
         op = str(op).lower().strip()
+        op = 'lt' if op == '<' else 'le' if op == '<=' else op
+        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
         valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
         if op not in valid_ops:
             fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
@@ -882,7 +896,7 @@ class DatetimeValidation:
         Parameters
         ----------
         value (str): a datetime.
-        op (str): an operator can be lt, le, gt, ge, eq, ne
+        op (str): an operator can be lt, le, gt, ge, eq, ne, >, >=, <, <=, ==, or !=
         other (str): an other datetime.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
@@ -890,7 +904,12 @@ class DatetimeValidation:
         Returns
         -------
         bool: True if a datetime lt|le|gt|ge|eq|ne other datetime, otherwise, False.
+                 or   a datetime < | <= | > | >= | == | != other datetime
         """
+        op = 'lt' if op == '<' else 'le' if op == '<=' else op
+        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+
         other_date_str, fmt, skips = DatetimeValidation.parse_custom_date(other)
 
         a_date_str = DatetimeValidation.apply_skips(value, skips)
