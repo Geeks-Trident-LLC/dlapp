@@ -155,9 +155,9 @@ class SelectParser:
         """
         def chain(data_, a_=None, b_=None, op_=''):
             result_a, result_b = a_(data_), b_(data_)
-            if op_ == 'or_':
+            if op_ in ['or_', '||']:
                 return result_a or result_b
-            elif op_ == 'and_':
+            elif op_ in ['and_', '&&']:
                 return result_a and result_b
             else:
                 msg_ = (
@@ -169,7 +169,7 @@ class SelectParser:
 
         groups = []
         start = 0
-        for match in re.finditer(' +(or_|and_) +', expressions, flags=re.I):
+        for match in re.finditer(' +(or_|and_|&&|[|]{2}) +', expressions, flags=re.I):
             expr = match.string[start:match.start()]
             op = match.group().strip().lower()
             groups.extend([expr.strip(), op.strip()])
