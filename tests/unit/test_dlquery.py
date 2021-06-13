@@ -362,6 +362,8 @@ class TestQueryingDLQuery:
             ('alignment=center', 'name where width == 300', [{'name': 'text abc'}]),
             ('alignment', 'name where width eq 300 and_ data match (?i).+ abc', [{'name': 'text abc'}]),
             ('alignment', 'name where width == 300 and_ data match (?i).+ abc', [{'name': 'text abc'}]),
+            ('alignment', 'name where width == 300 && data match (?i).+ abc', [{'name': 'text abc'}]),
+            ('alignment', 'name where width == 300 || data match (?i).+ abc', [{'name': 'text abc'}]),
         ]
     )
     def test_find_a_lookup_and_validate_dict_obj(
