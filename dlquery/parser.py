@@ -4,7 +4,6 @@ import re
 import logging
 from functools import partial
 from dlquery.predicate import Predicate
-from dlquery.utils import is_number
 
 
 logger = logging.getLogger(__file__)
@@ -119,8 +118,11 @@ class SelectParser:
                 func = partial(Predicate.compare_datetime, key=key,
                                op=op, other=datetime_str)
             else:
-                cfunc = Predicate.compare_number if is_number(value) else Predicate.compare
-                func = partial(cfunc, key=key, op=op, other=value)
+                try:
+                    float(value)
+                    func = partial(Predicate.compare_number, key=key, op=op, other=value)
+                except Exception as ex:     # noqa
+                    func = partial(Predicate.compare, key=key, op=op, other=value)
         elif op == 'match':
             func = partial(Predicate.match, key=key, pattern=value)
         elif op in ['not_match', 'notmatch']:
