@@ -82,7 +82,7 @@ from dlquery.validation import RegexValidation      # noqa
 from dlquery.validation import OpValidation         # noqa
 from dlquery.validation import CustomValidation     # noqa
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 version = __version__
 
 __all__ = [
