@@ -16,8 +16,34 @@ pip install dlquery
 ## Dependencies
 - [compare_version](https://pypi.org/project/compare_versions/)
 - [pyyaml](https://pypi.org/project/PyYAML/)
+- [python-dateutil](https://pypi.org/project/python-dateutil/)
 
 ## Usage
+```bash
+(vp37) C:\>dlquery --help
+usage: dlquery [options]
+
+dlquery application
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --gui                 launch a dlquery GUI application
+  --filename FILENAME   a json, yaml, or csv file name
+  --filetype {csv,json,yaml,yml}
+                        a file type can be either json, yaml, yml, or csv
+  --lookup LOOKUP       a lookup criteria for searching a list or dictionary
+  --select SELECT_STATEMENT
+                        a select statement to enhance multiple searching
+                        criteria
+  --tutorial            show dlquery tutorial
+  --tutorial-csv        show csv tutorial
+  --tutorial-json       show json tutorial
+  --tutorial-yaml       show yaml tutorial
+
+(vp37) C:\>
+```
+
+## Getting Started
 
 ### Development
 ```python
@@ -96,6 +122,6 @@ $ # the same syntax can apply for yaml, yml, or csv file.
 ## Bugs/Requests
 Please use the [GitHub issue tracker](https://github.com/Geeks-Trident-LLC/dlquery/issues) to submit bugs or request features.
 
-## License
-Copyright @ 2021 [Geeks Trident LLC](http://www.geekstrident.com).  All rights reserved.
+## Licenses
+- [BSD 3-Clause License](https://github.com/Geeks-Trident-LLC/dlquery/blob/develop/LICENSE)
 
