@@ -8,6 +8,11 @@ import traceback
 import logging
 from datetime import datetime
 from compare_versions.core import verify_list as version_compare
+from dateutil.parser import parse
+from dateutil.parser import isoparse
+from dateutil.tz import gettz
+from dateutil.tz import UTC
+
 
 DEBUG = 0
 logger = logging.getLogger(__file__)
@@ -701,8 +706,88 @@ class VersionValidation:
         return result
 
 
-class DatetimeParedFormatError(Exception):
-    """Use to capture during parsing datetime format for DatetimeValidation error."""
+class ParsedTimezoneError(Exception):
+    """Use to capture timezone during parsing custom datetime."""
+
+
+class DatetimeResult:
+    """Store a result of parsing custom datetime.
+
+    Attributes
+    ----------
+    data (str): a datetime data.
+    timezone (dict): a list of Linux timezone such as America/Los_Angeles.
+        Default is None.
+    iso (str, bool): a list of bool. Default is None.
+    dayfirst (str, bool): a list of bool.  Default is None.
+
+    Methods
+    -------
+    to_bool(value, default=False) -> bool
+    parse_timezone() -> None
+
+    Raises
+    ------
+    ParsedTimezoneError
+    """
+    def __init__(self, data='', timezone=None, iso=False,
+                 dayfirst=True, fuzzy=True):
+        self.data = data
+        self.iso = self.to_bool(iso, default=False)
+        self.dayfirst = self.to_bool(dayfirst, default=True)
+        self.fuzzy = self.to_bool(fuzzy, default=True)
+        self.timezone = timezone
+        self.tzinfos = dict()
+        self.parse_timezone()
+
+    def to_bool(self, value, default=False):
+        """Return True if value is True
+
+        Parameters
+        ----------
+        value (str, bool): a value is either True or False
+        default (bool): if value is empty, then return a default value.
+                Default is False.
+
+        Returns
+        -------
+        bool: True if value is True, otherwise, False.
+
+        """
+        if isinstance(value, bool):
+            return value
+        value = str(value).title()
+        result = default if value == '' else value == 'True'
+        return result
+
+    def parse_timezone(self):
+        """Parse timezone to build tzinfos."""
+        if self.timezone in [None, '']:
+            return
+
+        if not isinstance(self.timezone, (dict, str)):
+            fmt = 'timezone must be an instance of dict or str, but {}'
+            raise ParsedTimezoneError(fmt.format(type(self.timezone)))
+
+        if self.timezone and isinstance(self.timezone, dict):
+            self.tzinfos = dict(self.timezone)
+            return
+
+        for pair in self.timezone.split(', '):
+            items = pair.split(':', maxsplit=1)
+            if len(items) != 2:
+                fmt = 'Invalid timezone format -- {!r}'
+                raise ParsedTimezoneError(fmt.format(self.timezone))
+            tzname, tzvalue = [item.strip() for item in items]
+
+            try:
+                self.tzinfos[tzname] = int(tzvalue)
+            except Exception as ex:         # noqa
+                try:
+                    self.tzinfos[tzname] = gettz(tzvalue)
+                except Exception as ex:     # noqa
+                    fmt = 'Invalid timezone value -- {!r}'
+                    raise ParsedTimezoneError(fmt.format(self.timezone))
 
 
 class DatetimeValidation:
@@ -710,183 +795,116 @@ class DatetimeValidation:
 
     Methods
     -------
-    DatetimeValidation.parse_custom_date(data) -> tuple
-    DatetimeValidation.apply_skips(data, skips) -> str
+    DatetimeValidation.get_date(datetime_value, options) -> datetime.datetime
+    DatetimeValidation.do_datetime_compare(a_datetime, op, other_datetime) -> bool
     DatetimeValidation.compare_datetime(value, op, other, valid=True, on_exception=True) -> bool
     """
 
     @classmethod
     def parse_custom_date(cls, data):
-        """parse custom datetime and return date, format, and skips
+        """parse custom datetime and return DatetimeResult instance
 
         Parameters
         ----------
-        data (str): datetime format=...? skips=...?
+        data (str): datetime timezone=...? iso=...? dayfirst=...? fuzzy=...?
 
         Returns
         -------
-        tuple: datetime, format, skips
+        DatetimeResult: a datetime result.
         """
-        pattern = '(?i) +(format.?|skips.?)='
+        pattern = '(?i) +(timezone|iso|dayfirst|fuzzy)='
 
         if not re.search(pattern, data):
-            return data, [], []
+            result = DatetimeResult(data=data)
+            return result
 
         start = 0
-        date_val, fmt, skips = '', [], []
+        date_val, timezone, iso, dayfirst, fuzzy = [''] * 5
         match_data = ''
         for m in re.finditer(pattern, data):
-            before_match_data = m.string[start:m.start()]
+            before_match = m.string[start:m.start()]
             if not date_val:
-                date_val = before_match_data
-            elif not fmt and match_data.startswith('format'):
-                m1 = re.search(r'format(?P<separator>.?)=', match_data)
-                separator = m1.group('separator')
-                if separator:
-                    if separator in before_match_data:
-                        val = before_match_data.rstrip(separator)
-                        fmt = [item.strip() for item in val.split(separator, 1)]
-                    else:
-                        fmt = [before_match_data.strip(), before_match_data.strip()]
-                else:
-                    fmt = [before_match_data.strip(), before_match_data.strip()]
-            elif not skips and match_data.startswith('skips'):
-                m1 = re.search(r'skips(?P<separator>.?)=', match_data)
-                separator = m1.group('separator')
-                separator = separator or ','
-                skips = before_match_data.rstrip(separator).split(separator)
+                date_val = before_match.strip()
+            elif not timezone and match_data.startswith('timezone='):
+                timezone = before_match.strip()
+            elif not iso and match_data.startswith('iso='):
+                iso = before_match.strip()
+            elif not iso and match_data.startswith('dayfirst='):
+                dayfirst = before_match.strip()
+            elif not fuzzy and match_data.startswith('fuzzy='):
+                fuzzy = before_match.strip()
             match_data = m.group().strip()
             start = m.end()
         else:
-            if not fmt and match_data.startswith('format'):
-                remaining = m.string[m.end():].strip()
-                m1 = re.search(r'format(?P<separator>.?)=', match_data)
-                separator = m1.group('separator')
-                if separator:
-                    if separator in remaining:
-                        val = remaining.rstrip(separator)
-                        fmt = [item.strip() for item in val.split(separator, 1)]
-                    else:
-                        fmt = [remaining.strip(), remaining.strip()]
-                else:
-                    fmt = [remaining.strip(), remaining.strip()]
+            if not timezone and match_data.startswith('timezone='):
+                timezone = m.string[m.end():].strip()
+            elif not iso and match_data.startswith('iso='):
+                iso = m.string[m.end():].strip()
+            elif not dayfirst and match_data.startswith('dayfirst='):
+                dayfirst = m.string[m.end():].strip()
+            elif not fuzzy and match_data.startswith('fuzzy='):
+                fuzzy = m.string[m.end():].strip()
 
-            elif not skips and match_data.startswith('skips'):
-                m1 = re.search(r'skips(?P<separator>.?)=', match_data)
-                separator = m1.group('separator')
-                separator = separator or ','
-                skips = m.string[m.end():].rstrip(separator).split(separator)
-        return date_val, fmt, skips
+        result = DatetimeResult(data=date_val, timezone=timezone, iso=iso,
+                                dayfirst=dayfirst, fuzzy=fuzzy)
+        return result
 
     @classmethod
-    def get_default_datetime_format(cls, data):
-        """Return a default format for a datetime
+    def get_date(cls, datetime_value, options):
+        """parse datetime value to datetime instance
 
         Parameters
         ----------
-        data (str): a datetime.
+        datetime_value (str): datetime data
+        options (DatetimeResult): a datetime parsed options
 
         Returns
         -------
-        str: a default format for datetime
-
-        Raises
-        ------
-        DatetimeParedFormatError: if datetime format is unknown or not found.
+        datetime.datetime: a datetime.
         """
-        def get_default_date_format(v):
-            """get default date format.
-
-            Parameters
-            ----------
-            v (str): a date data.
-
-            Returns
-            -------
-            str: return a date format if matched, otherwise, empty string.
-            """
-            v = str(v).strip()
-            pattern = r'[0-9]{1,2}([/-])[0-9]{1,2}\1[0-9]{4}$'
-            match = re.match(pattern, v)
-            if match:
-                return '%m/%d/%Y' if '/' in match.string else '%m-%d-%Y'
-
-            return ''
-
-        def get_default_time_format(v):
-            """get default time format.
-
-            Parameters
-            ----------
-            v (str): a time data.
-
-            Returns
-            -------
-            str: return a time format if matched, otherwise, empty string.
-            """
-            v = str(v).strip()
-            time_pattern = r'''
-                (?i)[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}
-                (?P<microsecond>[.][0-9]+)?
-            '''
-            match = re.match(time_pattern, v, flags=re.VERBOSE)
-            if match:
-                fmt = '%H:%M:%S'
-                if match.group('microsecond'):
-                    fmt += '.%f'
-                if v.lower().endswith(' am') or v.lower().endswith(' pm'):
-                    fmt += ' %p'
-                    fmt = fmt.replace('%H', '%I')
-                return fmt
-            return ''
-
-        date_fmt = get_default_date_format(data)
-        if date_fmt:
-            return date_fmt, date_fmt
-
-        time_fmt = get_default_time_format(data)
-        if time_fmt:
-            return time_fmt, time_fmt
-
-        lst = data.split(' ', maxsplit=1)
-        if len(lst) == 2:
-            date_val, time_val = lst
-            date_fmt = get_default_date_format(date_val)
-            time_fmt = get_default_time_format(time_val)
-            if date_fmt and time_val:
-                datetime_fmt = '{} {}'.format(date_fmt, time_fmt)
-                return datetime_fmt, datetime_fmt
-            else:
-                msg = ('{!r} is a custom datetime.  '
-                       'Need to end-user provide a custom format.')
-                raise DatetimeParedFormatError(msg)
+        if options.iso:
+            result = isoparse(datetime_value)
+            return result
         else:
-            msg = ('{!r} is a custom datetime.  '
-                   'Need to end-user provide a custom format.')
-            raise DatetimeParedFormatError(msg)
+            result = parse(datetime_value, dayfirst=options.dayfirst,
+                           fuzzy=options.fuzzy, tzinfos=options.tzinfos)
+            return result
 
     @classmethod
-    def apply_skips(cls, data, skips):
-        """Take out any skip data and return datetime without skip data
+    def do_date_compare(cls, a_date, op, other_date):
+        """Compare a_date lt, le, gt, ge, eq, or ne other_date
 
         Parameters
         ----------
-        data (str): datetime <skip data>
-        skips (list): a list of skip data
+        a_date (datetime.datetime): a datetime data
+        op (str): a operator which can be lt, le, gt, ge, eq, ne.
+        other_date (datetime.datetime): other datetime data
 
         Returns
         -------
-        str: new datetime without skip data
+        bool: True if a datetime lt|le|gt|ge|eq|ne other datetime, otherwise, False.
         """
-        for skip in skips:
-            try:
-                re.compile(skip)
-                pattern = skip
-            except Exception as ex:     # noqa
-                pattern = re.escape(skip)
-
-            data = re.sub(pattern, '', data, re.I)
-        return data.strip()
+        a_tzname = a_date.tzname()
+        other_tzname = other_date.tzname()
+        if not bool(a_tzname) ^ bool(other_tzname):
+            result = getattr(operator, op)(a_date, other_date)
+            return result
+        elif not a_tzname:
+            a_new_datetime = datetime(
+                a_date.year, a_date.month, a_date.day,
+                a_date.hour, a_date.minute, a_date.second,
+                a_date.microsecond, tzinfo=UTC
+            )
+            result = getattr(operator, op)(a_new_datetime, other_date)
+            return result
+        else:
+            other_new_datetime = datetime(
+                other_date.year, other_date.month, other_date.day,
+                other_date.hour, other_date.minute, other_date.second,
+                other_date.microsecond, tzinfo=UTC
+            )
+            result = getattr(operator, op)(a_date, other_new_datetime)
+            return result
 
     @classmethod
     @false_on_exception_for_classmethod
@@ -910,18 +928,12 @@ class DatetimeValidation:
         op = 'gt' if op == '>' else 'ge' if op == '>=' else op
         op = 'eq' if op == '==' else 'ne' if op == '!=' else op
 
-        other_date_str, fmt, skips = DatetimeValidation.parse_custom_date(other)
+        dt_parsed_result = DatetimeValidation.parse_custom_date(other)
 
-        a_date_str = DatetimeValidation.apply_skips(value, skips)
-        other_date_str = DatetimeValidation.apply_skips(other_date_str, skips)
+        a_date_str, other_date_str = value, dt_parsed_result.data
 
-        if not fmt:
-            fmt = DatetimeValidation.get_default_datetime_format(other_date_str)
+        a_date = DatetimeValidation.get_date(a_date_str, dt_parsed_result)
+        other_date = DatetimeValidation.get_date(other_date_str, dt_parsed_result)
 
-        a_date_fmt, other_date_fmt = fmt
-
-        a_date = datetime.strptime(a_date_str, a_date_fmt)
-        other_date = datetime.strptime(other_date_str, other_date_fmt)
-
-        result = getattr(operator, op)(a_date, other_date)
+        result = DatetimeValidation.do_date_compare(a_date, op, other_date)
         return result
