@@ -456,36 +456,19 @@ class TestSelectParser:
             ),
             (
                 {'a': '6-6-2021'},                                          # data
-                'select a where a gt datetime(01-01-2021 format=%m-%d-%Y)',  # select statement
+                'select a where a gt datetime(Jan  1, 2021)',               # select statement
             ),
             (
-                {'a': '2021Jun06 PDT'},                                                         # data
-                'select a where a gt datetime(2021Jan01 PST format=%Y%b%d skips= PDT, PST)',    # select statement
+                {'a': '2021-06-14T08:30:00+00:00'},                                 # data
+                'select a where a > datetime(2021-06-14T07:30:00+00:00 iso=True)',  # select statement
             ),
             (
-                {'a': 'Jun  3, 2021'},                                          # data
-                'select a where a ge datetime(Jan 29, 2021 format=%b %d, %Y)',  # select statement
+                {'a': '2021Jun06 02:30:00 PM PDT'},                                                             # data
+                'select a where a > datetime(Jan  1 10:30:00 AM PST 2021 timezone=PST: -28800, PDT: -25200)',   # select statement
             ),
             (
-                {'a': '01/1/2021'},                             # data
-                'select a where a lt datetime(6/06/2021)',      # select statement
-            ),
-            (
-                {'a': '01/01/2021'},                            # data
-                'select a where a le datetime(06/06/2021)',     # select statement
-            ),
-            (
-                {'a': '6/6/2021'},                              # data
-                'select a where a eq datetime(06/06/2021)',     # select statement
-            ),
-            (
-                {'a': '01/01/2021'},                            # data
-                'select a where a ne datetime(06/06/2021)',     # select statement
-            ),
-
-            (
-                {'a': '06/06/2021 05:30:10 PM'},                # data
-                'select a where a ne datetime(06/06/2021 14:30:10 format,=%m/%d/%Y %I:%M:%S %p, %m/%d/%Y %H:%M:%S)',  # select statement
+                {'a': '2021Jun06 02:30:00 PM PDT'},                                                             # data
+                'select a where a == datetime(Jun  6 14:30:00 AM PDT 2021 timezone=PST: -28800, PDT: -25200)',  # select statement
             ),
         ]
     )
