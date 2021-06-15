@@ -186,18 +186,18 @@ class TestPredicateDate:
             # compare DATETIME with timezone option         #
             #################################################
             (
-                dict(key='Sun Mar 14 01:30:30 AM 2021'), 'key',
+                dict(key='Sun Mar 14 00:30:30 AM 2021'), 'key',
                 '<',    # less than
                 'Sunday March 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: -25200'
             ),
             (
-                dict(key='Sun Mar 14 01:30:30 AM PST 2021'), 'key',
-                '>',    # greater than
+                dict(key='Sun Mar 14 00:30:30 AM PST 2021'), 'key',
+                '<',    # less than
                 'Sunday March 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: -25200'
             ),
             (
-                dict(key='Sun Mar 14 01:30:30 AM PST 2021'), 'key',
-                '>',    # greater than
+                dict(key='Sun Mar 14 00:30:30 AM PST 2021'), 'key',
+                '<',    # less than
                 'Sunday March 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: America/Los_Angeles'
             ),
             #################################################

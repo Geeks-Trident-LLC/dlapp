@@ -385,18 +385,18 @@ class TestDatetimeValidation:
             # compare DATETIME with timezone option         #
             #################################################
             (
-                'Sun Mar 14 01:30:30 AM 2021',
+                'Sun Mar 14 00:30:30 AM 2021',
                 '<',    # less than
                 'Sunday March 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: -25200'
             ),
             (
-                'Sun Mar 14 01:30:30 AM PST 2021',
-                '>',    # greater than
+                'Sun Mar 14 00:30:30 AM PST 2021',
+                '<',    # less than
                 'Sunday March 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: -25200'
             ),
             (
-                'Sun Mar 14 01:30:30 AM PST 2021',
-                '>',    # greater than
+                'Sun Mar 14 00:30:30 AM PST 2021',
+                '<',    # less than
                 'Sunday March 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: America/Los_Angeles'
             ),
             #################################################
