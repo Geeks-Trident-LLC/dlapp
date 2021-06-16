@@ -451,6 +451,22 @@ class TestSelectParser:
             # datetime comparison         #
             ###############################
             (
+                {'a': '2021-06-05'},                                    # data
+                'select a where a == date(06/05/2021)',                 # select statement
+            ),
+            (
+                {'a': '2021Jun05'},                                     # data
+                'select a where a == date(Jun  5, 2021)',               # select statement
+            ),
+            (
+                {'a': '03:30:50.000001 PM'},                           # data
+                'select a where a > time(15:30:50)',                   # select statement
+            ),
+            (
+                {'a': '03:30:50pm'},                                    # data
+                'select a where a == time(15:30:50)',                   # select statement
+            ),
+            (
                 {'a': '06/06/2021'},                                    # data
                 'select a where a gt datetime(01/01/2021)',             # select statement
             ),
