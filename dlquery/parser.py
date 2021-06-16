@@ -74,7 +74,7 @@ class SelectParser:
             '''
             match_version = re.match(pattern, val, flags=re.VERBOSE)
 
-            pattern = r'(?i)datetime[(](?P<datetime_str>.+)[)]$'
+            pattern = r'(?i)(datetime|date|time)[(](?P<datetime_str>.+)[)]$'
             match_datetime = re.match(pattern, val)
 
             if match_version:
@@ -101,7 +101,7 @@ class SelectParser:
             '''
             match_version = re.match(pattern, val, flags=re.VERBOSE)
 
-            pattern = r'(?i)datetime[(](?P<datetime_str>.+)[)]$'
+            pattern = r'(?i)(datetime|date|time)[(](?P<datetime_str>.+)[)]$'
             match_datetime = re.match(pattern, val)
 
             if match_version:
