@@ -140,6 +140,51 @@ class TestCustomValidation:
         chk = CustomValidation.is_ip_address(addr, valid=False, on_exception=False)
         assert chk is True
 
+    @pytest.mark.parametrize(
+        "datetime_data",
+        [
+            '06/14/2021 11:30:20 AM',
+            'June 14 11:30:20 AM 2021',
+            'Monday June 14, 2021 11:30:20 AM',
+            '2021-06-14 11:30:20AM',
+            '2021Jun14 11:30:20 AM',
+        ]
+    )
+    def test_is_a_datetime(self, datetime_data):
+        """Test is a datetime."""
+        chk = CustomValidation.is_datetime(datetime_data, valid=True, on_exception=False)
+        assert chk is True
+
+    @pytest.mark.parametrize(
+        "date_data",
+        [
+            '06/14/2021',
+            'June 14, 2021',
+            'Monday June 14, 2021',
+            '2021-06-14',
+            '2021Jun14',
+        ]
+    )
+    def test_is_a_date(self, date_data):
+        """Test is a date."""
+        chk = CustomValidation.is_date(date_data, valid=True, on_exception=False)
+        assert chk is True
+
+    @pytest.mark.parametrize(
+        "time_data",
+        [
+            '11:30',
+            '11:30:20',
+            '11:30:20 PM',
+            '11:30:20pm',
+            '11:30:20.222333 AM',
+        ]
+    )
+    def test_is_a_date(self, time_data):
+        """Test is a time."""
+        chk = CustomValidation.is_time(time_data, valid=True, on_exception=False)
+        assert chk is True
+
 
 class TestRegexValidation:
     """Test class for validating Regex."""
