@@ -341,29 +341,39 @@ class Predicate:
         return result
 
     @classmethod
-    def true(cls, data):
+    def true(cls, data, on_exception=True):
         """Regardless a user provided data, it always returns True.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
+        on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
         -------
         bool: True
+
+        Notes
+        -----
+        Both data and on_exception will skip because this method always return True.
         """
         return True
 
     @classmethod
-    def false(cls, data):
+    def false(cls, data, on_exception=True):
         """Regardless a user provided data, it always returns False.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
+        on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
         -------
         bool: False
+
+        Notes
+        -----
+        Both data and on_exception will skip because this method always return False.
         """
         return False
