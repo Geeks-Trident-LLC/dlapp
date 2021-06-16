@@ -122,10 +122,20 @@ class Result:
 
 
 class Element(Result):
-    """Element class."""
+    """Element class.
+
+    Attributes
+    ----------
+    data (any): a data.
+    index (str): a index value of data if data is list or dictionary.
+    parent (Element): an Element instance.
+    type (str): datatype name of data.
+
+    """
     def __init__(self, data, index='', parent=None):
         super().__init__(data, parent=parent)
         self.index = index
+        self.type = ''
         self._build(data)
 
     def __iter__(self):
@@ -201,13 +211,14 @@ class Element(Result):
         """Return True if an element is a list type."""
         return self.type == 'dict'
 
-    def filter_result(self, records, select_statement):
+    def filter_result(self, records, select_statement, on_exception=False):
         """Filter a list of records based on select statement
 
         Parameters
         ----------
         records (List): a list of record.
         select_statement (str): a select statement.
+        on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
         -------
@@ -220,7 +231,8 @@ class Element(Result):
         if callable(select_obj.predicate):
             lst = List()
             for record in records:
-                is_found = select_obj.predicate(record.parent.data)
+                is_found = select_obj.predicate(record.parent.data,
+                                                on_exception=on_exception)
                 if is_found:
                     lst.append(record)
         else:
@@ -266,13 +278,14 @@ class Element(Result):
                     if child.is_element:
                         self.find_(child, lookup_obj, result)
 
-    def find(self, lookup, select=''):
+    def find(self, lookup, select='', on_exception=False):
         """recursively search a lookup.
 
         Parameters
         ---------
         lookup (str): a search pattern.
         select (str): a select statement.
+        on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
         -------
@@ -281,7 +294,7 @@ class Element(Result):
         records = List()
         lkup_obj = LookupCls(lookup)
         self.find_(self, lkup_obj, records)
-        result = self.filter_result(records, select)
+        result = self.filter_result(records, select, on_exception=on_exception)
         return result
 
 
@@ -497,7 +510,60 @@ class LookupClsError(Exception):
 
 
 class LookupCls:
-    """To build a lookup object."""
+    """To build a lookup object.
+
+    Attributes
+    ----------
+    lookup (str): a search criteria.
+    left (str): a left lookup which uses to match a key of dictionary.
+            It is a regular expression.
+    right (str, callable): a right lookup that uses to match a value of
+            dictionary.  It that can be regular expression pattern
+            or a callable function, i.e. Predicate function.
+
+    Notes
+    -----
+    A lookup consists two parts:
+        + a left lookup which uses to match a key of dictionary.
+        + a right lookup which uses to match value of dictionary.
+        The proper syntax of lookup can be:
+
+        case 1: lookup='abc'
+            a left lookup search any key which key name is abc.
+            while a right lookup is empty.  No action.
+
+        case 2: lookup='abc=xyz'
+            a left lookup searches any key which key name is abc.
+            a right lookup searches item of dict where key == abc and its value ==xyz.
+
+        case 3: lookup='=xyz'
+            a left lookup is empty that means all keys.
+            a right lookup search item of dict where any value of keys == xyz.
+
+        case 4: lookup='abc=_wildcard(*xyz*)
+            a left lookup searches any key which key name is abc.
+            a right lookup searches items of dict where key == abc and its value contains xzy
+
+        Both left and right supports text, wildcard, and regex.
+        The following combination lookups are valid:
+            abc=_wildcard(*xyz*)
+            abc=_iwildcard(*xyz*)
+            abc=_regex(.*xyz.*)
+            abc=_iregex(.*xyz.*)
+            _wildcard([Aa][Bb]c)=_wildcard(*xyz*)
+            _wildcard([Aa][Bb]c)=_regex(.*xyz.*)
+            =_wildcard(*xyz*)
+            =_regex(.*xyz.*)
+
+        Furthermore, right lookup also support custom keyword such as
+            empty, not_empty, ip_address, ipv4_address,
+            ipv6_address, date, datetime, time, ...
+
+        Example:
+            abc=empty(), i.e. searches key name is abc and its value is empty.
+            abc=ipv4_address(), i.e. searches key name is abc and its value is IPv4 address.
+            abc=date(), i.e search key name is abc and its value is date such as 2021-06-16.
+    """
     def __init__(self, lookup):
         self.lookup = str(lookup)
         self.left = None
@@ -548,6 +614,7 @@ class LookupCls:
                 is_ip_address|is_not_ip_address|
                 is_ipv4_address|is_not_ipv4_address|
                 is_ipv6_address|is_not_ipv6_address|
+                is_date|is_datetime|is_time|
                 is_true|is_not_true|
                 is_false|is_not_false)
                 [(][)]$
