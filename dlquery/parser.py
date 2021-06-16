@@ -18,6 +18,7 @@ class SelectParser:
     columns (list): columns
     predicate (function): a callable function.
     logger (logging.Logger): a logger
+    on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
     Properties
     ----------
@@ -30,11 +31,12 @@ class SelectParser:
     build_predicate() -> function
     parse_statement() -> None
     """
-    def __init__(self, select_statement):
+    def __init__(self, select_statement, on_exception=True):
         self.select_statement = select_statement
         self.columns = [None]
         self.predicate = None
         self.logger = logger
+        self.on_exception = on_exception
 
     @property
     def is_zero_select(self):
@@ -71,9 +73,11 @@ class SelectParser:
         value = value.replace('_COMMA_', ',')
 
         if op == 'is':
-            func = partial(Predicate.is_, key=key, custom=value)
+            func = partial(Predicate.is_, key=key, custom=value,
+                           on_exception=self.on_exception)
         elif op in ['is_not', 'isnot']:
-            func = partial(Predicate.isnot, key=key, custom=value)
+            func = partial(Predicate.isnot, key=key, custom=value,
+                           on_exception=self.on_exception)
         elif op in ['lt', 'le', 'gt', 'ge', '<', '<=', '>', '>=']:
             val = str(value).strip()
             pattern = r'''
@@ -90,14 +94,17 @@ class SelectParser:
                 expected_version = match_version.group('expected_version')
                 if not semantic:
                     func = partial(Predicate.compare_version, key=key,
-                                   op=op, other=expected_version)
+                                   op=op, other=expected_version,
+                                   on_exception=self.on_exception)
                 else:
                     func = partial(Predicate.compare_semantic_version,
-                                   key=key, op=op, other=expected_version)
+                                   key=key, op=op, other=expected_version,
+                                   on_exception=self.on_exception)
             elif match_datetime:
                 datetime_str = match_datetime.group('datetime_str')
                 func = partial(Predicate.compare_datetime, key=key,
-                               op=op, other=datetime_str)
+                               op=op, other=datetime_str,
+                               on_exception=self.on_exception)
             else:
                 func = partial(Predicate.compare_number, key=key,
                                op=op, other=value)
@@ -117,32 +124,45 @@ class SelectParser:
                 expected_version = match_version.group('expected_version')
                 if not semantic:
                     func = partial(Predicate.compare_version, key=key,
-                                   op=op, other=expected_version)
+                                   op=op, other=expected_version,
+                                   on_exception=self.on_exception)
                 else:
                     func = partial(Predicate.compare_semantic_version,
-                                   key=key, op=op, other=expected_version)
+                                   key=key, op=op, other=expected_version,
+                                   on_exception=self.on_exception)
             elif match_datetime:
                 datetime_str = match_datetime.group('datetime_str')
                 func = partial(Predicate.compare_datetime, key=key,
-                               op=op, other=datetime_str)
+                               op=op, other=datetime_str,
+                               on_exception=self.on_exception)
             else:
                 try:
                     float(value)
-                    func = partial(Predicate.compare_number, key=key, op=op, other=value)
+                    func = partial(Predicate.compare_number,
+                                   key=key, op=op, other=value,
+                                   on_exception=self.on_exception)
                 except Exception as ex:     # noqa
-                    func = partial(Predicate.compare, key=key, op=op, other=value)
+                    func = partial(Predicate.compare,
+                                   key=key, op=op, other=value,
+                                   on_exception=self.on_exception)
         elif op == 'match':
-            func = partial(Predicate.match, key=key, pattern=value)
+            func = partial(Predicate.match, key=key, pattern=value,
+                           on_exception=self.on_exception)
         elif op in ['not_match', 'notmatch']:
-            func = partial(Predicate.notmatch, key=key, pattern=value)
+            func = partial(Predicate.notmatch, key=key, pattern=value,
+                           on_exception=self.on_exception)
         elif op in ['contain', 'contains']:
-            func = partial(Predicate.contain, key=key, other=value)
+            func = partial(Predicate.contain, key=key, other=value,
+                           on_exception=self.on_exception)
         elif re.match('not_?contains?', op, re.I):
-            func = partial(Predicate.notcontain, key=key, other=value)
+            func = partial(Predicate.notcontain, key=key, other=value,
+                           on_exception=self.on_exception)
         elif op in ['belong', 'belongs']:
-            func = partial(Predicate.belong, key=key, other=value)
+            func = partial(Predicate.belong, key=key, other=value,
+                           on_exception=self.on_exception)
         elif re.match('not_?belongs?', op, re.I):
-            func = partial(Predicate.notbelong, key=key, other=value)
+            func = partial(Predicate.notbelong, key=key, other=value,
+                           on_exception=self.on_exception)
         else:
             msg = (
                 '*** Return False because of an unsupported {!r} logical '
@@ -163,7 +183,7 @@ class SelectParser:
         -------
         function: a callable function.
         """
-        def chain(data_, a_=None, b_=None, op_=''):
+        def chain(data_, a_=None, b_=None, op_='', on_exception=False):
             result_a, result_b = a_(data_), b_(data_)
             if op_ in ['or_', '||']:
                 return result_a or result_b
