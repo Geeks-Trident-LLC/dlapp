@@ -43,17 +43,41 @@ class TestSelectParser:
                 ['a', 'b'],                 # expected_columns
                 True                        # predicate_result
             ),
-            (   # case: select * where a != 1 or_ c eq 3
+            (   # case: select a, c where a != 1 or_ c eq 3
                 {'a': 1, 'b': 2, 'c': 3},               # data
                 'select a, c where a ne 1 or_ c eq 3',  # select statement
                 ['a', 'c'],                             # expected_columns
                 True                                    # predicate_result
             ),
-            (   # case: select * where a = 1 and_ c eq 3
+            (  # case: select a, c where a != 1 || c eq 3
+                {'a': 1, 'b': 2, 'c': 3},               # data
+                'select a, c where a ne 1 || c eq 3',   # select statement
+                ['a', 'c'],                             # expected_columns
+                True                                    # predicate_result
+            ),
+            (   # case: select a, c where a = 1 and_ c eq 3
                 {'a': 1, 'b': 2, 'c': 3},                   # data
                 'select a, c where a eq 1 and_ c eq 3',     # select statement
                 ['a', 'c'],                                 # expected_columns
                 True                                        # predicate_result
+            ),
+            (  # case: select a, c where a = 1 and_ c eq 3
+                {'a': 1, 'b': 2, 'c': 3},                   # data
+                'select a, c where a eq 1 && c eq 3',       # select statement
+                ['a', 'c'],                                 # expected_columns
+                True                                        # predicate_result
+            ),
+            (  # case: a, select key name having space where "key having space" == 2
+                {'a': 1, 'key name having space': 2},                                       # data
+                '''select a, key name having space where "key name having space" == 2''',   # select statement
+                ['a', 'key name having space'],                                             # expected_columns
+                True                                                                        # predicate_result
+            ),
+            (  # case: select a, key name having space where 'key having space' == 2
+                {'a': 1, 'key name having space': 2},                                       # data
+                '''select a, key name having space where 'key name having space' == 2''',   # select statement
+                ['a', 'key name having space'],                                             # expected_columns
+                True                                                                        # predicate_result
             ),
         ]
     )
@@ -450,6 +474,22 @@ class TestSelectParser:
             ###############################
             # datetime comparison         #
             ###############################
+            (
+                {'a': '2021-06-05'},                                    # data
+                'select a where a == date(06/05/2021)',                 # select statement
+            ),
+            (
+                {'a': '2021Jun05'},                                     # data
+                'select a where a == date(Jun  5, 2021)',               # select statement
+            ),
+            (
+                {'a': '03:30:50.000001 PM'},                           # data
+                'select a where a > time(15:30:50)',                   # select statement
+            ),
+            (
+                {'a': '03:30:50pm'},                                    # data
+                'select a where a == time(15:30:50)',                   # select statement
+            ),
             (
                 {'a': '06/06/2021'},                                    # data
                 'select a where a gt datetime(01/01/2021)',             # select statement

@@ -57,10 +57,18 @@ class SelectParser:
         -------
         function: a callable function.
         """
-        key, op, value = [i.strip() for i in re.split(r' +', expression, maxsplit=2)]
-        key = key.replace('_SPACE_', ' ').replace('_COMMA_', ',')
+        pattern = '''(?i)["'](?P<key>.+)['"] +(?P<op>\\S+) +(?P<value>.+)'''
+        match = re.match(pattern, expression)
+        if match:
+            key = match.group('key').strip()
+            op = match.group('op').strip()
+            value = match.group('value').strip()
+        else:
+            key, op, value = [i.strip() for i in re.split(r' +', expression, maxsplit=2)]
+
+        key = key.replace('_COMMA_', ',')
         op = op.lower()
-        value = value.replace('_SPACE_', ' ').replace('_COMMA_', ',')
+        value = value.replace('_COMMA_', ',')
 
         if op == 'is':
             func = partial(Predicate.is_, key=key, custom=value)
@@ -74,7 +82,7 @@ class SelectParser:
             '''
             match_version = re.match(pattern, val, flags=re.VERBOSE)
 
-            pattern = r'(?i)datetime[(](?P<datetime_str>.+)[)]$'
+            pattern = r'(?i)(datetime|date|time)[(](?P<datetime_str>.+)[)]$'
             match_datetime = re.match(pattern, val)
 
             if match_version:
@@ -101,7 +109,7 @@ class SelectParser:
             '''
             match_version = re.match(pattern, val, flags=re.VERBOSE)
 
-            pattern = r'(?i)datetime[(](?P<datetime_str>.+)[)]$'
+            pattern = r'(?i)(datetime|date|time)[(](?P<datetime_str>.+)[)]$'
             match_datetime = re.match(pattern, val)
 
             if match_version:
@@ -225,7 +233,7 @@ class SelectParser:
             if select in ['*', '__ALL__']:
                 self.columns = []
             else:
-                self.columns = re.split('[ ,]+', select.strip(), flags=re.I)
+                self.columns = re.split(', *', select.strip(), flags=re.I)
 
         if expressions:
             self.predicate = self.build_predicate(expressions)
