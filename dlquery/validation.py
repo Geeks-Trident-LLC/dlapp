@@ -634,6 +634,32 @@ class CustomValidation:
         value = str(value)
         return value.lower() == 'false'
 
+    @classmethod
+    @false_on_exception_for_classmethod
+    def is_date(cls, value, valid=True, on_exception=True):
+        """Verify a provided data is a date.
+
+        Parameters
+        ----------
+        value (str): a date data.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value is a date, otherwise, False.
+        """
+        value = str(value).strip()
+        try:
+            parse(value, fuzzy=True)
+            return True
+        except Exception as ex:     # noqa
+            isoparse(value)
+            return True
+
+    is_datetime = is_date
+    is_time = is_date
+
 
 class VersionValidation:
     """The Version comparison validation class
