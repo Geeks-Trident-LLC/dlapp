@@ -195,7 +195,7 @@ class DLQuery:
             else:
                 return default
 
-    def find(self, node=None, lookup='', select=''):
+    def find(self, node=None, lookup='', select='', on_exception=False):
         """recursively search a lookup.
 
         Parameters
@@ -203,6 +203,7 @@ class DLQuery:
         node (dict, list): a dict, dict-like, list, or list-like instance.
         lookup (str): a search pattern.
         select (str): a select statement.
+        on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
         -------
@@ -210,9 +211,11 @@ class DLQuery:
         """
         node = node or self.data
         lookup = str(lookup).strip()
+        if lookup == '' and select == '':
+            return node
         validate_argument_is_not_empty(lookup=lookup)
         validate_argument_type(list, tuple, dict, node=node)
 
         elm_obj = Element(node)
-        records = elm_obj.find(lookup, select=select)
+        records = elm_obj.find(lookup, select=select, on_exception=on_exception)
         return records
