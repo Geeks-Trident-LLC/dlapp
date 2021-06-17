@@ -756,6 +756,37 @@ class CustomValidation:
         matched_time = re.search(time_pattern, value)
         return bool(matched_time)
 
+    @classmethod
+    @false_on_exception_for_classmethod
+    def is_isodate(cls, value, valid=True, on_exception=True):
+        """Verify a provided data is ISO date.
+
+        Parameters
+        ----------
+        value (str): ISO date data.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value is ISO date, otherwise, False.
+        """
+        value = str(value).strip()
+        isoparse(value)
+
+        pattern = '[0-9]{4}((-[0-9]{2})|(-?W[0-9]{2}))$'
+        match = re.match(pattern, value)
+        if match:
+            return True
+
+        pattern = ('[0-9]{4}('
+                   '(-?[0-9]{2}-?[0-9]{2})|'
+                   '(-?W[0-9]{2}-?[0-9])|'
+                   '(-?[0-9]{3})'
+                   ')')
+        match = re.match(pattern, value)
+        return bool(match)
+
 
 class VersionValidation:
     """The Version comparison validation class
