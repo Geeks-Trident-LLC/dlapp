@@ -129,13 +129,15 @@ class Element(Result):
     data (any): a data.
     index (str): a index value of data if data is list or dictionary.
     parent (Element): an Element instance.
+    on_exception (bool): raise `Exception` if set True, otherwise, return False.
     type (str): datatype name of data.
 
     """
-    def __init__(self, data, index='', parent=None):
+    def __init__(self, data, index='', parent=None, on_exception=False):
         super().__init__(data, parent=parent)
         self.index = index
         self.type = ''
+        self.on_exception = on_exception
         self._build(data)
 
     def __iter__(self):
@@ -211,28 +213,28 @@ class Element(Result):
         """Return True if an element is a list type."""
         return self.type == 'dict'
 
-    def filter_result(self, records, select_statement, on_exception=False):
+    def filter_result(self, records, select_statement):
         """Filter a list of records based on select statement
 
         Parameters
         ----------
         records (List): a list of record.
         select_statement (str): a select statement.
-        on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
         -------
         List: list of filtered records.
         """
         result = List()
-        select_obj = SelectParser(select_statement)
+        select_obj = SelectParser(select_statement,
+                                  on_exception=self.on_exception)
         select_obj.parse_statement()
 
         if callable(select_obj.predicate):
             lst = List()
             for record in records:
                 is_found = select_obj.predicate(record.parent.data,
-                                                on_exception=on_exception)
+                                                on_exception=self.on_exception)
                 if is_found:
                     lst.append(record)
         else:
@@ -278,14 +280,13 @@ class Element(Result):
                     if child.is_element:
                         self.find_(child, lookup_obj, result)
 
-    def find(self, lookup, select='', on_exception=False):
+    def find(self, lookup, select=''):
         """recursively search a lookup.
 
         Parameters
         ---------
         lookup (str): a search pattern.
         select (str): a select statement.
-        on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
         -------
@@ -294,7 +295,7 @@ class Element(Result):
         records = List()
         lkup_obj = LookupCls(lookup)
         self.find_(self, lkup_obj, records)
-        result = self.filter_result(records, select, on_exception=on_exception)
+        result = self.filter_result(records, select)
         return result
 
 
