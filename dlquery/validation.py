@@ -287,6 +287,10 @@ class CustomValidation:
     CustomValidation.is_optional_empty(value, valid=True, on_exception=True) -> bool
     CustomValidation.is_true(value, valid=True, on_exception=True) -> bool
     CustomValidation.is_false(value, valid=True, on_exception=True) -> bool
+    CustomValidation.is_date(value, valid=True, on_exception=True) -> bool
+    CustomValidation.is_datetime(value, valid=True, on_exception=True) -> bool
+    CustomValidation.is_time(value, valid=True, on_exception=True) -> bool
+    CustomValidation.is_isodate(value, valid=True, on_exception=True) -> bool
     """
 
     @classmethod
@@ -649,6 +653,9 @@ class CustomValidation:
         -------
         bool: True if value is a date, otherwise, False.
         """
+        if str(value).strip() == '':
+            return False
+
         value = str(value).strip()
         parse(value, fuzzy=True)
 
@@ -691,6 +698,9 @@ class CustomValidation:
         -------
         bool: True if value is a datetime, otherwise, False.
         """
+        if str(value).strip() == '':
+            return False
+
         value = str(value).strip()
         parse(value, fuzzy=True)
 
@@ -733,6 +743,9 @@ class CustomValidation:
         -------
         bool: True if value is time, otherwise, False.
         """
+        if str(value).strip() == '':
+            return False
+
         value = str(value).strip()
         parse(value, fuzzy=True)
 
@@ -771,6 +784,9 @@ class CustomValidation:
         -------
         bool: True if value is ISO date, otherwise, False.
         """
+        if str(value).strip() == '':
+            return False
+
         value = str(value).strip()
         isoparse(value)
 
@@ -814,6 +830,9 @@ class VersionValidation:
         bool: True if a version lt|le|gt|ge|eq|ne other version, otherwise, False.
                 or    a version < | <= | > | >= | == | != other version
         """
+        if str(value).strip() == '' or str(other).strip() == '':
+            return False
+
         op = str(op).lower().strip()
         op = 'lt' if op == '<' else 'le' if op == '<=' else op
         op = 'gt' if op == '>' else 'ge' if op == '>=' else op
@@ -845,6 +864,9 @@ class VersionValidation:
         bool: True if a version lt|le|gt|ge|eq|ne other version, otherwise, False.
                 or    a version < | <= | > | >= | == | != other version
         """
+        if str(value).strip() == '' or str(other).strip() == '':
+            return False
+
         op = str(op).lower().strip()
         op = 'lt' if op == '<' else 'le' if op == '<=' else op
         op = 'gt' if op == '>' else 'ge' if op == '>=' else op
@@ -1077,6 +1099,9 @@ class DatetimeValidation:
         bool: True if a datetime lt|le|gt|ge|eq|ne other datetime, otherwise, False.
                  or   a datetime < | <= | > | >= | == | != other datetime
         """
+        if str(value).strip() == '' or str(other).strip() == '':
+            return False
+
         op = 'lt' if op == '<' else 'le' if op == '<=' else op
         op = 'gt' if op == '>' else 'ge' if op == '>=' else op
         op = 'eq' if op == '==' else 'ne' if op == '!=' else op
@@ -1084,6 +1109,9 @@ class DatetimeValidation:
         dt_parsed_result = DatetimeValidation.parse_custom_date(other)
 
         a_date_str, other_date_str = value, dt_parsed_result.data
+
+        if other_date_str.strip() == '':
+            return False
 
         a_date = DatetimeValidation.get_date(a_date_str, dt_parsed_result)
         other_date = DatetimeValidation.get_date(other_date_str, dt_parsed_result)
