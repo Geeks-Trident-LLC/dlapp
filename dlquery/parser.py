@@ -184,18 +184,24 @@ class SelectParser:
         function: a callable function.
         """
         def chain(data_, a_=None, b_=None, op_='', on_exception=False):
-            result_a, result_b = a_(data_), b_(data_)
-            if op_ in ['or_', '||']:
-                return result_a or result_b
-            elif op_ in ['and_', '&&']:
-                return result_a and result_b
-            else:
-                msg_ = (
-                    '* Return False because of an unsupported {!r} logical '
-                    'operator.  Contact developer to support this case.'
-                ).format(op_)
-                self.logger.info(msg_)
-                return Predicate.false(data_)
+            try:
+                result_a, result_b = a_(data_), b_(data_)
+                if op_ in ['or_', '||']:
+                    return result_a or result_b
+                elif op_ in ['and_', '&&']:
+                    return result_a and result_b
+                else:
+                    msg_ = (
+                        '* Return False because of an unsupported {!r} logical '
+                        'operator.  Contact developer to support this case.'
+                    ).format(op_)
+                    self.logger.info(msg_)
+                    return Predicate.false(data_)
+            except Exception as ex:
+                if on_exception:
+                    raise ex
+                else:
+                    return Predicate.false(data_)
 
         groups = []
         start = 0
@@ -215,7 +221,8 @@ class SelectParser:
                 result = self.get_predicate(groups[0])
                 for case, expr in zip(groups[1:-1:2], groups[2::2]):
                     func_b = self.get_predicate(expr)
-                    result = partial(chain, a_=result, b_=func_b, op_=case)
+                    result = partial(chain, a_=result, b_=func_b, op_=case,
+                                     on_exception=self.on_exception)
                 return result
             else:
                 msg = (
