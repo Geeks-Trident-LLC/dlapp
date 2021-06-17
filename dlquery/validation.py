@@ -676,7 +676,48 @@ class CustomValidation:
 
         return False
 
-    is_datetime = is_date
+    @classmethod
+    @false_on_exception_for_classmethod
+    def is_datetime(cls, value, valid=True, on_exception=True):
+        """Verify a provided data is a datetime.
+
+        Parameters
+        ----------
+        value (str): a datetime data.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value is a datetime, otherwise, False.
+        """
+        value = str(value).strip()
+        parse(value, fuzzy=True)
+
+        time_pattern = '[0-9]+:[0-9]+'
+        matched_time = re.search(time_pattern, value)
+
+        if not matched_time:
+            return False
+
+        date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
+        matched_date = re.search(date_pattern, value)
+        if matched_date:
+            return True
+
+        month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
+                               '([abceimorstu]*[ehlrt])?')
+        matched_month_names = re.search(month_names_pattern, value)
+        if matched_month_names:
+            return True
+
+        day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
+        matched_day_names = re.search(day_names_pattern, value)
+        if matched_day_names:
+            return True
+
+        return False
+
     is_time = is_date
 
 
