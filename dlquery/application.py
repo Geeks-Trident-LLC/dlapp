@@ -434,16 +434,34 @@ class Application:
                 messagebox.showerror(title=title, message=message)
 
         def callback_tabular_btn():
-            if self.result:
+            data = self.textarea.get('1.0', 'end').strip()
+            filetype = self.radio_btn_var.get()
+            lookup = self.lookup_entry_var.get()
+            select = self.select_entry_var.get()
+
+            content = Content(data=data, filetype=filetype)
+            if not content.is_ready:
+                return
+
+            try:
+                result = content.query_obj.find(lookup=lookup, select=select)
+                self.result = result
                 tabular_obj = Tabular(self.result)
+
                 if tabular_obj.is_tabular:
-                    result = tabular_obj.get()
+                    text = tabular_obj.get()
                 else:
                     fmt = 'CANNOT convert to tabular format because {!r}\n{}\n{}'
-                    pretty_result = pformat(self.result)
-                    result = fmt.format(tabular_obj.failure, '-' * 40, pretty_result)
+                    pretty_text = pformat(self.result)
+                    text = fmt.format(tabular_obj.failure, '-' * 40, pretty_text)
+
                 self.result_textarea.delete("1.0", "end")
-                self.result_textarea.insert(tk.INSERT, result)
+                self.result_textarea.insert(tk.INSERT, str(text))
+
+            except Exception as ex:
+                title = 'Query problem'
+                message = '{}: {}'.format(type(ex).__name__, ex)
+                messagebox.showerror(title=title, message=message)
 
         def callback_clear_text_btn():
             self.textarea.delete("1.0", "end")
