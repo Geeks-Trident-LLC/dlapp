@@ -650,15 +650,142 @@ class CustomValidation:
         bool: True if value is a date, otherwise, False.
         """
         value = str(value).strip()
-        try:
-            parse(value, fuzzy=True)
-            return True
-        except Exception as ex:     # noqa
-            isoparse(value)
+        parse(value, fuzzy=True)
+
+        time_pattern = '[0-9]+:[0-9]+'
+        matched_time = re.search(time_pattern, value)
+
+        if matched_time:
+            return False
+
+        date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
+        matched_date = re.search(date_pattern, value)
+        if matched_date:
             return True
 
-    is_datetime = is_date
-    is_time = is_date
+        month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
+                               '([abceimorstu]*[ehlrt])?')
+        matched_month_names = re.search(month_names_pattern, value)
+        if matched_month_names:
+            return True
+
+        day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
+        matched_day_names = re.search(day_names_pattern, value)
+        if matched_day_names:
+            return True
+
+        return False
+
+    @classmethod
+    @false_on_exception_for_classmethod
+    def is_datetime(cls, value, valid=True, on_exception=True):
+        """Verify a provided data is a datetime.
+
+        Parameters
+        ----------
+        value (str): a datetime data.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value is a datetime, otherwise, False.
+        """
+        value = str(value).strip()
+        parse(value, fuzzy=True)
+
+        time_pattern = '[0-9]+:[0-9]+'
+        matched_time = re.search(time_pattern, value)
+
+        if not matched_time:
+            return False
+
+        date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
+        matched_date = re.search(date_pattern, value)
+        if matched_date:
+            return True
+
+        month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
+                               '([abceimorstu]*[ehlrt])?')
+        matched_month_names = re.search(month_names_pattern, value)
+        if matched_month_names:
+            return True
+
+        day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
+        matched_day_names = re.search(day_names_pattern, value)
+        if matched_day_names:
+            return True
+
+        return False
+
+    @classmethod
+    @false_on_exception_for_classmethod
+    def is_time(cls, value, valid=True, on_exception=True):
+        """Verify a provided data is time.
+
+        Parameters
+        ----------
+        value (str): time data.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value is time, otherwise, False.
+        """
+        value = str(value).strip()
+        parse(value, fuzzy=True)
+
+        date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
+        matched_date = re.search(date_pattern, value)
+        if matched_date:
+            return False
+
+        month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
+                               '([abceimorstu]*[ehlrt])?')
+        matched_month_names = re.search(month_names_pattern, value)
+        if matched_month_names:
+            return False
+
+        day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
+        matched_day_names = re.search(day_names_pattern, value)
+        if matched_day_names:
+            return False
+
+        time_pattern = '[0-9]+:[0-9]+'
+        matched_time = re.search(time_pattern, value)
+        return bool(matched_time)
+
+    @classmethod
+    @false_on_exception_for_classmethod
+    def is_isodate(cls, value, valid=True, on_exception=True):
+        """Verify a provided data is ISO date.
+
+        Parameters
+        ----------
+        value (str): ISO date data.
+        valid (bool): check for a valid result.  Default is True.
+        on_exception (bool): raise Exception if it is True, otherwise, return None.
+
+        Returns
+        -------
+        bool: True if value is ISO date, otherwise, False.
+        """
+        value = str(value).strip()
+        isoparse(value)
+
+        pattern = '[0-9]{4}((-[0-9]{2})|(-?W[0-9]{2}))$'
+        match = re.match(pattern, value)
+        if match:
+            return True
+
+        pattern = ('[0-9]{4}('
+                   '(-?[0-9]{2}-?[0-9]{2})|'
+                   '(-?W[0-9]{2}-?[0-9])|'
+                   '(-?[0-9]{3})'
+                   ')')
+        match = re.match(pattern, value)
+        return bool(match)
 
 
 class VersionValidation:
