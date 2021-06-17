@@ -650,12 +650,31 @@ class CustomValidation:
         bool: True if value is a date, otherwise, False.
         """
         value = str(value).strip()
-        try:
-            parse(value, fuzzy=True)
+        parse(value, fuzzy=True)
+
+        time_pattern = '[0-9]+:[0-9]+'
+        matched_time = re.search(time_pattern, value)
+
+        if matched_time:
+            return False
+
+        date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
+        matched_date = re.search(date_pattern, value)
+        if matched_date:
             return True
-        except Exception as ex:     # noqa
-            isoparse(value)
+
+        month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
+                               '([abceimorstu]*[ehlrt])?')
+        matched_month_names = re.search(month_names_pattern, value)
+        if matched_month_names:
             return True
+
+        day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
+        matched_day_names = re.search(day_names_pattern, value)
+        if matched_day_names:
+            return True
+
+        return False
 
     is_datetime = is_date
     is_time = is_date
