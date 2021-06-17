@@ -180,9 +180,28 @@ class TestCustomValidation:
             '11:30:20.222333 AM',
         ]
     )
-    def test_is_a_date(self, time_data):
+    def test_is_a_time(self, time_data):
         """Test is a time."""
         chk = CustomValidation.is_time(time_data, valid=True, on_exception=False)
+        assert chk is True
+
+    @pytest.mark.parametrize(
+        "isodate_data",
+        [
+            '2021-06',
+            '2021-W26',
+            '2021W26',
+            '2021-06-16 13:30:20',
+            '2021-06-16T13:30:20',
+            '20210616T13:30:20Z',
+            '2021-300 13:30:20',
+            '2021-300T13:30:20',
+            '2021300T13:30:20',
+        ]
+    )
+    def test_is_a_isodate(self, isodate_data):
+        """Test is a time."""
+        chk = CustomValidation.is_isodate(isodate_data, valid=True, on_exception=False)
         assert chk is True
 
 
