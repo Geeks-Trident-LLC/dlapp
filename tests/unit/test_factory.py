@@ -35,7 +35,7 @@ class TestDynamicDict:
         query_obj = create_from_json_data(data)
         assert query_obj.get('a') == 'Apricot'
 
-    def test_creating_dlquery_from_json_file(self):
+    def test_creating_dlquery_from_csv_file(self):
         """Test creating a dlquery instance from CSV file."""
         filename = path.join(test_path, 'data/sample.csv')
         query_obj = create_from_csv_file(filename)
@@ -48,7 +48,7 @@ class TestDynamicDict:
         query_obj.find(lookup='a', select='where a match Ap\\w+')
         assert result == ['Apple', 'Apricot']
 
-    def test_creating_dlquery_from_json_data(self):
+    def test_creating_dlquery_from_csv_data(self):
         """Test creating a dlquery instance from CSV data."""
         data = '''
             a,b,c
