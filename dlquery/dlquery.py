@@ -216,6 +216,6 @@ class DLQuery:
         validate_argument_is_not_empty(lookup=lookup)
         validate_argument_type(list, tuple, dict, node=node)
 
-        elm_obj = Element(node)
-        records = elm_obj.find(lookup, select=select, on_exception=on_exception)
+        elm_obj = Element(node, on_exception=on_exception)
+        records = elm_obj.find(lookup, select=select)
         return records
