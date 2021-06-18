@@ -27,7 +27,8 @@ setup(
     entry_points={
         'console_scripts': [
             'dlquery = dlquery.main:execute',
-            'dlquery-gui = dlquery.application:execute'
+            'dlquery-gui = dlquery.application:execute',
+            'dlquery-app = dlquery.application:execute'
         ]
     },
     classifiers=[
