@@ -1,4 +1,4 @@
-"""Module containing the logic for the dlquery GUI."""
+"""Module containing the logic for the dlquery app."""
 
 import tkinter as tk
 from tkinter import ttk
@@ -14,6 +14,8 @@ from dlquery import create_from_yaml_data
 from dlquery.collection import Tabular
 from dlquery import version
 from dlquery import edition
+
+import platform
 
 
 def get_relative_center_location(parent, width, height):
@@ -212,7 +214,7 @@ class Content:
 
 
 class Application:
-    """A dlquery GUI class.
+    """A dlquery application class.
 
     Attributes
     ----------
@@ -233,7 +235,7 @@ class Application:
     browser = webbrowser
 
     def __init__(self):
-        self._base_title = 'DLQuery GUI'
+        self._base_title = 'DLQuery App'
         self.root = tk.Tk()
         self.root.geometry('800x600+100+100')
         self.root.minsize(200, 200)
@@ -318,6 +320,8 @@ class Application:
         def mouse_press(event):
             self.browser.open_new_tab(url_lbl.link)
 
+        is_macos = platform.system() == 'Darwin'
+
         about = tk.Toplevel(self.root)
         self.set_title(node=about, title='About')
         width, height = 400, 400
@@ -325,17 +329,27 @@ class Application:
         about.geometry('{}x{}+{}+{}'.format(width, height, x, y))
         about.resizable(False, False)
 
+        panedwindow = ttk.Panedwindow(about, orient=tk.VERTICAL)
+        panedwindow.pack(fill=tk.BOTH, expand=True, padx=8, pady=12)
+
         # company
-        fmt = 'DLQuery GUI v{} ({})'
-        company_lbl = tk.Label(about, text=fmt.format(version, edition))
-        company_lbl.place(x=10, y=10)
+        frame = tk.Frame(panedwindow, width=380, height=20)
+        panedwindow.add(frame, weight=1)
+
+        fmt = 'DLQuery App v{} ({} Edition)'
+        company_lbl = tk.Label(frame, text=fmt.format(version, edition))
+        company_lbl.pack(side=tk.LEFT)
 
         # URL
+        frame = tk.Frame(panedwindow, width=380, height=20)
+        panedwindow.add(frame, weight=1)
+
         url = Data.repo_url
-        tk.Label(about, text='URL:').place(x=10, y=40)
-        url_lbl = tk.Label(about, text=url, fg='blue', font=('sans-serif', 10))
-        url_lbl.default_font = ('sans-serif', 10)
-        url_lbl.place(x=36, y=40)
+        tk.Label(frame, text='URL:').pack(side=tk.LEFT)
+        font_size = 12 if is_macos else 10
+        url_lbl = tk.Label(frame, text=url, fg='blue', font=('sans-serif', font_size))
+        url_lbl.default_font = ('sans-serif', font_size)
+        url_lbl.pack(side=tk.LEFT)
         url_lbl.link = url
 
         url_lbl.bind('<Enter>', mouse_over)
@@ -344,12 +358,15 @@ class Application:
 
         # license textbox
         lframe = ttk.LabelFrame(
-            about, height=280, width=380,
+            panedwindow, height=300, width=380,
             text=Data.license_name
         )
-        lframe.place(x=10, y=80)
-        txtbox = tk.Text(lframe, width=45, height=14, wrap='word')
-        txtbox.grid(row=0, column=0)
+        panedwindow.add(lframe, weight=7)
+
+        width = 49 if is_macos else 43
+        height = 19 if is_macos else 15
+        txtbox = tk.Text(lframe, width=width, height=height, wrap='word')
+        txtbox.grid(row=0, column=0, padx=5, pady=5)
         scrollbar = ttk.Scrollbar(lframe, orient=tk.VERTICAL, command=txtbox.yview)
         scrollbar.grid(row=0, column=1, sticky='nsew')
         txtbox.config(yscrollcommand=scrollbar.set)
@@ -357,11 +374,16 @@ class Application:
         txtbox.config(state=tk.DISABLED)
 
         # footer - copyright
-        footer = tk.Label(about, text=Data.copyright_text)
-        footer.place(x=10, y=360)
+        frame = tk.Frame(panedwindow, width=380, height=20)
+        panedwindow.add(frame, weight=1)
+
+        footer = tk.Label(frame, text=Data.copyright_text)
+        footer.pack(side=tk.LEFT)
+
+        set_modal_dialog(about)
 
     def build_menu(self):
-        """Build menubar for dlquery GUI."""
+        """Build menubar for dlquery application."""
         menu_bar = tk.Menu(self.root)
         self.root.config(menu=menu_bar)
         file = tk.Menu(menu_bar)
@@ -382,7 +404,7 @@ class Application:
         help_.add_command(label='About', command=lambda: self.callback_help_about())
 
     def build_frame(self):
-        """Build layout for dlquery GUI."""
+        """Build layout for dlquery application."""
         self.panedwindow = ttk.Panedwindow(self.root, orient=tk.VERTICAL)
         self.panedwindow.pack(fill=tk.BOTH, expand=True)
 
@@ -400,7 +422,7 @@ class Application:
         self.panedwindow.add(self.result_frame, weight=2)
 
     def build_textarea(self):
-        """Build input text for dlquery GUI."""
+        """Build input text for dlquery application."""
 
         self.text_frame.rowconfigure(0, weight=1)
         self.text_frame.columnconfigure(0, weight=1)
@@ -419,7 +441,7 @@ class Application:
         )
 
     def build_entry(self):
-        """Build input entry for dlquery GUI."""
+        """Build input entry for dlquery application."""
         def callback_run_btn():
             data = self.textarea.get('1.0', 'end').strip()
             filetype = self.radio_btn_var.get()
@@ -590,11 +612,11 @@ class Application:
         )
 
     def run(self):
-        """Launch dlquery GUI."""
+        """Launch dlquery app."""
         self.root.mainloop()
 
 
 def execute():
-    """Launch dlquery GUI."""
+    """Launch dlquery app."""
     app = Application()
     app.run()
