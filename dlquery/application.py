@@ -532,6 +532,11 @@ class Application:
         def callback_clear_select_entry():
             self.select_entry_var.set('')
 
+        is_macos = platform.system() == 'Darwin'
+        is_linux = platform.system() == 'Linux'
+        width = 70 if is_macos else 79 if is_linux else 107
+        x1 = 2 if is_linux else 0
+
         # frame for row 0
         frame = ttk.Frame(self.entry_frame, width=600, height=30)
         frame.grid(row=0, column=0, padx=10, pady=(4, 0), sticky=tk.W)
@@ -547,38 +552,38 @@ class Application:
             frame, text='json', variable=self.radio_btn_var,
             value='json'
         )
-        self.json_radio_btn.pack(side=tk.LEFT)
+        self.json_radio_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         self.yaml_radio_btn = tk.Radiobutton(
             frame, text='yaml', variable=self.radio_btn_var,
             value='yaml'
         )
-        self.yaml_radio_btn.pack(side=tk.LEFT)
+        self.yaml_radio_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # open button
         open_file_btn = ttk.Button(frame, text='Open',
                                    command=self.callback_file_open)
-        open_file_btn.pack(side=tk.LEFT)
+        open_file_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # paste button
         paste_text_btn = ttk.Button(frame, text='Paste',
                                     command=callback_paste_text_btn)
-        paste_text_btn.pack(side=tk.LEFT)
+        paste_text_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # clear button
         clear_text_btn = ttk.Button(frame, text='Clear',
                                     command=callback_clear_text_btn)
-        clear_text_btn.pack(side=tk.LEFT)
+        clear_text_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # run button
         run_btn = ttk.Button(frame, text='Run',
                              command=callback_run_btn)
-        run_btn.pack(side=tk.LEFT)
+        run_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # pprint button
         tabular_btn = ttk.Button(frame, text='Tabular',
                                  command=callback_tabular_btn)
-        tabular_btn.pack(side=tk.LEFT)
+        tabular_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # frame for row 1 & 2
         frame = ttk.Frame(self.entry_frame, width=600, height=30)
@@ -587,7 +592,7 @@ class Application:
         # lookup entry
         lbl = ttk.Label(frame, text='Lookup')
         lbl.grid(row=0, column=0, padx=(0, 4), pady=0, sticky=tk.W)
-        lookup_entry = ttk.Entry(frame, width=107,
+        lookup_entry = ttk.Entry(frame, width=width,
                                  textvariable=self.lookup_entry_var)
         lookup_entry.grid(row=0, column=1, padx=0, pady=0, sticky=tk.W)
         lookup_entry.bind('<Return>', lambda event: callback_run_btn())
@@ -595,12 +600,12 @@ class Application:
         # clear button
         clear_lookup_btn = ttk.Button(frame, text='Clear',
                                       command=callback_clear_lookup_entry)
-        clear_lookup_btn.grid(row=0, column=2, padx=0, pady=0, sticky=tk.W)
+        clear_lookup_btn.grid(row=0, column=2, padx=(x1, 0), pady=0, sticky=tk.W)
 
         # select statement entry
         lbl = ttk.Label(frame, text='Select')
         lbl.grid(row=1, column=0, padx=(0, 4), pady=0, sticky=tk.W)
-        select_entry = ttk.Entry(frame, width=107,
+        select_entry = ttk.Entry(frame, width=width,
                                  textvariable=self.select_entry_var)
         select_entry.grid(row=1, column=1, padx=0, pady=0, sticky=tk.W)
         select_entry.bind('<Return>', lambda event: callback_run_btn())
@@ -608,7 +613,7 @@ class Application:
         # clear button
         clear_select_btn = ttk.Button(frame, text='Clear',
                                       command=callback_clear_select_entry)
-        clear_select_btn.grid(row=1, column=2, padx=0, pady=0, sticky=tk.W)
+        clear_select_btn.grid(row=1, column=2, padx=(x1, 0), pady=0, sticky=tk.W)
 
     def build_result(self):
         """Build result text"""
