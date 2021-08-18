@@ -84,6 +84,8 @@ from dlquery.validation import CustomValidation     # noqa
 
 __version__ = '1.0.2'
 version = __version__
+__edition__ = 'Community'
+edition = __edition__
 
 __all__ = [
     'CustomValidation',
@@ -97,5 +99,5 @@ __all__ = [
     'create_from_yaml_file',
     'create_from_yaml_data',
     'version',
-    '__version__'
+    'edition'
 ]
