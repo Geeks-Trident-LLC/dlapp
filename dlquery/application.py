@@ -12,13 +12,8 @@ from dlquery import create_from_csv_data
 from dlquery import create_from_json_data
 from dlquery import create_from_yaml_data
 from dlquery.collection import Tabular
-
-
-__version__ = '1.0.0'
-version = __version__
-
-__edition__ = 'Community Edition'
-edition = __edition__
+from dlquery import version
+from dlquery import edition
 
 
 def get_relative_center_location(parent, width, height):
