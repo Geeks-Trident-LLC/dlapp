@@ -38,6 +38,19 @@ def get_relative_center_location(parent, width, height):
     return x, y
 
 
+def set_modal_dialog(dialog):
+    """set dialog to become a modal dialog
+
+    Parameters
+    ----------
+    dialog (tkinter.TK): a dialog or window application.
+    """
+    dialog.transient(dialog.master)
+    dialog.wait_visibility()
+    dialog.grab_set()
+    dialog.wait_window()
+
+
 class Data:
     license_name = 'BSD 3-Clause License'
     repo_url = 'https://github.com/Geeks-Trident-LLC/dlquery'
