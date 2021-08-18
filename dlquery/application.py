@@ -248,6 +248,7 @@ class Application:
         self.result_frame = None
 
         self.radio_btn_var = tk.StringVar()
+        self.radio_btn_var.set(None)
         self.lookup_entry_var = tk.StringVar()
         self.select_entry_var = tk.StringVar()
         self.result = None
@@ -496,22 +497,34 @@ class Application:
         def callback_clear_text_btn():
             self.textarea.delete("1.0", "end")
             self.result_textarea.delete("1.0", "end")
-            self.radio_btn_var.set('')
+            self.radio_btn_var.set(None)
             self.lookup_entry_var.set('')
             self.select_entry_var.set('')
             self.result = None
             self.set_title()
 
         def callback_paste_text_btn():
-            data = self.root.clipboard_get()
-            if data:
-                self.textarea.delete("1.0", "end")
-                filetype = self.radio_btn_var.get()
-                self.content = Content(data=data, filetype=filetype)
-                if self.content.is_ready:
-                    self.set_title(title='<<PASTE - Clipboard>>')
-                    self.textarea.insert(tk.INSERT, data)
-                    self.radio_btn_var.set(self.content.filetype)
+            filetype = self.radio_btn_var.get()
+            if filetype == 'None':
+                title = 'Unselect CSV/JSON/YAML'
+                message = 'Please select CSV, JSON, or YAML.'
+                messagebox.showwarning(title=title, message=message)
+                return
+
+            try:
+                data = self.root.clipboard_get()
+                if data:
+                    self.textarea.delete("1.0", "end")
+                    # filetype = self.radio_btn_var.get()
+                    self.content = Content(data=data, filetype=filetype)
+                    if self.content.is_ready:
+                        self.set_title(title='<<PASTE - Clipboard>>')
+                        self.textarea.insert(tk.INSERT, data)
+                        self.radio_btn_var.set(self.content.filetype)
+            except Exception as ex:     # noqa
+                title = 'Empty Clipboard',
+                message = 'CAN NOT paste because there is no data in pasteboard.'
+                messagebox.showwarning(title=title, message=message)
 
         def callback_clear_lookup_entry():
             self.lookup_entry_var.set('')
@@ -519,75 +532,83 @@ class Application:
         def callback_clear_select_entry():
             self.select_entry_var.set('')
 
-        # run button
-        run_btn = ttk.Button(self.entry_frame, text='Run',
-                             command=callback_run_btn)
-        run_btn.place(x=10, y=10)
-
-        # open button
-        open_file_btn = ttk.Button(self.entry_frame, text='Open',
-                                   command=self.callback_file_open)
-        open_file_btn.place(x=90, y=10)
-
-        # paste button
-        paste_text_btn = ttk.Button(self.entry_frame, text='Paste',
-                                    command=callback_paste_text_btn)
-        paste_text_btn.place(x=170, y=10)
-
-        # clear button
-        clear_text_btn = ttk.Button(self.entry_frame, text='Clear',
-                                    command=callback_clear_text_btn)
-        clear_text_btn.place(x=250, y=10)
+        # frame for row 0
+        frame = ttk.Frame(self.entry_frame, width=600, height=30)
+        frame.grid(row=0, column=0, padx=10, pady=(4, 0), sticky=tk.W)
 
         # radio buttons
-        self.csv_radio_btn = ttk.Radiobutton(
-            self.entry_frame, text='csv', variable=self.radio_btn_var,
+        self.csv_radio_btn = tk.Radiobutton(
+            frame, text='csv', variable=self.radio_btn_var,
             value='csv'
         )
-        self.csv_radio_btn.place(x=340, y=10)
+        self.csv_radio_btn.pack(side=tk.LEFT)
 
-        self.json_radio_btn = ttk.Radiobutton(
-            self.entry_frame, text='json', variable=self.radio_btn_var,
+        self.json_radio_btn = tk.Radiobutton(
+            frame, text='json', variable=self.radio_btn_var,
             value='json'
         )
-        self.json_radio_btn.place(x=390, y=10)
+        self.json_radio_btn.pack(side=tk.LEFT)
 
-        self.yaml_radio_btn = ttk.Radiobutton(
-            self.entry_frame, text='yaml', variable=self.radio_btn_var,
+        self.yaml_radio_btn = tk.Radiobutton(
+            frame, text='yaml', variable=self.radio_btn_var,
             value='yaml'
         )
-        self.yaml_radio_btn.place(x=450, y=10)
+        self.yaml_radio_btn.pack(side=tk.LEFT)
+
+        # open button
+        open_file_btn = ttk.Button(frame, text='Open',
+                                   command=self.callback_file_open)
+        open_file_btn.pack(side=tk.LEFT)
+
+        # paste button
+        paste_text_btn = ttk.Button(frame, text='Paste',
+                                    command=callback_paste_text_btn)
+        paste_text_btn.pack(side=tk.LEFT)
+
+        # clear button
+        clear_text_btn = ttk.Button(frame, text='Clear',
+                                    command=callback_clear_text_btn)
+        clear_text_btn.pack(side=tk.LEFT)
+
+        # run button
+        run_btn = ttk.Button(frame, text='Run',
+                             command=callback_run_btn)
+        run_btn.pack(side=tk.LEFT)
 
         # pprint button
-        tabular_btn = ttk.Button(self.entry_frame, text='Tabular',
+        tabular_btn = ttk.Button(frame, text='Tabular',
                                  command=callback_tabular_btn)
-        tabular_btn.place(x=520, y=10)
+        tabular_btn.pack(side=tk.LEFT)
+
+        # frame for row 1 & 2
+        frame = ttk.Frame(self.entry_frame, width=600, height=30)
+        frame.grid(row=1, column=0, padx=10, pady=(0, 4), sticky=tk.W)
 
         # lookup entry
-        lbl = ttk.Label(self.entry_frame, text='Lookup')
-        lbl.place(x=10, y=40)
-        lookup_entry = ttk.Entry(self.entry_frame, width=107,
+        lbl = ttk.Label(frame, text='Lookup')
+        lbl.grid(row=0, column=0, padx=(0, 4), pady=0, sticky=tk.W)
+        lookup_entry = ttk.Entry(frame, width=107,
                                  textvariable=self.lookup_entry_var)
-        lookup_entry.place(x=60, y=40)
+        lookup_entry.grid(row=0, column=1, padx=0, pady=0, sticky=tk.W)
         lookup_entry.bind('<Return>', lambda event: callback_run_btn())
 
         # clear button
-        clear_lookup_btn = ttk.Button(self.entry_frame, text='Clear',
+        clear_lookup_btn = ttk.Button(frame, text='Clear',
                                       command=callback_clear_lookup_entry)
-        clear_lookup_btn.place(x=715, y=40)
+        clear_lookup_btn.grid(row=0, column=2, padx=0, pady=0, sticky=tk.W)
 
         # select statement entry
-        lbl = ttk.Label(self.entry_frame, text='Select')
-        lbl.place(x=10, y=68)
-        select_entry = ttk.Entry(self.entry_frame, width=107,
+        lbl = ttk.Label(frame, text='Select')
+        lbl.grid(row=1, column=0, padx=(0, 4), pady=0, sticky=tk.W)
+        select_entry = ttk.Entry(frame, width=107,
                                  textvariable=self.select_entry_var)
-        select_entry.place(x=60, y=68)
+        select_entry.grid(row=1, column=1, padx=0, pady=0, sticky=tk.W)
         select_entry.bind('<Return>', lambda event: callback_run_btn())
 
         # clear button
-        clear_select_btn = ttk.Button(self.entry_frame, text='Clear',
+        clear_select_btn = ttk.Button(frame, text='Clear',
                                       command=callback_clear_select_entry)
-        clear_select_btn.place(x=715, y=68)
+        clear_select_btn.grid(row=1, column=2, padx=0, pady=0, sticky=tk.W)
 
     def build_result(self):
         """Build result text"""
