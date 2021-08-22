@@ -259,6 +259,10 @@ class Application:
         self.json_radio_btn = None
         self.yaml_radio_btn = None
 
+        self.is_macos = platform.system() == 'Darwin'
+        self.is_linux = platform.system() == 'Linux'
+        self.is_window = platform.system() == 'Windows'
+
         self.set_title()
         self.build_menu()
         self.build_frame()
@@ -321,8 +325,6 @@ class Application:
         def mouse_press(event):
             self.browser.open_new_tab(url_lbl.link)
 
-        is_macos = platform.system() == 'Darwin'
-
         about = tk.Toplevel(self.root)
         self.set_title(node=about, title='About')
         width, height = 400, 400
@@ -347,7 +349,7 @@ class Application:
 
         url = Data.repo_url
         tk.Label(frame, text='URL:').pack(side=tk.LEFT)
-        font_size = 12 if is_macos else 10
+        font_size = 12 if self.is_macos else 10
         url_lbl = tk.Label(frame, text=url, fg='blue', font=('sans-serif', font_size))
         url_lbl.default_font = ('sans-serif', font_size)
         url_lbl.pack(side=tk.LEFT)
@@ -364,8 +366,8 @@ class Application:
         )
         panedwindow.add(lframe, weight=7)
 
-        width = 49 if is_macos else 43
-        height = 19 if is_macos else 15
+        width = 49 if self.is_macos else 43
+        height = 19 if self.is_macos else 15
         txtbox = tk.Text(lframe, width=width, height=height, wrap='word')
         txtbox.grid(row=0, column=0, padx=5, pady=5)
         scrollbar = ttk.Scrollbar(lframe, orient=tk.VERTICAL, command=txtbox.yview)
@@ -532,10 +534,8 @@ class Application:
         def callback_clear_select_entry():
             self.select_entry_var.set('')
 
-        is_macos = platform.system() == 'Darwin'
-        is_linux = platform.system() == 'Linux'
-        width = 70 if is_macos else 79 if is_linux else 107
-        x1 = 2 if is_linux else 0
+        width = 70 if self.is_macos else 79 if self.is_linux else 107
+        x1 = 2 if self.is_linux else 0
 
         # frame for row 0
         frame = ttk.Frame(self.entry_frame, width=600, height=30)
