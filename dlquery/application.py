@@ -263,6 +263,15 @@ class Application:
         self.is_linux = platform.system() == 'Linux'
         self.is_window = platform.system() == 'Windows'
 
+        self.RadioButton = tk.Radiobutton if self.is_linux else ttk.Radiobutton
+        self.Label = ttk.Label
+        self.Frame = ttk.Frame
+        self.LabelFrame = ttk.LabelFrame
+        self.Button = ttk.Button
+        self.TextBox = ttk.Entry
+        self.TextArea = tk.Text
+        self.PanedWindow = ttk.PanedWindow
+
         self.set_title()
         self.build_menu()
         self.build_frame()
@@ -332,25 +341,31 @@ class Application:
         about.geometry('{}x{}+{}+{}'.format(width, height, x, y))
         about.resizable(False, False)
 
-        panedwindow = ttk.Panedwindow(about, orient=tk.VERTICAL)
+        top_frame = self.Frame(about)
+        top_frame.pack(fill=tk.BOTH, expand=True)
+
+        panedwindow = self.PanedWindow(top_frame, orient=tk.VERTICAL)
         panedwindow.pack(fill=tk.BOTH, expand=True, padx=8, pady=12)
 
         # company
-        frame = tk.Frame(panedwindow, width=380, height=20)
+        frame = self.Frame(panedwindow, width=380, height=20)
         panedwindow.add(frame, weight=1)
 
-        fmt = 'DLQuery App v{} ({} Edition)'
-        company_lbl = tk.Label(frame, text=fmt.format(version, edition))
+        fmt = 'Regex GUI v{} ({} Edition)'
+        company_lbl = self.Label(frame, text=fmt.format(version, edition))
         company_lbl.pack(side=tk.LEFT)
 
         # URL
-        frame = tk.Frame(panedwindow, width=380, height=20)
+        frame = self.Frame(panedwindow, width=380, height=20)
         panedwindow.add(frame, weight=1)
 
         url = Data.repo_url
-        tk.Label(frame, text='URL:').pack(side=tk.LEFT)
+        self.Label(frame, text='URL:').pack(side=tk.LEFT)
         font_size = 12 if self.is_macos else 10
-        url_lbl = tk.Label(frame, text=url, fg='blue', font=('sans-serif', font_size))
+        style = ttk.Style()
+        style.configure("Blue.TLabel", foreground="blue")
+        url_lbl = self.Label(frame, text=url, font=('sans-serif', font_size))
+        url_lbl.config(style='Blue.TLabel')
         url_lbl.default_font = ('sans-serif', font_size)
         url_lbl.pack(side=tk.LEFT)
         url_lbl.link = url
@@ -360,7 +375,7 @@ class Application:
         url_lbl.bind('<Button-1>', mouse_press)
 
         # license textbox
-        lframe = ttk.LabelFrame(
+        lframe = self.LabelFrame(
             panedwindow, height=300, width=380,
             text=Data.license_name
         )
@@ -368,7 +383,7 @@ class Application:
 
         width = 49 if self.is_macos else 43
         height = 19 if self.is_macos else 15
-        txtbox = tk.Text(lframe, width=width, height=height, wrap='word')
+        txtbox = self.TextArea(lframe, width=width, height=height, wrap='word')
         txtbox.grid(row=0, column=0, padx=5, pady=5)
         scrollbar = ttk.Scrollbar(lframe, orient=tk.VERTICAL, command=txtbox.yview)
         scrollbar.grid(row=0, column=1, sticky='nsew')
@@ -377,10 +392,10 @@ class Application:
         txtbox.config(state=tk.DISABLED)
 
         # footer - copyright
-        frame = tk.Frame(panedwindow, width=380, height=20)
+        frame = self.Frame(panedwindow, width=380, height=20)
         panedwindow.add(frame, weight=1)
 
-        footer = tk.Label(frame, text=Data.copyright_text)
+        footer = self.Label(frame, text=Data.copyright_text)
         footer.pack(side=tk.LEFT)
 
         set_modal_dialog(about)
@@ -408,16 +423,16 @@ class Application:
 
     def build_frame(self):
         """Build layout for dlquery application."""
-        self.panedwindow = ttk.Panedwindow(self.root, orient=tk.VERTICAL)
+        self.panedwindow = self.PanedWindow(self.root, orient=tk.VERTICAL)
         self.panedwindow.pack(fill=tk.BOTH, expand=True)
 
-        self.text_frame = ttk.Frame(
+        self.text_frame = self.Frame(
             self.panedwindow, width=600, height=400, relief=tk.RIDGE
         )
-        self.entry_frame = ttk.Frame(
+        self.entry_frame = self.Frame(
             self.panedwindow, width=600, height=100, relief=tk.RIDGE
         )
-        self.result_frame = ttk.Frame(
+        self.result_frame = self.Frame(
             self.panedwindow, width=600, height=100, relief=tk.RIDGE
         )
         self.panedwindow.add(self.text_frame, weight=7)
@@ -429,7 +444,7 @@ class Application:
 
         self.text_frame.rowconfigure(0, weight=1)
         self.text_frame.columnconfigure(0, weight=1)
-        self.textarea = tk.Text(self.text_frame, width=20, height=5, wrap='none')
+        self.textarea = self.TextArea(self.text_frame, width=20, height=5, wrap='none')
         self.textarea.grid(row=0, column=0, sticky='nswe')
         vscrollbar = ttk.Scrollbar(
             self.text_frame, orient=tk.VERTICAL, command=self.textarea.yview
@@ -538,51 +553,51 @@ class Application:
         x1 = 2 if self.is_linux else 0
 
         # frame for row 0
-        frame = ttk.Frame(self.entry_frame, width=600, height=30)
+        frame = self.Frame(self.entry_frame, width=600, height=30)
         frame.grid(row=0, column=0, padx=10, pady=(4, 0), sticky=tk.W)
 
         # radio buttons
-        self.csv_radio_btn = tk.Radiobutton(
+        self.csv_radio_btn = self.RadioButton(
             frame, text='csv', variable=self.radio_btn_var,
             value='csv'
         )
         self.csv_radio_btn.pack(side=tk.LEFT)
 
-        self.json_radio_btn = tk.Radiobutton(
+        self.json_radio_btn = self.RadioButton(
             frame, text='json', variable=self.radio_btn_var,
             value='json'
         )
         self.json_radio_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
-        self.yaml_radio_btn = tk.Radiobutton(
+        self.yaml_radio_btn = self.RadioButton(
             frame, text='yaml', variable=self.radio_btn_var,
             value='yaml'
         )
         self.yaml_radio_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # open button
-        open_file_btn = ttk.Button(frame, text='Open',
-                                   command=self.callback_file_open)
+        open_file_btn = self.Button(frame, text='Open',
+                                    command=self.callback_file_open)
         open_file_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # paste button
-        paste_text_btn = ttk.Button(frame, text='Paste',
-                                    command=callback_paste_text_btn)
+        paste_text_btn = self.Button(frame, text='Paste',
+                                     command=callback_paste_text_btn)
         paste_text_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # clear button
-        clear_text_btn = ttk.Button(frame, text='Clear',
-                                    command=callback_clear_text_btn)
+        clear_text_btn = self.Button(frame, text='Clear',
+                                     command=callback_clear_text_btn)
         clear_text_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # run button
-        run_btn = ttk.Button(frame, text='Run',
-                             command=callback_run_btn)
+        run_btn = self.Button(frame, text='Run',
+                              command=callback_run_btn)
         run_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # pprint button
-        tabular_btn = ttk.Button(frame, text='Tabular',
-                                 command=callback_tabular_btn)
+        tabular_btn = self.Button(frame, text='Tabular',
+                                  command=callback_tabular_btn)
         tabular_btn.pack(side=tk.LEFT, padx=(x1, 0))
 
         # frame for row 1 & 2
@@ -590,36 +605,36 @@ class Application:
         frame.grid(row=1, column=0, padx=10, pady=(0, 4), sticky=tk.W)
 
         # lookup entry
-        lbl = ttk.Label(frame, text='Lookup')
+        lbl = self.Label(frame, text='Lookup')
         lbl.grid(row=0, column=0, padx=(0, 4), pady=0, sticky=tk.W)
-        lookup_entry = ttk.Entry(frame, width=width,
-                                 textvariable=self.lookup_entry_var)
+        lookup_entry = self.TextBox(frame, width=width,
+                                    textvariable=self.lookup_entry_var)
         lookup_entry.grid(row=0, column=1, padx=0, pady=0, sticky=tk.W)
         lookup_entry.bind('<Return>', lambda event: callback_run_btn())
 
         # clear button
-        clear_lookup_btn = ttk.Button(frame, text='Clear',
-                                      command=callback_clear_lookup_entry)
+        clear_lookup_btn = self.Button(frame, text='Clear',
+                                       command=callback_clear_lookup_entry)
         clear_lookup_btn.grid(row=0, column=2, padx=(x1, 0), pady=0, sticky=tk.W)
 
         # select statement entry
-        lbl = ttk.Label(frame, text='Select')
+        lbl = self.Label(frame, text='Select')
         lbl.grid(row=1, column=0, padx=(0, 4), pady=0, sticky=tk.W)
-        select_entry = ttk.Entry(frame, width=width,
-                                 textvariable=self.select_entry_var)
+        select_entry = self.TextBox(frame, width=width,
+                                    textvariable=self.select_entry_var)
         select_entry.grid(row=1, column=1, padx=0, pady=0, sticky=tk.W)
         select_entry.bind('<Return>', lambda event: callback_run_btn())
 
         # clear button
-        clear_select_btn = ttk.Button(frame, text='Clear',
-                                      command=callback_clear_select_entry)
+        clear_select_btn = self.Button(frame, text='Clear',
+                                       command=callback_clear_select_entry)
         clear_select_btn.grid(row=1, column=2, padx=(x1, 0), pady=0, sticky=tk.W)
 
     def build_result(self):
         """Build result text"""
         self.result_frame.rowconfigure(0, weight=1)
         self.result_frame.columnconfigure(0, weight=1)
-        self.result_textarea = tk.Text(
+        self.result_textarea = self.TextArea(
             self.result_frame, width=20, height=5, wrap='none'
         )
         self.result_textarea.grid(row=0, column=0, sticky='nswe')
