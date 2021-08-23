@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dlquery',
-    version='1.0.3',
+    version='1.0.4',
     license='BSD-3-Clause',
     license_files=['LICENSE'],
     description='Python module for querying dictionary or list object.',
@@ -33,6 +33,9 @@ setup(
     },
     classifiers=[
         'Intended Audience :: Developers',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: Microsoft :: Windows',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
