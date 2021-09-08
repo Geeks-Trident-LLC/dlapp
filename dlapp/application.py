@@ -40,6 +40,58 @@ def get_relative_center_location(parent, width, height):
     return x, y
 
 
+def create_msgbox(title=None, error=None, warning=None, info=None,
+                  question=None, okcancel=None, retrycancel=None,
+                  yesno=None, yesnocancel=None, **options):
+    """create tkinter.messagebox
+    Parameters
+    ----------
+    title (str): a title of messagebox.  Default is None.
+    error (str): an error message.  Default is None.
+    warning (str): a warning message. Default is None.
+    info (str): an information message.  Default is None.
+    question (str): a question message.  Default is None.
+    okcancel (str): an ok or cancel message.  Default is None.
+    retrycancel (str): a retry or cancel message.  Default is None.
+    yesno (str): a yes or no message.  Default is None.
+    yesnocancel (str): a yes, no, or cancel message.  Default is None.
+    options (dict): options for messagebox.
+
+    Returns
+    -------
+    any: a string or boolean result
+    """
+    if error:
+        # a return result is a "ok" string
+        result = messagebox.showerror(title=title, message=error, **options)
+    elif warning:
+        # a return result is a "ok" string
+        result = messagebox.showwarning(title=title, message=warning, **options)
+    elif info:
+        # a return result is a "ok" string
+        result = messagebox.showinfo(title=title, message=info, **options)
+    elif question:
+        # a return result is a "yes" or "no" string
+        result = messagebox.askquestion(title=title, message=question, **options)
+    elif okcancel:
+        # a return result is boolean
+        result = messagebox.askokcancel(title=title, message=okcancel, **options)
+    elif retrycancel:
+        # a return result is boolean
+        result = messagebox.askretrycancel(title=title, message=retrycancel, **options)
+    elif yesno:
+        # a return result is boolean
+        result = messagebox.askyesno(title=title, message=yesno, **options)
+    elif yesnocancel:
+        # a return result is boolean or None
+        result = messagebox.askyesnocancel(title=title, message=yesnocancel, **options)
+    else:
+        # a return result is a "ok" string
+        result = messagebox.showinfo(title=title, message=info, **options)
+
+    return result
+
+
 def set_modal_dialog(dialog):
     """set dialog to become a modal dialog
 
@@ -153,32 +205,32 @@ class Content:
                            'in form of json, yaml, yml, or csv.')
                     message = fmt.format(extension)
 
-                title = 'File extension'
-                messagebox.showwarning(title=title, message=message)
+                title = 'File Extension'
+                create_msgbox(title=title, warning=message)
 
             with open(self.filename, newline='') as stream:
                 self.data = stream.read().strip()
 
                 if not self.data:
                     message = 'This {} file is empty.'.format(self.filename)
-                    title = 'File extension'
-                    messagebox.showwarning(title=title, message=message)
+                    title = 'File Extension'
+                    create_msgbox(title=title, warnig=message)
 
     def process_data(self):
         if not self.data:
             if self.case != 'file':
-                title = 'Empty data'
+                title = 'Empty Data'
                 message = 'data is empty.'
-                messagebox.showwarning(title=title, message=message)
+                create_msgbox(title=title, warning=message)
 
             return
 
         if not self.filetype:
             if self.case != 'file':
-                title = 'Unselecting file extension'
+                title = 'Unselecting File Extension'
                 message = ('Need to check filetype radio button '
                            'such as json, yaml, or csv.')
-                messagebox.showwarning(title=title, message=message)
+                create_msgbox(title=title, warning=message)
                 return
 
         if self.is_yaml:
@@ -186,25 +238,25 @@ class Content:
                 self.query_obj = create_from_yaml_data(self.data)
                 self.ready = True
             except Exception as ex:
-                title = 'Processing YAML data'
-                message = '{}: {}'.format(type(ex), ex)
-                messagebox.showerror(title=title, message=message)
+                title = 'Processing YAML Data'
+                error = '{}: {}'.format(type(ex), ex)
+                create_msgbox(title=title, error=error)
         elif self.is_json:
             try:
                 self.query_obj = create_from_json_data(self.data)
                 self.ready = True
             except Exception as ex:
                 title = 'Processing JSON data'
-                message = '{}: {}'.format(type(ex), ex)
-                messagebox.showerror(title=title, message=message)
+                error = '{}: {}'.format(type(ex), ex)
+                create_msgbox(title=title, error=error)
         elif self.is_csv:
             try:
                 self.query_obj = create_from_csv_data(self.data)
                 self.ready = True
             except Exception as ex:
-                title = 'Processing CSV data'
-                message = '{}: {}'.format(type(ex), ex)
-                messagebox.showerror(title=title, message=message)
+                title = 'Processing CSV Data'
+                error = '{}: {}'.format(type(ex), ex)
+                create_msgbox(title=title, error=error)
 
     def process(self):
         """Analyze `self.filename` or `self.data` and
@@ -226,7 +278,6 @@ class Application:
     build_menu() -> None
     run() -> None
     callback_file_open() -> None
-    callback_file_exit() -> None
     callback_help_documentation() -> None
     callback_help_view_licenses() -> None
     callback_help_about() -> None
@@ -235,6 +286,22 @@ class Application:
     browser = webbrowser
 
     def __init__(self):
+        # support platform: macOS, Linux, and Window
+        self.is_macos = platform.system() == 'Darwin'
+        self.is_linux = platform.system() == 'Linux'
+        self.is_window = platform.system() == 'Windows'
+
+        # standardize tkinter widget for macOS, Linux, and Window operating system
+        self.RadioButton = tk.Radiobutton if self.is_linux else ttk.Radiobutton
+        self.CheckBox = tk.Checkbutton if self.is_linux else ttk.Checkbutton
+        self.Label = ttk.Label
+        self.Frame = ttk.Frame
+        self.LabelFrame = ttk.LabelFrame
+        self.Button = ttk.Button
+        self.TextBox = ttk.Entry
+        self.TextArea = tk.Text
+        self.PanedWindow = ttk.PanedWindow
+
         self._base_title = 'DLApp {}'.format(edition)
         self.root = tk.Tk()
         self.root.geometry('800x600+100+100')
@@ -242,7 +309,7 @@ class Application:
         self.root.option_add('*tearOff', False)
         self.content = None
 
-        self.panedwindow = None
+        self.paned_window = None
         self.text_frame = None
         self.entry_frame = None
         self.result_frame = None
@@ -253,24 +320,11 @@ class Application:
         self.select_entry_var = tk.StringVar()
         self.result = None
 
-        self.textarea = None
+        self.input_textarea = None
         self.result_textarea = None
         self.csv_radio_btn = None
         self.json_radio_btn = None
         self.yaml_radio_btn = None
-
-        self.is_macos = platform.system() == 'Darwin'
-        self.is_linux = platform.system() == 'Linux'
-        self.is_window = platform.system() == 'Windows'
-
-        self.RadioButton = tk.Radiobutton if self.is_linux else ttk.Radiobutton
-        self.Label = ttk.Label
-        self.Frame = ttk.Frame
-        self.LabelFrame = ttk.LabelFrame
-        self.Button = ttk.Button
-        self.TextBox = ttk.Entry
-        self.TextArea = tk.Text
-        self.PanedWindow = ttk.PanedWindow
 
         self.set_title()
         self.build_menu()
@@ -279,22 +333,18 @@ class Application:
         self.build_entry()
         self.build_result()
 
-    def set_title(self, node=None, title=''):
-        """Set a new title for tkinter component.
+    def set_title(self, widget=None, title=''):
+        """Set a new title for tkinter widget.
 
         Parameters
         ----------
-        node (tkinter): a tkinter component.
+        widget (tkinter): a tkinter widget.
         title (str): a title.  Default is empty.
         """
-        node = node or self.root
+        widget = widget or self.root
         btitle = self._base_title
         title = '{} - {}'.format(title, btitle) if title else btitle
-        node.title(title)
-
-    def callback_file_exit(self):
-        """Callback for Menu File > Exit."""
-        self.root.quit()
+        widget.title(title)
 
     def callback_file_open(self):
         """Callback for Menu File > Open."""
@@ -309,8 +359,8 @@ class Application:
             content = Content(filename=filename)
             if content.is_ready:
                 self.set_title(title=filename)
-                self.textarea.delete("1.0", "end")
-                self.textarea.insert(tk.INSERT, content.data)
+                self.input_textarea.delete("1.0", "end")
+                self.input_textarea.insert(tk.INSERT, content.data)
                 self.radio_btn_var.set(content.filetype)
 
     def callback_help_documentation(self):
@@ -323,20 +373,25 @@ class Application:
 
     def callback_help_about(self):
         """Callback for Menu Help > About"""
-        def mouse_over(event):      # noqa
-            url_lbl.config(font=url_lbl.default_font + ('underline',))
-            url_lbl.config(cursor='hand2')
 
-        def mouse_out(event):       # noqa
-            url_lbl.config(font=url_lbl.default_font)
-            url_lbl.config(cursor='arrow')
+        def mouse_over(event):
+            event.widget.config(
+                font=event.widget.default_font + ('underline',),
+                cursor='hand2'
+            )
 
-        def mouse_press(event):     # noqa
-            self.browser.open_new_tab(url_lbl.link)
+        def mouse_out(event):
+            event.widget.config(
+                font=event.widget.default_font,
+                cursor='arrow'
+            )
+
+        def mouse_press(event):
+            self.browser.open_new_tab(event.widget.link)
 
         about = tk.Toplevel(self.root)
-        self.set_title(node=about, title='About')
-        width, height = 440, 400
+        self.set_title(widget=about, title='About')
+        width, height = 460, 460
         x, y = get_relative_center_location(self.root, width, height)
         about.geometry('{}x{}+{}+{}'.format(width, height, x, y))
         about.resizable(False, False)
@@ -344,45 +399,98 @@ class Application:
         top_frame = self.Frame(about)
         top_frame.pack(fill=tk.BOTH, expand=True)
 
-        panedwindow = self.PanedWindow(top_frame, orient=tk.VERTICAL)
-        panedwindow.pack(fill=tk.BOTH, expand=True, padx=8, pady=12)
+        paned_window = self.PanedWindow(top_frame, orient=tk.VERTICAL)
+        paned_window.pack(fill=tk.BOTH, expand=True, padx=8, pady=12)
 
         # company
-        frame = self.Frame(panedwindow, width=420, height=20)
-        panedwindow.add(frame, weight=1)
+        frame = self.Frame(paned_window, width=450, height=20)
+        paned_window.add(frame, weight=4)
 
+        font_size = 12 if self.is_macos else 10
         fmt = 'DLApp v{} ({} Edition)'
-        company_lbl = self.Label(frame, text=fmt.format(version, edition))
-        company_lbl.pack(side=tk.LEFT)
+        company_lbl = self.Label(
+            frame, text=fmt.format(version, edition),
+            font=('san-serif', font_size, 'bold')
+        )
+        company_lbl.grid(row=0, column=0, columnspan=2, sticky=tk.W)
 
         # URL
-        frame = self.Frame(panedwindow, width=420, height=20)
-        panedwindow.add(frame, weight=1)
+        cell_frame = self.Frame(frame, width=450, height=5)
+        cell_frame.grid(row=1, column=0, sticky=tk.W, columnspan=2)
 
         url = Data.repo_url
-        self.Label(frame, text='URL:').pack(side=tk.LEFT)
-        font_size = 12 if self.is_macos else 10
+        self.Label(cell_frame, text='URL:').pack(side=tk.LEFT)
         style = ttk.Style()
         style.configure("Blue.TLabel", foreground="blue")
-        url_lbl = self.Label(frame, text=url, font=('sans-serif', font_size))
-        url_lbl.config(style='Blue.TLabel')
-        url_lbl.default_font = ('sans-serif', font_size)
-        url_lbl.pack(side=tk.LEFT)
-        url_lbl.link = url
+        label = self.Label(
+            cell_frame, text=url, font=('sans-serif', font_size),
+            style='Blue.TLabel'
+        )
+        label.default_font = ('sans-serif', font_size)
+        label.pack(side=tk.LEFT)
+        label.link = url
 
-        url_lbl.bind('<Enter>', mouse_over)
-        url_lbl.bind('<Leave>', mouse_out)
-        url_lbl.bind('<Button-1>', mouse_press)
+        label.bind('<Enter>', mouse_over)
+        label.bind('<Leave>', mouse_out)
+        label.bind('<Button-1>', mouse_press)
+
+        # dependencies
+        self.Label(
+            frame, text='Pypi.com Dependencies:',
+            font=('sans-serif', font_size, 'underline')
+        ).grid(row=2, column=0, sticky=tk.W)
+
+        # compare_versions package
+        from compare_versions import __version__ as ver
+        text = 'compare_versions v{}'.format(ver)
+        label = self.Label(
+            frame, text=text, font=('sans-serif', font_size),
+            style='Blue.TLabel'
+        )
+        label.grid(row=3, column=0, padx=(20, 0), sticky=tk.W+tk.N)
+        label.default_font = ('sans-serif', font_size)
+        label.link = 'https://pypi.org/project/compare_versions/'
+        label.bind('<Enter>', mouse_over)
+        label.bind('<Leave>', mouse_out)
+        label.bind('<Button-1>', mouse_press)
+
+        # python-dateutil package
+        from dateutil import __version__ as ver     # noqa
+        text = 'python-dateutil v{} '.format(ver)
+        label = self.Label(
+            frame, text=text, font=('sans-serif', font_size),
+            style='Blue.TLabel'
+        )
+        label.grid(row=4, column=0, padx=(20, 0), pady=(0, 10), sticky=tk.W+tk.N)
+        label.default_font = ('sans-serif', font_size)
+        label.link = 'https://pypi.org/project/python-dateutil/'
+        label.bind('<Enter>', mouse_over)
+        label.bind('<Leave>', mouse_out)
+        label.bind('<Button-1>', mouse_press)
+
+        # PyYAML package
+        from yaml import __version__ as ver
+        text = 'PyYAML v{}'.format(ver)
+        label = self.Label(
+            frame, text=text, font=('sans-serif', font_size),
+            style='Blue.TLabel'
+        )
+        label.grid(row=3, column=1, padx=(20, 0), sticky=tk.W+tk.N)
+        label.default_font = ('sans-serif', font_size)
+        label.link = 'https://pypi.org/project/PyYAML/'
+        label.bind('<Enter>', mouse_over)
+        label.bind('<Leave>', mouse_out)
+        label.bind('<Button-1>', mouse_press)
 
         # license textbox
         lframe = self.LabelFrame(
-            panedwindow, height=300, width=420,
+            paned_window, height=200, width=450,
             text=Data.license_name
         )
-        panedwindow.add(lframe, weight=7)
+        paned_window.add(lframe, weight=7)
 
-        width = 55 if self.is_macos else 48
-        height = 19 if self.is_macos else 15 if self.is_linux else 16
+        width = 58 if self.is_macos else 51
+        height = 18 if self.is_macos else 14 if self.is_linux else 15
         txtbox = self.TextArea(lframe, width=width, height=height, wrap='word')
         txtbox.grid(row=0, column=0, padx=5, pady=5)
         scrollbar = ttk.Scrollbar(lframe, orient=tk.VERTICAL, command=txtbox.yview)
@@ -392,11 +500,11 @@ class Application:
         txtbox.config(state=tk.DISABLED)
 
         # footer - copyright
-        frame = self.Frame(panedwindow, width=380, height=20)
-        panedwindow.add(frame, weight=1)
+        frame = self.Frame(paned_window, width=450, height=20)
+        paned_window.add(frame, weight=1)
 
         footer = self.Label(frame, text=Data.copyright_text)
-        footer.pack(side=tk.LEFT)
+        footer.pack(side=tk.LEFT, pady=(10, 10))
 
         set_modal_dialog(about)
 
@@ -412,7 +520,7 @@ class Application:
 
         file.add_command(label='Open', command=lambda: self.callback_file_open())
         file.add_separator()
-        file.add_command(label='Quit', command=lambda: self.callback_file_exit())
+        file.add_command(label='Quit', command=lambda: self.root.quit())
 
         help_.add_command(label='Documentation',
                           command=lambda: self.callback_help_documentation())
@@ -423,45 +531,45 @@ class Application:
 
     def build_frame(self):
         """Build layout for DLApp."""
-        self.panedwindow = self.PanedWindow(self.root, orient=tk.VERTICAL)
-        self.panedwindow.pack(fill=tk.BOTH, expand=True)
+        self.paned_window = self.PanedWindow(self.root, orient=tk.VERTICAL)
+        self.paned_window.pack(fill=tk.BOTH, expand=True)
 
         self.text_frame = self.Frame(
-            self.panedwindow, width=600, height=400, relief=tk.RIDGE
+            self.paned_window, width=600, height=400, relief=tk.RIDGE
         )
         self.entry_frame = self.Frame(
-            self.panedwindow, width=600, height=100, relief=tk.RIDGE
+            self.paned_window, width=600, height=100, relief=tk.RIDGE
         )
         self.result_frame = self.Frame(
-            self.panedwindow, width=600, height=100, relief=tk.RIDGE
+            self.paned_window, width=600, height=100, relief=tk.RIDGE
         )
-        self.panedwindow.add(self.text_frame, weight=7)
-        self.panedwindow.add(self.entry_frame)
-        self.panedwindow.add(self.result_frame, weight=2)
+        self.paned_window.add(self.text_frame, weight=7)
+        self.paned_window.add(self.entry_frame)
+        self.paned_window.add(self.result_frame, weight=2)
 
     def build_textarea(self):
         """Build input text for DLApp."""
 
         self.text_frame.rowconfigure(0, weight=1)
         self.text_frame.columnconfigure(0, weight=1)
-        self.textarea = self.TextArea(self.text_frame, width=20, height=5, wrap='none')
-        self.textarea.grid(row=0, column=0, sticky='nswe')
+        self.input_textarea = self.TextArea(self.text_frame, width=20, height=5, wrap='none')
+        self.input_textarea.grid(row=0, column=0, sticky='nswe')
         vscrollbar = ttk.Scrollbar(
-            self.text_frame, orient=tk.VERTICAL, command=self.textarea.yview
+            self.text_frame, orient=tk.VERTICAL, command=self.input_textarea.yview
         )
         vscrollbar.grid(row=0, column=1, sticky='ns')
         hscrollbar = ttk.Scrollbar(
-            self.text_frame, orient=tk.HORIZONTAL, command=self.textarea.xview
+            self.text_frame, orient=tk.HORIZONTAL, command=self.input_textarea.xview
         )
         hscrollbar.grid(row=1, column=0, sticky='ew')
-        self.textarea.config(
+        self.input_textarea.config(
             yscrollcommand=vscrollbar.set, xscrollcommand=hscrollbar.set
         )
 
     def build_entry(self):
         """Build input entry for DLApp."""
         def callback_run_btn():
-            data = self.textarea.get('1.0', 'end').strip()
+            data = self.input_textarea.get('1.0', 'end').strip()
             filetype = self.radio_btn_var.get()
             lookup = self.lookup_entry_var.get()
             select = self.select_entry_var.get()
@@ -477,12 +585,12 @@ class Application:
                 self.result_textarea.insert(tk.INSERT, str(result))
 
             except Exception as ex:
-                title = 'Query problem'
-                message = '{}: {}'.format(type(ex).__name__, ex)
-                messagebox.showerror(title=title, message=message)
+                title = 'Query Problem'
+                error = '{}: {}'.format(type(ex).__name__, ex)
+                create_msgbox(title=title, error=error)
 
         def callback_tabular_btn():
-            data = self.textarea.get('1.0', 'end').strip()
+            data = self.input_textarea.get('1.0', 'end').strip()
             filetype = self.radio_btn_var.get()
             lookup = self.lookup_entry_var.get()
             select = self.select_entry_var.get()
@@ -507,12 +615,12 @@ class Application:
                 self.result_textarea.insert(tk.INSERT, str(text))
 
             except Exception as ex:
-                title = 'Query problem'
-                message = '{}: {}'.format(type(ex).__name__, ex)
-                messagebox.showerror(title=title, message=message)
+                title = 'Query Problem'
+                error = '{}: {}'.format(type(ex).__name__, ex)
+                create_msgbox(title=title, error=error)
 
         def callback_clear_text_btn():
-            self.textarea.delete("1.0", "end")
+            self.input_textarea.delete("1.0", "end")
             self.result_textarea.delete("1.0", "end")
             self.radio_btn_var.set(None)
             self.lookup_entry_var.set('')
@@ -525,23 +633,23 @@ class Application:
             if filetype == 'None':
                 title = 'Unselect CSV/JSON/YAML'
                 message = 'Please select CSV, JSON, or YAML.'
-                messagebox.showwarning(title=title, message=message)
+                create_msgbox(title=title, warning=message)
                 return
 
             try:
                 data = self.root.clipboard_get()
                 if data:
-                    self.textarea.delete("1.0", "end")
+                    self.input_textarea.delete("1.0", "end")
                     # filetype = self.radio_btn_var.get()
                     self.content = Content(data=data, filetype=filetype)
                     if self.content.is_ready:
                         self.set_title(title='<<PASTE - Clipboard>>')
-                        self.textarea.insert(tk.INSERT, data)
+                        self.input_textarea.insert(tk.INSERT, data)
                         self.radio_btn_var.set(self.content.filetype)
             except Exception as ex:     # noqa
                 title = 'Empty Clipboard',
                 message = 'CAN NOT paste because there is no data in pasteboard.'
-                messagebox.showwarning(title=title, message=message)
+                create_msgbox(title=title, warning=message)
 
         def callback_clear_lookup_entry():
             self.lookup_entry_var.set('')
