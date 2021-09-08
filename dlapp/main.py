@@ -1,17 +1,17 @@
-"""Module containing the logic for the dlquery entry-points."""
+"""Module containing the logic for the dlapp entry-points."""
 
 import sys
 import argparse
 from os import path
 from textwrap import dedent
-from dlquery.application import Application
-from dlquery import create_from_csv_file
-from dlquery import create_from_json_file
-from dlquery import create_from_yaml_file
+from dlapp.application import Application
+from dlapp import create_from_csv_file
+from dlapp import create_from_json_file
+from dlapp import create_from_yaml_file
 
 
 def get_tutorial_examples():
-    """Return the dlquery tutorial examples text."""
+    """Return the dlapp tutorial examples text."""
     text = '''
         Example 1:
         ---------
@@ -110,10 +110,10 @@ def get_tutorial_examples():
 
 
 def show_tutorial_dlquery():
-    """Print a dlquery tutorial."""
+    """Print a dlapp tutorial."""
     text = '''
         ########################################
-        # tutorial: dlquery                    #
+        # tutorial: dlapp                    #
         ########################################
         Assuming there is a list of dictionary
 
@@ -124,9 +124,9 @@ def show_tutorial_dlquery():
             ... ]
             >>>
 
-        We need to instantiate dlquery.DLQuery object
+        We need to instantiate dlapp.DLQuery object
         
-            >>> from dlquery import DLQuery
+            >>> from dlapp import DLQuery
             >>> query_obj = DLQuery(lst_of_dict)
     '''
 
@@ -136,7 +136,7 @@ def show_tutorial_dlquery():
 
 
 def show_tutorial_csv():
-    """Print a dlquery tutorial - case csv file."""
+    """Print a dlapp tutorial - case csv file."""
     text = '''
         ########################################
         # tutorial: CSV                        #
@@ -145,15 +145,15 @@ def show_tutorial_csv():
 
         ----------------------------------------
         Console usage: try the following
-            $ dlquery --filename=sample.csv --lookup="a" --select="WHERE a match Ap.+"
+            $ dlapp --filename=sample.csv --lookup="a" --select="WHERE a match Ap.+"
             ['Apple', 'Apricot']
             $
             $
-            $ dlquery --filename=sample.csv --lookup="a"  --select="WHERE c not_match [Cc]a.+"
+            $ dlapp --filename=sample.csv --lookup="a"  --select="WHERE c not_match [Cc]a.+"
             ['Apple', 'Avocado']
             $
             $
-            $ dlquery --filename=sample.csv --lookup="a"  --select="SELECT a, c WHERE c not_match [Cc]a.+"
+            $ dlapp --filename=sample.csv --lookup="a"  --select="SELECT a, c WHERE c not_match [Cc]a.+"
             [OrderedDict([('a', 'Apple'), ('c', 'Cherry')]), OrderedDict([('a', 'Avocado'), ('c', 'Clementine')])]
 
         ----------------------------------------
@@ -167,9 +167,9 @@ def show_tutorial_csv():
             Avocado,Blueberry,Clementine
             >>>
 
-        We need to instantiate dlquery.DLQuery object using create_from_csv_file function
+        We need to instantiate dlapp.DLQuery object using create_from_csv_file function
 
-            >>> from dlquery import create_from_csv_file
+            >>> from dlapp import create_from_csv_file
             >>> query_obj = create_from_csv_file('sample.csv')
     '''
 
@@ -179,7 +179,7 @@ def show_tutorial_csv():
 
 
 def show_tutorial_json():
-    """Print a dlquery tutorial - case json file."""
+    """Print a dlapp tutorial - case json file."""
     text = '''
         ########################################
         # tutorial: JSON                       #
@@ -188,15 +188,15 @@ def show_tutorial_json():
 
         ----------------------------------------
         Console usage: try the following
-            $ dlquery --filename=sample.json --lookup="a" --select="WHERE a match Ap.+"
+            $ dlapp --filename=sample.json --lookup="a" --select="WHERE a match Ap.+"
             ['Apple', 'Apricot']
             $
             $
-            $ dlquery --filename=sample.json --lookup="a"  --select="WHERE c not_match [Cc]a.+"
+            $ dlapp --filename=sample.json --lookup="a"  --select="WHERE c not_match [Cc]a.+"
             ['Apple', 'Avocado']
             $
             $
-            $ dlquery --filename=sample.json --lookup="a"  --select="SELECT a, c WHERE c not_match [Cc]a.+"
+            $ dlapp --filename=sample.json --lookup="a"  --select="SELECT a, c WHERE c not_match [Cc]a.+"
             [OrderedDict([('a', 'Apple'), ('c', 'Cherry')]), OrderedDict([('a', 'Avocado'), ('c', 'Clementine')])]
 
         ----------------------------------------
@@ -211,9 +211,9 @@ def show_tutorial_json():
             ]
             >>>
 
-        We need to instantiate dlquery.DLQuery object using create_from_json_file function
+        We need to instantiate dlapp.DLQuery object using create_from_json_file function
 
-            >>> from dlquery import create_from_json_file
+            >>> from dlapp import create_from_json_file
             >>> query_obj = create_from_json_file('sample.json')
     '''
 
@@ -223,7 +223,7 @@ def show_tutorial_json():
 
 
 def show_tutorial_yaml():
-    """Print a dlquery tutorial - case yaml file."""
+    """Print a dlapp tutorial - case yaml file."""
     text = '''
         ########################################
         # tutorial: yaml                        #
@@ -232,15 +232,15 @@ def show_tutorial_yaml():
 
         ----------------------------------------
         Console usage: try the following
-            $ dlquery --filename=sample.yaml --lookup="a" --select="WHERE a match Ap.+"
+            $ dlapp --filename=sample.yaml --lookup="a" --select="WHERE a match Ap.+"
             ['Apple', 'Apricot']
             $
             $
-            $ dlquery --filename=sample.yaml --lookup="a"  --select="WHERE c not_match [Cc]a.+"
+            $ dlapp --filename=sample.yaml --lookup="a"  --select="WHERE c not_match [Cc]a.+"
             ['Apple', 'Avocado']
             $
             $
-            $ dlquery --filename=sample.yaml --lookup="a"  --select="SELECT a, c WHERE c not_match [Cc]a.+"
+            $ dlapp --filename=sample.yaml --lookup="a"  --select="SELECT a, c WHERE c not_match [Cc]a.+"
             [OrderedDict([('a', 'Apple'), ('c', 'Cherry')]), OrderedDict([('a', 'Avocado'), ('c', 'Clementine')])]
 
         ----------------------------------------
@@ -259,9 +259,9 @@ def show_tutorial_yaml():
               c: Clementine
             >>>
 
-        We need to instantiate dlquery.DLQuery object using create_from_yaml_file function
+        We need to instantiate dlapp.DLQuery object using create_from_yaml_file function
 
-            >>> from dlquery import create_from_yaml_file
+            >>> from dlapp import create_from_yaml_file
             >>> query_obj = create_from_yaml_file('sample.yaml')
     '''
 
@@ -271,7 +271,7 @@ def show_tutorial_yaml():
 
 
 def run_tutorial(options):
-    """Run a selection dlquery console CLI tutorial.
+    """Run a selection dlapp console CLI tutorial.
 
     Parameters
     ----------
@@ -297,7 +297,7 @@ def run_tutorial(options):
 
 
 def run_gui_application(options):
-    """Run dlquery GUI application.
+    """Run dlapp GUI application.
 
     Parameters
     ----------
@@ -305,7 +305,7 @@ def run_gui_application(options):
 
     Returns
     -------
-    None: will invoke ``dlquery.Application().run()`` and ``sys.exit(0)``
+    None: will invoke ``dlapp.Application().run()`` and ``sys.exit(0)``
     if end user requests `--application`
     """
     if options.gui:
@@ -315,21 +315,21 @@ def run_gui_application(options):
 
 
 class Cli:
-    """dlquery console CLI application."""
+    """dlapp console CLI application."""
     def __init__(self):
         self.filename = ''
         self.filetype = ''
         self.result = None
 
         parser = argparse.ArgumentParser(
-            prog='dlquery',
+            prog='dlapp',
             usage='%(prog)s [options]',
             description='%(prog)s application',
         )
 
         parser.add_argument(
             '--gui', action='store_true',
-            help='launch a dlquery GUI application'
+            help='launch a dlapp GUI application'
         )
 
         parser.add_argument(
@@ -358,7 +358,7 @@ class Cli:
 
         parser.add_argument(
             '--tutorial', action='store_true', dest='tutorial',
-            help='show dlquery tutorial'
+            help='show dlapp tutorial'
         )
 
         parser.add_argument(
@@ -459,7 +459,7 @@ class Cli:
             self.filetype = filetype
 
     def run_cli(self, options):
-        """Execute dlquery command line.
+        """Execute dlapp command line.
 
         Parameters
         ----------
@@ -500,6 +500,6 @@ class Cli:
 
 
 def execute():
-    """Execute dlquery console CLI."""
+    """Execute dlapp console CLI."""
     app = Cli()
     app.run()

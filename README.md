@@ -1,9 +1,9 @@
-# DLQuery
-DLQuery is the query utility for dictionary or list.
+# DLApp
+DLApp is the query utility for dictionary or list.
 
 ## Installation
 ```python
-pip install dlquery
+pip install dlapp
 ```
 
 ## Features
@@ -20,14 +20,14 @@ pip install dlquery
 
 ## Usage
 ```bash
-(vp37) C:\>dlquery --help
-usage: dlquery [options]
+(vp37) C:\>dlapp --help
+usage: dlapp [options]
 
-dlquery application
+dlapp application
 
 optional arguments:
   -h, --help            show this help message and exit
-  --gui                 launch a dlquery GUI application
+  --gui                 launch a dlapp GUI application
   --filename FILENAME   a json, yaml, or csv file name
   --filetype {csv,json,yaml,yml}
                         a file type can be either json, yaml, yml, or csv
@@ -35,7 +35,7 @@ optional arguments:
   --select SELECT_STATEMENT
                         a select statement to enhance multiple searching
                         criteria
-  --tutorial            show dlquery tutorial
+  --tutorial            show dlapp tutorial
   --tutorial-csv        show csv tutorial
   --tutorial-json       show json tutorial
   --tutorial-yaml       show yaml tutorial
@@ -46,6 +46,7 @@ optional arguments:
 ## Getting Started
 
 ### Development
+
 ```python
 >>> # test data
 >>> lst_of_dict = [
@@ -55,7 +56,7 @@ optional arguments:
 ...     { "title": "XYZ Widget", "name": "xyz", "width": 600}
 ... ]
 >>>
->>> from dlquery import DLQuery
+>>> from dlapp import DLQuery
 >>>
 >>> query_obj = DLQuery(lst_of_dict)
 >>>
@@ -71,7 +72,7 @@ optional arguments:
 >>>
 >>>
 >>> # assuming /path/sample.json file has the same structure data as lst_of_dict
->>> from dlquery import create_from_json_file
+>>> from dlapp import create_from_json_file
 >>>
 >>> query_obj = create_from_json_file('/path/sample.json')
 >>>
@@ -79,49 +80,49 @@ optional arguments:
 ['ABC Widget', 'XYZ Widget']
 >>>
 >>> # to query json string data, use
->>> from dlquery import create_from_json_data
+>>> from dlapp import create_from_json_data
 >>>
 >>>
 >>>
 >>> # to query yaml file, use
->>> from dlquery import create_from_yaml_file
+>>> from dlapp import create_from_yaml_file
 >>>
 >>> # to query yaml string data, use
->>> from dlquery import create_from_yaml_data
+>>> from dlapp import create_from_yaml_data
 >>>
 >>>
 >>>
 >>> # to query csv file, use
->>> from dlquery import create_from_csv_file
+>>> from dlapp import create_from_csv_file
 >>>
 >>> # to query csv string data, use
->>> from dlquery import create_from_yaml_file
+>>> from dlapp import create_from_yaml_file
 ```
 
 ### Console command line
 
-Open DLQuery application
+Open DLApp application
 ```bash
-$ dlquery-gui                   # using python entry point
-$ dlquery --gui                 # using console command line
-$ python -m dlquery --gui       # using python module invocation
+$ dl-app                      # using python entry point
+$ dlapp --gui                 # using console command line
+$ python -m dlapp --gui       # using python module invocation
 ```
 
 Search json, yaml, or csv file
 ```bash
 $ # assuming that /path/sample.json has the same structure data as lst_of_dict
-$ dlquery --filename=/path/sample.json --lookup="title=_wildcard([AX]*)"
+$ dlapp --filename=/path/sample.json --lookup="title=_wildcard([AX]*)"
 ['ABC Widget', 'XYZ Widget']
 $
-$ dlquery --filename=/path/sample.json --lookup="title=_wildcard([AX]*)" --select="SELECT title, width WHERE width lt 550"
+$ dlapp --filename=/path/sample.json --lookup="title=_wildcard([AX]*)" --select="SELECT title, width WHERE width lt 550"
 [{'title': 'ABC Widget', 'width': 500}]
 $
 $ # the same syntax can apply for yaml, yml, or csv file. 
 ```
 
 ## Bugs/Requests
-Please use the [GitHub issue tracker](https://github.com/Geeks-Trident-LLC/dlquery/issues) to submit bugs or request features.
+Please use the [GitHub issue tracker](https://github.com/Geeks-Trident-LLC/dlapp/issues) to submit bugs or request features.
 
 ## Licenses
-- [BSD 3-Clause License](https://github.com/Geeks-Trident-LLC/dlquery/blob/develop/LICENSE)
+- [BSD 3-Clause License](https://github.com/Geeks-Trident-LLC/dlapp/blob/develop/LICENSE)
 

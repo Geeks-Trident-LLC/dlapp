@@ -1,11 +1,11 @@
-from dlquery import DLQuery
+from dlapp import DLQuery
 import pytest
 
 
 class ExpectedResult:
     def __init__(self):
         self.dict_result = dict(a='Apricot', b='Banana')
-        self.list_result = [2021, 'Hello dlquery', dict(self.dict_result)]
+        self.list_result = [2021, 'Hello dlapp', dict(self.dict_result)]
         self.dict_other_result = dict(a='Apricot', c='Cherry')
         self.list_other_result = [
             2021, 'Hello python', dict(self.dict_other_result)
@@ -18,7 +18,7 @@ class ExpectedResult:
 
         # list result
         self.index0 = 2021
-        self.index1 = 'Hello dlquery'
+        self.index1 = 'Hello dlapp'
         self.index2 = dict(self.dict_result)
 
         # number
@@ -48,7 +48,7 @@ def dict_data():
 
 @pytest.fixture
 def list_data(dict_data):
-    obj = [2021, 'Hello dlquery', dict(dict_data)]
+    obj = [2021, 'Hello dlapp', dict(dict_data)]
     yield obj
 
 

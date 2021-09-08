@@ -3,7 +3,7 @@
 import re
 import logging
 from functools import partial
-from dlquery.predicate import Predicate
+from dlapp.predicate import Predicate
 
 
 logger = logging.getLogger(__file__)

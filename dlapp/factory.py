@@ -1,13 +1,13 @@
-"""Module containing the logic for creating dlquery."""
+"""Module containing the logic for creating dlapp."""
 
 import yaml
 import json
 import csv
-from dlquery import DLQuery
+from dlapp import DLQuery
 
 
 def create_from_json_file(filename, **kwargs):
-    """Create a dlquery instance from JSON filename.
+    """Create a dlapp instance from JSON filename.
 
     Parameters
     ----------
@@ -30,7 +30,7 @@ def create_from_json_file(filename, **kwargs):
 
 
 def create_from_json_data(data, **kwargs):
-    """Create a dlquery instance from JSON data.
+    """Create a dlapp instance from JSON data.
 
     Parameters
     ----------
@@ -47,7 +47,7 @@ def create_from_json_data(data, **kwargs):
 
 
 def create_from_yaml_file(filename, loader=yaml.SafeLoader):
-    """Create a dlquery instance from YAML file.
+    """Create a dlapp instance from YAML file.
 
     Parameters
     ----------
@@ -65,7 +65,7 @@ def create_from_yaml_file(filename, loader=yaml.SafeLoader):
 
 
 def create_from_yaml_data(data, loader=yaml.SafeLoader):
-    """Create a dlquery instance from YAML data.
+    """Create a dlapp instance from YAML data.
 
     Parameters
     ----------
@@ -83,7 +83,7 @@ def create_from_yaml_data(data, loader=yaml.SafeLoader):
 
 def create_from_csv_file(filename, fieldnames=None, restkey=None,
                          restval=None, dialect='excel', *args, **kwds):
-    """Create a dlquery instance from CSV file.
+    """Create a dlapp instance from CSV file.
 
     Parameters
     ----------
@@ -111,7 +111,7 @@ def create_from_csv_file(filename, fieldnames=None, restkey=None,
 
 def create_from_csv_data(data, fieldnames=None, restkey=None,
                          restval=None, dialect='excel', *args, **kwds):
-    """Create a dlquery instance from CSV data.
+    """Create a dlapp instance from CSV data.
 
     Parameters
     ----------

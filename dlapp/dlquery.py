@@ -1,10 +1,10 @@
 """Module containing the logic for querying dictionary or list object."""
 import re
 import operator
-from dlquery import utils
-from dlquery.argumenthelper import validate_argument_type
-from dlquery.argumenthelper import validate_argument_is_not_empty
-from dlquery.collection import Element
+from dlapp import utils
+from dlapp.argumenthelper import validate_argument_type
+from dlapp.argumenthelper import validate_argument_is_not_empty
+from dlapp.collection import Element
 
 
 class DLQueryError(Exception):

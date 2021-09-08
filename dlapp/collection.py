@@ -5,11 +5,11 @@ import json
 import re
 from functools import partial
 from pprint import pprint
-from dlquery.argumenthelper import validate_argument_type
-from dlquery import utils
-from dlquery.parser import SelectParser
-from dlquery.validation import OpValidation
-from dlquery.validation import CustomValidation
+from dlapp.argumenthelper import validate_argument_type
+from dlapp import utils
+from dlapp.parser import SelectParser
+from dlapp.validation import OpValidation
+from dlapp.validation import CustomValidation
 
 
 class ListError(Exception):

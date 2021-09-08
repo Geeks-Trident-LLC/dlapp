@@ -1,4 +1,4 @@
-from dlquery.predicate import Predicate
+from dlapp.predicate import Predicate
 import pytest
 
 
