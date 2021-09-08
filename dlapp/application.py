@@ -309,7 +309,7 @@ class Application:
         self.root.option_add('*tearOff', False)
         self.content = None
 
-        self.panedwindow = None
+        self.paned_window = None
         self.text_frame = None
         self.entry_frame = None
         self.result_frame = None
@@ -473,21 +473,21 @@ class Application:
 
     def build_frame(self):
         """Build layout for DLApp."""
-        self.panedwindow = self.PanedWindow(self.root, orient=tk.VERTICAL)
-        self.panedwindow.pack(fill=tk.BOTH, expand=True)
+        self.paned_window = self.PanedWindow(self.root, orient=tk.VERTICAL)
+        self.paned_window.pack(fill=tk.BOTH, expand=True)
 
         self.text_frame = self.Frame(
-            self.panedwindow, width=600, height=400, relief=tk.RIDGE
+            self.paned_window, width=600, height=400, relief=tk.RIDGE
         )
         self.entry_frame = self.Frame(
-            self.panedwindow, width=600, height=100, relief=tk.RIDGE
+            self.paned_window, width=600, height=100, relief=tk.RIDGE
         )
         self.result_frame = self.Frame(
-            self.panedwindow, width=600, height=100, relief=tk.RIDGE
+            self.paned_window, width=600, height=100, relief=tk.RIDGE
         )
-        self.panedwindow.add(self.text_frame, weight=7)
-        self.panedwindow.add(self.entry_frame)
-        self.panedwindow.add(self.result_frame, weight=2)
+        self.paned_window.add(self.text_frame, weight=7)
+        self.paned_window.add(self.entry_frame)
+        self.paned_window.add(self.result_frame, weight=2)
 
     def build_textarea(self):
         """Build input text for DLApp."""
