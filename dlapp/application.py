@@ -333,18 +333,18 @@ class Application:
         self.build_entry()
         self.build_result()
 
-    def set_title(self, node=None, title=''):
-        """Set a new title for tkinter component.
+    def set_title(self, widget=None, title=''):
+        """Set a new title for tkinter widget.
 
         Parameters
         ----------
-        node (tkinter): a tkinter component.
+        widget (tkinter): a tkinter widget.
         title (str): a title.  Default is empty.
         """
-        node = node or self.root
+        widget = widget or self.root
         btitle = self._base_title
         title = '{} - {}'.format(title, btitle) if title else btitle
-        node.title(title)
+        widget.title(title)
 
     def callback_file_open(self):
         """Callback for Menu File > Open."""
@@ -373,20 +373,25 @@ class Application:
 
     def callback_help_about(self):
         """Callback for Menu Help > About"""
-        def mouse_over(event):      # noqa
-            url_lbl.config(font=url_lbl.default_font + ('underline',))
-            url_lbl.config(cursor='hand2')
 
-        def mouse_out(event):       # noqa
-            url_lbl.config(font=url_lbl.default_font)
-            url_lbl.config(cursor='arrow')
+        def mouse_over(event):
+            event.widget.config(
+                font=event.widget.default_font + ('underline',),
+                cursor='hand2'
+            )
 
-        def mouse_press(event):     # noqa
-            self.browser.open_new_tab(url_lbl.link)
+        def mouse_out(event):
+            event.widget.config(
+                font=event.widget.default_font,
+                cursor='arrow'
+            )
+
+        def mouse_press(event):
+            self.browser.open_new_tab(event.widget.link)
 
         about = tk.Toplevel(self.root)
-        self.set_title(node=about, title='About')
-        width, height = 440, 400
+        self.set_title(widget=about, title='About')
+        width, height = 460, 460
         x, y = get_relative_center_location(self.root, width, height)
         about.geometry('{}x{}+{}+{}'.format(width, height, x, y))
         about.resizable(False, False)
@@ -394,45 +399,98 @@ class Application:
         top_frame = self.Frame(about)
         top_frame.pack(fill=tk.BOTH, expand=True)
 
-        panedwindow = self.PanedWindow(top_frame, orient=tk.VERTICAL)
-        panedwindow.pack(fill=tk.BOTH, expand=True, padx=8, pady=12)
+        paned_window = self.PanedWindow(top_frame, orient=tk.VERTICAL)
+        paned_window.pack(fill=tk.BOTH, expand=True, padx=8, pady=12)
 
         # company
-        frame = self.Frame(panedwindow, width=420, height=20)
-        panedwindow.add(frame, weight=1)
+        frame = self.Frame(paned_window, width=450, height=20)
+        paned_window.add(frame, weight=4)
 
+        font_size = 12 if self.is_macos else 10
         fmt = 'DLApp v{} ({} Edition)'
-        company_lbl = self.Label(frame, text=fmt.format(version, edition))
-        company_lbl.pack(side=tk.LEFT)
+        company_lbl = self.Label(
+            frame, text=fmt.format(version, edition),
+            font=('san-serif', font_size, 'bold')
+        )
+        company_lbl.grid(row=0, column=0, columnspan=2, sticky=tk.W)
 
         # URL
-        frame = self.Frame(panedwindow, width=420, height=20)
-        panedwindow.add(frame, weight=1)
+        cell_frame = self.Frame(frame, width=450, height=5)
+        cell_frame.grid(row=1, column=0, sticky=tk.W, columnspan=2)
 
         url = Data.repo_url
-        self.Label(frame, text='URL:').pack(side=tk.LEFT)
-        font_size = 12 if self.is_macos else 10
+        self.Label(cell_frame, text='URL:').pack(side=tk.LEFT)
         style = ttk.Style()
         style.configure("Blue.TLabel", foreground="blue")
-        url_lbl = self.Label(frame, text=url, font=('sans-serif', font_size))
-        url_lbl.config(style='Blue.TLabel')
-        url_lbl.default_font = ('sans-serif', font_size)
-        url_lbl.pack(side=tk.LEFT)
-        url_lbl.link = url
+        label = self.Label(
+            cell_frame, text=url, font=('sans-serif', font_size),
+            style='Blue.TLabel'
+        )
+        label.default_font = ('sans-serif', font_size)
+        label.pack(side=tk.LEFT)
+        label.link = url
 
-        url_lbl.bind('<Enter>', mouse_over)
-        url_lbl.bind('<Leave>', mouse_out)
-        url_lbl.bind('<Button-1>', mouse_press)
+        label.bind('<Enter>', mouse_over)
+        label.bind('<Leave>', mouse_out)
+        label.bind('<Button-1>', mouse_press)
+
+        # dependencies
+        self.Label(
+            frame, text='Pypi.com Dependencies:',
+            font=('sans-serif', font_size, 'underline')
+        ).grid(row=2, column=0, sticky=tk.W)
+
+        # compare_versions package
+        from compare_versions import __version__ as ver
+        text = 'compare_versions v{}'.format(ver)
+        label = self.Label(
+            frame, text=text, font=('sans-serif', font_size),
+            style='Blue.TLabel'
+        )
+        label.grid(row=3, column=0, padx=(20, 0), sticky=tk.W+tk.N)
+        label.default_font = ('sans-serif', font_size)
+        label.link = 'https://pypi.org/project/compare_versions/'
+        label.bind('<Enter>', mouse_over)
+        label.bind('<Leave>', mouse_out)
+        label.bind('<Button-1>', mouse_press)
+
+        # python-dateutil package
+        from dateutil import __version__ as ver     # noqa
+        text = 'python-dateutil v{} '.format(ver)
+        label = self.Label(
+            frame, text=text, font=('sans-serif', font_size),
+            style='Blue.TLabel'
+        )
+        label.grid(row=4, column=0, padx=(20, 0), pady=(0, 10), sticky=tk.W+tk.N)
+        label.default_font = ('sans-serif', font_size)
+        label.link = 'https://pypi.org/project/python-dateutil/'
+        label.bind('<Enter>', mouse_over)
+        label.bind('<Leave>', mouse_out)
+        label.bind('<Button-1>', mouse_press)
+
+        # PyYAML package
+        from yaml import __version__ as ver
+        text = 'PyYAML v{}'.format(ver)
+        label = self.Label(
+            frame, text=text, font=('sans-serif', font_size),
+            style='Blue.TLabel'
+        )
+        label.grid(row=3, column=1, padx=(20, 0), sticky=tk.W+tk.N)
+        label.default_font = ('sans-serif', font_size)
+        label.link = 'https://pypi.org/project/PyYAML/'
+        label.bind('<Enter>', mouse_over)
+        label.bind('<Leave>', mouse_out)
+        label.bind('<Button-1>', mouse_press)
 
         # license textbox
         lframe = self.LabelFrame(
-            panedwindow, height=300, width=420,
+            paned_window, height=200, width=450,
             text=Data.license_name
         )
-        panedwindow.add(lframe, weight=7)
+        paned_window.add(lframe, weight=7)
 
-        width = 55 if self.is_macos else 48
-        height = 19 if self.is_macos else 15 if self.is_linux else 16
+        width = 58 if self.is_macos else 51
+        height = 18 if self.is_macos else 14 if self.is_linux else 15
         txtbox = self.TextArea(lframe, width=width, height=height, wrap='word')
         txtbox.grid(row=0, column=0, padx=5, pady=5)
         scrollbar = ttk.Scrollbar(lframe, orient=tk.VERTICAL, command=txtbox.yview)
@@ -442,11 +500,11 @@ class Application:
         txtbox.config(state=tk.DISABLED)
 
         # footer - copyright
-        frame = self.Frame(panedwindow, width=380, height=20)
-        panedwindow.add(frame, weight=1)
+        frame = self.Frame(paned_window, width=450, height=20)
+        paned_window.add(frame, weight=1)
 
         footer = self.Label(frame, text=Data.copyright_text)
-        footer.pack(side=tk.LEFT)
+        footer.pack(side=tk.LEFT, pady=(10, 10))
 
         set_modal_dialog(about)
 
