@@ -286,6 +286,22 @@ class Application:
     browser = webbrowser
 
     def __init__(self):
+        # support platform: macOS, Linux, and Window
+        self.is_macos = platform.system() == 'Darwin'
+        self.is_linux = platform.system() == 'Linux'
+        self.is_window = platform.system() == 'Windows'
+
+        # standardize tkinter widget for macOS, Linux, and Window operating system
+        self.RadioButton = tk.Radiobutton if self.is_linux else ttk.Radiobutton
+        self.CheckBox = tk.Checkbutton if self.is_linux else ttk.Checkbutton
+        self.Label = ttk.Label
+        self.Frame = ttk.Frame
+        self.LabelFrame = ttk.LabelFrame
+        self.Button = ttk.Button
+        self.TextBox = ttk.Entry
+        self.TextArea = tk.Text
+        self.PanedWindow = ttk.PanedWindow
+
         self._base_title = 'DLApp {}'.format(edition)
         self.root = tk.Tk()
         self.root.geometry('800x600+100+100')
@@ -309,19 +325,6 @@ class Application:
         self.csv_radio_btn = None
         self.json_radio_btn = None
         self.yaml_radio_btn = None
-
-        self.is_macos = platform.system() == 'Darwin'
-        self.is_linux = platform.system() == 'Linux'
-        self.is_window = platform.system() == 'Windows'
-
-        self.RadioButton = tk.Radiobutton if self.is_linux else ttk.Radiobutton
-        self.Label = ttk.Label
-        self.Frame = ttk.Frame
-        self.LabelFrame = ttk.LabelFrame
-        self.Button = ttk.Button
-        self.TextBox = ttk.Entry
-        self.TextArea = tk.Text
-        self.PanedWindow = ttk.PanedWindow
 
         self.set_title()
         self.build_menu()
