@@ -82,10 +82,11 @@ from dlapp.validation import RegexValidation      # noqa
 from dlapp.validation import OpValidation         # noqa
 from dlapp.validation import CustomValidation     # noqa
 
-__version__ = '1.0.4'
-version = __version__
-__edition__ = 'Community'
-edition = __edition__
+from dlapp.config import version
+from dlapp.config import edition
+
+__version__ = version
+__edition__ = edition
 
 __all__ = [
     'CustomValidation',
