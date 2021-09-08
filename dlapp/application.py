@@ -320,7 +320,7 @@ class Application:
         self.select_entry_var = tk.StringVar()
         self.result = None
 
-        self.textarea = None
+        self.input_textarea = None
         self.result_textarea = None
         self.csv_radio_btn = None
         self.json_radio_btn = None
@@ -359,8 +359,8 @@ class Application:
             content = Content(filename=filename)
             if content.is_ready:
                 self.set_title(title=filename)
-                self.textarea.delete("1.0", "end")
-                self.textarea.insert(tk.INSERT, content.data)
+                self.input_textarea.delete("1.0", "end")
+                self.input_textarea.insert(tk.INSERT, content.data)
                 self.radio_btn_var.set(content.filetype)
 
     def callback_help_documentation(self):
@@ -494,24 +494,24 @@ class Application:
 
         self.text_frame.rowconfigure(0, weight=1)
         self.text_frame.columnconfigure(0, weight=1)
-        self.textarea = self.TextArea(self.text_frame, width=20, height=5, wrap='none')
-        self.textarea.grid(row=0, column=0, sticky='nswe')
+        self.input_textarea = self.TextArea(self.text_frame, width=20, height=5, wrap='none')
+        self.input_textarea.grid(row=0, column=0, sticky='nswe')
         vscrollbar = ttk.Scrollbar(
-            self.text_frame, orient=tk.VERTICAL, command=self.textarea.yview
+            self.text_frame, orient=tk.VERTICAL, command=self.input_textarea.yview
         )
         vscrollbar.grid(row=0, column=1, sticky='ns')
         hscrollbar = ttk.Scrollbar(
-            self.text_frame, orient=tk.HORIZONTAL, command=self.textarea.xview
+            self.text_frame, orient=tk.HORIZONTAL, command=self.input_textarea.xview
         )
         hscrollbar.grid(row=1, column=0, sticky='ew')
-        self.textarea.config(
+        self.input_textarea.config(
             yscrollcommand=vscrollbar.set, xscrollcommand=hscrollbar.set
         )
 
     def build_entry(self):
         """Build input entry for DLApp."""
         def callback_run_btn():
-            data = self.textarea.get('1.0', 'end').strip()
+            data = self.input_textarea.get('1.0', 'end').strip()
             filetype = self.radio_btn_var.get()
             lookup = self.lookup_entry_var.get()
             select = self.select_entry_var.get()
@@ -532,7 +532,7 @@ class Application:
                 create_msgbox(title=title, error=error)
 
         def callback_tabular_btn():
-            data = self.textarea.get('1.0', 'end').strip()
+            data = self.input_textarea.get('1.0', 'end').strip()
             filetype = self.radio_btn_var.get()
             lookup = self.lookup_entry_var.get()
             select = self.select_entry_var.get()
@@ -562,7 +562,7 @@ class Application:
                 create_msgbox(title=title, error=error)
 
         def callback_clear_text_btn():
-            self.textarea.delete("1.0", "end")
+            self.input_textarea.delete("1.0", "end")
             self.result_textarea.delete("1.0", "end")
             self.radio_btn_var.set(None)
             self.lookup_entry_var.set('')
@@ -581,12 +581,12 @@ class Application:
             try:
                 data = self.root.clipboard_get()
                 if data:
-                    self.textarea.delete("1.0", "end")
+                    self.input_textarea.delete("1.0", "end")
                     # filetype = self.radio_btn_var.get()
                     self.content = Content(data=data, filetype=filetype)
                     if self.content.is_ready:
                         self.set_title(title='<<PASTE - Clipboard>>')
-                        self.textarea.insert(tk.INSERT, data)
+                        self.input_textarea.insert(tk.INSERT, data)
                         self.radio_btn_var.set(self.content.filetype)
             except Exception as ex:     # noqa
                 title = 'Empty Clipboard',
