@@ -1,10 +1,10 @@
-"""Packaging dlquery."""
+"""Packaging dlapp."""
 
 from setuptools import setup, find_packages
 
 
 setup(
-    name='dlquery',
+    name='dlapp',
     version='1.0.4',
     license='BSD-3-Clause',
     license_files=['LICENSE'],
@@ -16,7 +16,7 @@ setup(
     maintainer='Tuyen Mathew Duong',
     maintainer_email='tuyen@geekstrident.com',
     install_requires=['pyyaml', 'compare_versions', 'python-dateutil'],
-    url='https://github.com/Geeks-Trident-LLC/dlquery',
+    url='https://github.com/Geeks-Trident-LLC/dlapp',
     packages=find_packages(
         exclude=(
             'tests*', 'testing*', 'examples*',
@@ -26,9 +26,9 @@ setup(
     test_suite='tests',
     entry_points={
         'console_scripts': [
-            'dlquery = dlquery.main:execute',
-            'dlquery-gui = dlquery.application:execute',
-            'dlquery-app = dlquery.application:execute'
+            'dlapp = dlapp.main:execute',
+            'dlapp-gui = dlapp.application:execute',
+            'dl-app = dlapp.application:execute'
         ]
     },
     classifiers=[

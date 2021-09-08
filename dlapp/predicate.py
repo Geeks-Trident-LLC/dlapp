@@ -1,11 +1,11 @@
 """Module containing the logic for predicate."""
 
 import logging
-from dlquery.validation import RegexValidation
-from dlquery.validation import OpValidation
-from dlquery.validation import CustomValidation
-from dlquery.validation import VersionValidation
-from dlquery.validation import DatetimeValidation
+from dlapp.validation import RegexValidation
+from dlapp.validation import OpValidation
+from dlapp.validation import CustomValidation
+from dlapp.validation import VersionValidation
+from dlapp.validation import DatetimeValidation
 
 
 logger = logging.getLogger(__file__)

@@ -2,7 +2,7 @@
 
 import re
 from collections import OrderedDict
-from dlquery.argumenthelper import validate_argument_type
+from dlapp.argumenthelper import validate_argument_type
 
 
 class UtilsError(Exception):

@@ -1,4 +1,4 @@
-from dlquery import utils
+from dlapp import utils
 import pytest
 import re
 

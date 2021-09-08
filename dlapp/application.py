@@ -1,4 +1,4 @@
-"""Module containing the logic for the dlquery app."""
+"""Module containing the logic for the DLApp."""
 
 import tkinter as tk
 from tkinter import ttk
@@ -8,12 +8,12 @@ from os import path
 from pprint import pformat
 import webbrowser
 from textwrap import dedent
-from dlquery import create_from_csv_data
-from dlquery import create_from_json_data
-from dlquery import create_from_yaml_data
-from dlquery.collection import Tabular
-from dlquery import version
-from dlquery import edition
+from dlapp import create_from_csv_data
+from dlapp import create_from_json_data
+from dlapp import create_from_yaml_data
+from dlapp.collection import Tabular
+from dlapp import version
+from dlapp import edition
 
 import platform
 
@@ -55,18 +55,18 @@ def set_modal_dialog(dialog):
 
 class Data:
     license_name = 'BSD 3-Clause License'
-    repo_url = 'https://github.com/Geeks-Trident-LLC/dlquery'
+    repo_url = 'https://github.com/Geeks-Trident-LLC/dlapp'
     license_url = path.join(repo_url, 'blob/main/LICENSE')
     # TODO: Need to update wiki page for documentation_url instead of README.md.
     documentation_url = path.join(repo_url, 'blob/develop/README.md')
-    copyright_text = 'Copyright @ 2021-2030 Geeks Trident LLC.  All rights reserved.'
+    copyright_text = 'Copyright @ 2021-2040 Geeks Trident LLC.  All rights reserved.'
 
     @classmethod
     def get_license(cls):
         license_ = """
             BSD 3-Clause License
 
-            Copyright (c) 2021, Geeks Trident LLC
+            Copyright (c) 2021-2040, Geeks Trident LLC
             All rights reserved.
 
             Redistribution and use in source and binary forms, with or without
@@ -214,7 +214,7 @@ class Content:
 
 
 class Application:
-    """A dlquery application class.
+    """A DLApp application class.
 
     Attributes
     ----------
@@ -235,7 +235,7 @@ class Application:
     browser = webbrowser
 
     def __init__(self):
-        self._base_title = 'DLQuery App'
+        self._base_title = 'DLApp {}'.format(edition)
         self.root = tk.Tk()
         self.root.geometry('800x600+100+100')
         self.root.minsize(200, 200)
@@ -351,7 +351,7 @@ class Application:
         frame = self.Frame(panedwindow, width=420, height=20)
         panedwindow.add(frame, weight=1)
 
-        fmt = 'Regex GUI v{} ({} Edition)'
+        fmt = 'DLApp v{} ({} Edition)'
         company_lbl = self.Label(frame, text=fmt.format(version, edition))
         company_lbl.pack(side=tk.LEFT)
 
@@ -401,7 +401,7 @@ class Application:
         set_modal_dialog(about)
 
     def build_menu(self):
-        """Build menubar for dlquery application."""
+        """Build menubar for dlapp."""
         menu_bar = tk.Menu(self.root)
         self.root.config(menu=menu_bar)
         file = tk.Menu(menu_bar)
@@ -422,7 +422,7 @@ class Application:
         help_.add_command(label='About', command=lambda: self.callback_help_about())
 
     def build_frame(self):
-        """Build layout for dlquery application."""
+        """Build layout for DLApp."""
         self.panedwindow = self.PanedWindow(self.root, orient=tk.VERTICAL)
         self.panedwindow.pack(fill=tk.BOTH, expand=True)
 
@@ -440,7 +440,7 @@ class Application:
         self.panedwindow.add(self.result_frame, weight=2)
 
     def build_textarea(self):
-        """Build input text for dlquery application."""
+        """Build input text for DLApp."""
 
         self.text_frame.rowconfigure(0, weight=1)
         self.text_frame.columnconfigure(0, weight=1)
@@ -459,7 +459,7 @@ class Application:
         )
 
     def build_entry(self):
-        """Build input entry for dlquery application."""
+        """Build input entry for DLApp."""
         def callback_run_btn():
             data = self.textarea.get('1.0', 'end').strip()
             filetype = self.radio_btn_var.get()
@@ -653,11 +653,11 @@ class Application:
         )
 
     def run(self):
-        """Launch dlquery app."""
+        """Launch DLApp."""
         self.root.mainloop()
 
 
 def execute():
-    """Launch dlquery app."""
+    """Launch DLApp."""
     app = Application()
     app.run()

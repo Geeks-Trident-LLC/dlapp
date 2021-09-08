@@ -29,7 +29,7 @@ def validate_argument_type(*args, **kwargs):
 
     Example
     -------
-        >>> from dlquery.argumenthelper import validate_argument_type
+        >>> from dlapp.argumenthelper import validate_argument_type
         >>> def test(dict_obj):
         ...     validate_argument_type(dict, dict_obj=dict_obj)
         ...
@@ -84,7 +84,7 @@ def validate_argument_choice(**kwargs):
     -------
 
         >>>
-        >>> from dlquery.argumenthelper import validate_argument_choice
+        >>> from dlapp.argumenthelper import validate_argument_choice
         >>> def test(kind='car'):
         ...     '''argument `kind` must be either ``car`` or ``bicycle```'''
         ...     validate_argument_choice(kind=(kind, ('car', 'bicycle')))
@@ -135,7 +135,7 @@ def validate_argument_is_not_empty(**kwargs):
 
     Example
     -------
-        >>> from dlquery.argumenthelper import validate_argument_is_not_empty
+        >>> from dlapp.argumenthelper import validate_argument_is_not_empty
         >>> def test(node):
         ...     validate_argument_is_not_empty(node=node)
         ...
