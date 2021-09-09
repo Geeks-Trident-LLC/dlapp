@@ -7,7 +7,7 @@ import compare_versions
 import dateutil
 import yaml
 
-__version__ = '0.2.0'
+__version__ = '0.2.2'
 version = __version__
 __edition__ = 'Community'
 edition = __edition__
@@ -27,7 +27,7 @@ class Data:
     compare_versions_text = 'compare_versions v{}'.format(compare_versions.__version__)
     compare_versions_link = 'https://pypi.org/project/compare_versions/'
 
-    python_dateutil_text = 'TextFSM v{}'.format(dateutil.__version__)
+    python_dateutil_text = 'python-dateutil v{}'.format(dateutil.__version__)
     python_dateutil_link = 'https://pypi.org/project/python_dateutil/'
 
     pyyaml_text = 'PyYAML v{}'.format(yaml.__version__)
