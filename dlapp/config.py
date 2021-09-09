@@ -21,10 +21,10 @@ __all__ = [
 
 class Data:
     # main app
-    main_app_text = 'TemplateApp {} ({} Edition)'.format(version, edition)
+    main_app_text = 'DLApp {} ({} Edition)'.format(version, edition)
 
     # packages
-    compare_versions_text = 'compare_versions v{}'.format(compare_versions.version)
+    compare_versions_text = 'compare_versions v{}'.format(compare_versions.__version__)
     compare_versions_link = 'https://pypi.org/project/compare_versions/'
 
     python_dateutil_text = 'TextFSM v{}'.format(dateutil.__version__)
