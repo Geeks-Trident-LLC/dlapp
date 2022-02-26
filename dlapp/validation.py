@@ -748,7 +748,7 @@ class CustomValidation:
 
         try:
             if str(value).strip() == '':
-                return False if valid else True
+                return False
 
             value = str(value).strip()
             parse(value, fuzzy=True)
@@ -799,7 +799,7 @@ class CustomValidation:
 
         try:
             if str(value).strip() == '':
-                return False if valid else True
+                return False
 
             value = str(value).strip()
             parse(value, fuzzy=True)
@@ -832,7 +832,6 @@ class CustomValidation:
             return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_time(cls, value, valid=True, on_exception=True):
         """Verify a provided data is time.
 
@@ -846,31 +845,39 @@ class CustomValidation:
         -------
         bool: True if value is time, otherwise, False.
         """
-        if str(value).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        value = str(value).strip()
-        parse(value, fuzzy=True)
+        try:
+            if str(value).strip() == '':
+                return False
 
-        date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
-        matched_date = re.search(date_pattern, value)
-        if matched_date:
-            return False
+            value = str(value).strip()
+            parse(value, fuzzy=True)
 
-        month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
-                               '([abceimorstu]*[ehlrt])?')
-        matched_month_names = re.search(month_names_pattern, value)
-        if matched_month_names:
-            return False
+            date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
+            matched_date = re.search(date_pattern, value)
+            if matched_date:
+                return False if valid else True
 
-        day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
-        matched_day_names = re.search(day_names_pattern, value)
-        if matched_day_names:
-            return False
+            month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
+                                   '([abceimorstu]*[ehlrt])?')
+            matched_month_names = re.search(month_names_pattern, value)
+            if matched_month_names:
+                return False if valid else True
 
-        time_pattern = '[0-9]+:[0-9]+'
-        matched_time = re.search(time_pattern, value)
-        return bool(matched_time)
+            day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
+            matched_day_names = re.search(day_names_pattern, value)
+            if matched_day_names:
+                return False if valid else True
+
+            time_pattern = '[0-9]+:[0-9]+'
+            matched_time = re.search(time_pattern, value)
+            result = bool(matched_time)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
     @false_on_exception_for_classmethod
