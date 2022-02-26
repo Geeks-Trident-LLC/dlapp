@@ -369,7 +369,7 @@ class CustomValidation:
         bool: True if match condition, otherwise, False.
 
         Raise:
-        NotImplementedError: if custom method doesnt exist.
+        NotImplementedError: if custom method doesn't exist.
         """
         case = str(case).lower()
         name = 'is_{}'.format(case)
@@ -1043,7 +1043,7 @@ class DatetimeResult:
         self.tzinfos = dict()
         self.parse_timezone()
 
-    def to_bool(self, value, default=False):
+    def to_bool(self, value, default=False):    # noqa
         """Return True if value is True
 
         Parameters
@@ -1212,7 +1212,6 @@ class DatetimeValidation:
             return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def compare_datetime(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for datetime.
 
@@ -1229,22 +1228,29 @@ class DatetimeValidation:
         bool: True if a datetime lt|le|gt|ge|eq|ne other datetime, otherwise, False.
                  or   a datetime < | <= | > | >= | == | != other datetime
         """
-        if str(value).strip() == '' or str(other).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        op = 'lt' if op == '<' else 'le' if op == '<=' else op
-        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
-        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+        try:
+            if str(value).strip() == '' or str(other).strip() == '':
+                return False
 
-        dt_parsed_result = DatetimeValidation.parse_custom_date(other)
+            op = 'lt' if op == '<' else 'le' if op == '<=' else op
+            op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+            op = 'eq' if op == '==' else 'ne' if op == '!=' else op
 
-        a_date_str, other_date_str = value, dt_parsed_result.data
+            dt_parsed_result = DatetimeValidation.parse_custom_date(other)
 
-        if other_date_str.strip() == '':
-            return False
+            a_date_str, other_date_str = value, dt_parsed_result.data
 
-        a_date = DatetimeValidation.get_date(a_date_str, dt_parsed_result)
-        other_date = DatetimeValidation.get_date(other_date_str, dt_parsed_result)
+            if other_date_str.strip() == '':
+                return False
 
-        result = DatetimeValidation.do_date_compare(a_date, op, other_date)
-        return result
+            a_date = DatetimeValidation.get_date(a_date_str, dt_parsed_result)
+            other_date = DatetimeValidation.get_date(other_date_str, dt_parsed_result)
+
+            result = DatetimeValidation.do_date_compare(a_date, op, other_date)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
