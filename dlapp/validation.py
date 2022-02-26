@@ -894,24 +894,31 @@ class CustomValidation:
         -------
         bool: True if value is ISO date, otherwise, False.
         """
-        if str(value).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        value = str(value).strip()
-        isoparse(value)
+        try:
+            if str(value).strip() == '':
+                return False
 
-        pattern = '[0-9]{4}((-[0-9]{2})|(-?W[0-9]{2}))$'
-        match = re.match(pattern, value)
-        if match:
-            return True
+            value = str(value).strip()
+            isoparse(value)
 
-        pattern = ('[0-9]{4}('
-                   '(-?[0-9]{2}-?[0-9]{2})|'
-                   '(-?W[0-9]{2}-?[0-9])|'
-                   '(-?[0-9]{3})'
-                   ')')
-        match = re.match(pattern, value)
-        return bool(match)
+            pattern = '[0-9]{4}((-[0-9]{2})|(-?W[0-9]{2}))$'
+            match = re.match(pattern, value)
+            if match:
+                return True if valid else False
+
+            pattern = ('[0-9]{4}('
+                       '(-?[0-9]{2}-?[0-9]{2})|'
+                       '(-?W[0-9]{2}-?[0-9])|'
+                       '(-?[0-9]{3})'
+                       ')')
+            result = bool(re.match(pattern, value))
+            return result if valid else False
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
 
 class VersionValidation:
