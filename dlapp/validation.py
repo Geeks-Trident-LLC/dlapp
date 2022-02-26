@@ -268,7 +268,6 @@ class OpValidation:
             return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def contain(cls, value, other, valid=True, on_exception=True):
         """Perform operator checking that value contains other.
 
@@ -283,11 +282,17 @@ class OpValidation:
         -------
         bool: True if value contains other, otherwise, False.
         """
-        result = operator.contains(value, other)
-        return result
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            result = operator.contains(value, other)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def belong(cls, value, other, valid=True, on_exception=True):
         """Perform operator checking that value belongs other.
 
@@ -302,8 +307,15 @@ class OpValidation:
         -------
         bool: True if value belongs other, otherwise, False.
         """
-        result = operator.contains(other, value)
-        return result
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            result = operator.contains(other, value)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
 
 class CustomValidation:
