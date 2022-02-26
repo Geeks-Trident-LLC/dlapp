@@ -359,8 +359,8 @@ class CustomValidation:
 
         Parameters
         ----------
-        case: custom validation keyword.
-        value: data for validation.
+        case (str): custom validation keyword.
+        value (str): data for validation.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
@@ -494,7 +494,6 @@ class CustomValidation:
             return result
 
     # @classmethod
-    # @false_on_exception_for_classmethod
     # def is_network_interface(cls, iface_name, valid=True, on_exception=True):
     #     """Verify a provided data is a network interface.
     #
@@ -509,11 +508,11 @@ class CustomValidation:
     #     bool: True if iface_name is a network interface, otherwise, False.
     #     """
     #     pattern = r'[a-z]+(-?[a-z0-9]+)?'
-    #     result = validate_interface(iface_name, pattern=pattern)
+    #     result = validate_interface(iface_name, pattern=pattern,
+    #                                 valid=valid, on_exception=on_exception)
     #     return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_loopback_interface(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a loopback interface.
 
@@ -528,11 +527,11 @@ class CustomValidation:
         bool: True if iface_name is a loopback interface, otherwise, False.
         """
         pattern = r'lo(opback)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_bundle_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a bundle-ether interface.
 
@@ -547,11 +546,11 @@ class CustomValidation:
         bool: True if iface_name is a bundle-ether interface, otherwise, False.
         """
         pattern = r'bundle-ether|be'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_port_channel(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a port-channel interface.
 
@@ -566,11 +565,11 @@ class CustomValidation:
         bool: True if iface_name is a bundle-ether interface, otherwise, False.
         """
         pattern = r'po(rt-channel)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_hundred_gigabit_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a HundredGigaBit interface.
 
@@ -585,11 +584,11 @@ class CustomValidation:
         bool: True if iface_name is a HundredGigaBit interface, otherwise, False.
         """
         pattern = 'Hu(ndredGigE)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_ten_gigabit_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a TenGigaBitEthernet interface.
 
@@ -604,11 +603,11 @@ class CustomValidation:
         bool: True if iface_name is a TenGigaBitEthernet interface, otherwise, False.
         """
         pattern = 'Te(nGigE)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_gigabit_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a TenGigaBitEthernet interface.
 
@@ -623,11 +622,11 @@ class CustomValidation:
         bool: True if iface_name is a TenGigaBitEthernet interface, otherwise, False.
         """
         pattern = 'Gi(gabitEthernet)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_fast_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a FastEthernet interface.
 
@@ -642,7 +641,8 @@ class CustomValidation:
         bool: True if iface_name is a FastEthernet interface, otherwise, False.
         """
         pattern = r'fa(stethernet)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
