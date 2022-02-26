@@ -646,8 +646,7 @@ class CustomValidation:
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
-    def is_empty(cls, value, valid=True, on_exception=True):
+    def is_empty(cls, value, valid=True, on_exception=True):    # noqa
         """Verify a provided data is an empty string.
 
         Parameters
@@ -660,12 +659,15 @@ class CustomValidation:
         -------
         bool: True if value is an empty string, otherwise, False.
         """
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
         value = str(value)
-        return value == ''
+        result = value == ''
+        return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
-    def is_optional_empty(cls, value, valid=True, on_exception=True):
+    def is_optional_empty(cls, value, valid=True, on_exception=True):   # noqa
         """Verify a provided data is an optional empty string.
 
         Parameters
@@ -678,13 +680,15 @@ class CustomValidation:
         -------
         bool: True if value is an optional empty string, otherwise, False.
         """
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
         value = str(value)
-        result = re.match(r'\s+$', value)
-        return bool(result)
+        result = bool(re.match(r'\s+$', value))
+        return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
-    def is_true(cls, value, valid=True, on_exception=True):
+    def is_true(cls, value, valid=True, on_exception=True):     # noqa
         """Verify a provided data is True.
 
         Parameters
@@ -697,14 +701,15 @@ class CustomValidation:
         -------
         bool: True if value is a True, otherwise, False.
         """
-        if isinstance(value, bool):
-            return value is True
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
         value = str(value)
-        return value.lower() == 'true'
+        result = value.lower() == 'true'
+        return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
-    def is_false(cls, value, valid=True, on_exception=True):
+    def is_false(cls, value, valid=True, on_exception=True):    # noqa
         """Verify a provided data is False.
 
         Parameters
@@ -717,10 +722,12 @@ class CustomValidation:
         -------
         bool: True if value is a False, otherwise, False.
         """
-        if isinstance(value, bool):
-            return value is False
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
         value = str(value)
-        return value.lower() == 'false'
+        result = value.lower() == 'false'
+        return result if valid else not result
 
     @classmethod
     @false_on_exception_for_classmethod
