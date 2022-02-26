@@ -74,7 +74,7 @@ def get_ip_address(addr, is_prefix=False, on_exception=True):
         return (None, None) if is_prefix else None
 
 
-def validate_interface(iface_name, pattern=''):
+def validate_interface(iface_name, pattern='', valid=True, on_exception=True):
     """Verify a provided data is a network interface.
 
     Parameters
@@ -87,9 +87,17 @@ def validate_interface(iface_name, pattern=''):
     bool: True if iface_name is a network interface, otherwise, False.
     """
     iface_name = str(iface_name)
-    pattern = r'\b' + pattern + r' *[0-9]+(/[0-9]+)?([.][0-9]+)?\b'
-    result = re.match(pattern, iface_name, re.I)
-    return bool(result)
+
+    if iface_name.upper() == '__EXCEPTION__':
+        return False
+
+    try:
+        pattern = r'\b' + pattern + r' *[0-9]+(/[0-9]+)?([.][0-9]+)?\b'
+        result = bool(re.match(pattern, iface_name, re.I))
+        return result if valid else not result
+    except Exception as ex:
+        result = raise_exception_if(ex, on_exception=on_exception)
+        return result
 
 
 def false_on_exception_for_classmethod(func):
