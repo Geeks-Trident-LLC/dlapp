@@ -156,7 +156,6 @@ class RegexValidation:
     RegexValidation.match(pattern, value, valid=True, on_exception=True) -> bool
     """
     @classmethod
-    @false_on_exception_for_classmethod
     def match(cls, pattern, value, valid=True, on_exception=True):
         """Perform regular expression matching.
 
@@ -171,8 +170,15 @@ class RegexValidation:
         -------
         bool: True if match pattern, otherwise, False.
         """
-        match = re.match(pattern, str(value))
-        return bool(match)
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            result = bool(re.match(pattern, str(value)))
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
 
 class OpValidation:
