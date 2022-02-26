@@ -373,7 +373,6 @@ class CustomValidation:
             raise NotImplementedError(msg)
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_ip_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is an IP address.
 
@@ -387,14 +386,20 @@ class CustomValidation:
         -------
         bool: True if addr is an IP address, otherwise, False.
         """
-        ip_addr = get_ip_address(addr, on_exception=on_exception)
-        chk = True if ip_addr else False
-        if not chk:
-            logger.info('{!r} is not an IP address.'.format(addr))
-        return chk
+        if str(addr).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            ip_addr = get_ip_address(addr, on_exception=on_exception)
+            chk = True if ip_addr else False
+            if not chk:
+                logger.info('{!r} is not an IP address.'.format(addr))
+            return chk if valid else not chk
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_ipv4_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is an IPv4 address.
 
@@ -408,14 +413,20 @@ class CustomValidation:
         -------
         bool: True if addr is an IPv4 address, otherwise, False.
         """
-        ip_addr = get_ip_address(addr, on_exception=on_exception)
-        chk = True if ip_addr and ip_addr.version == 4 else False
-        if not chk:
-            logger.info('{!r} is not an IPv4 address.'.format(addr))
-        return chk
+        if str(addr).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            ip_addr = get_ip_address(addr, on_exception=on_exception)
+            chk = True if ip_addr and ip_addr.version == 4 else False
+            if not chk:
+                logger.info('{!r} is not an IPv4 address.'.format(addr))
+            return chk if valid else not chk
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_ipv6_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is an IPv6 address.
 
@@ -429,14 +440,20 @@ class CustomValidation:
         -------
         bool: True if addr is an IPv6 address, otherwise, False.
         """
-        ip_addr = get_ip_address(addr, on_exception=on_exception)
-        chk = True if ip_addr and ip_addr.version == 6 else False
-        if not chk:
-            logger.info('{!r} is not an IPv6 address.'.format(addr))
-        return chk
+        if str(addr).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            ip_addr = get_ip_address(addr, on_exception=on_exception)
+            chk = True if ip_addr and ip_addr.version == 6 else False
+            if not chk:
+                logger.info('{!r} is not an IPv6 address.'.format(addr))
+            return chk if valid else not chk
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_mac_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is a MAC address.
 
@@ -450,16 +467,23 @@ class CustomValidation:
         -------
         bool: True if addr is a MAC address, otherwise, False.
         """
-        addr = str(addr)
-        patterns = [
-            r'\b[0-9a-f]{2}([-: ])([0-9a-f]{2}\1){4}[0-9a-f]{2}\b',
-            r'\b[a-f0-9]{4}[.][a-f0-9]{4}[.][a-f0-9]{4}\b'
-        ]
-        for pattern in patterns:
-            result = re.match(pattern, addr, re.I)
-            if result:
-                return True
-        return False
+        if str(addr).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            addr = str(addr)
+            patterns = [
+                r'\b[0-9a-f]{2}([-: ])([0-9a-f]{2}\1){4}[0-9a-f]{2}\b',
+                r'\b[a-f0-9]{4}[.][a-f0-9]{4}[.][a-f0-9]{4}\b'
+            ]
+            for pattern in patterns:
+                result = re.match(pattern, addr, re.I)
+                if result:
+                    return True if valid else False
+            return False if valid else True
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     # @classmethod
     # @false_on_exception_for_classmethod
