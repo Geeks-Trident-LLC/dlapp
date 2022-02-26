@@ -880,7 +880,6 @@ class CustomValidation:
             return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_isodate(cls, value, valid=True, on_exception=True):
         """Verify a provided data is ISO date.
 
@@ -930,7 +929,6 @@ class VersionValidation:
     VersionValidation.compare_semantic_version(value, op, other, valid=True, on_exception=True) -> bool
     """
     @classmethod
-    @false_on_exception_for_classmethod
     def compare_version(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for version.
 
@@ -971,7 +969,6 @@ class VersionValidation:
             return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def compare_semantic_version(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for semantic version.
 
@@ -988,21 +985,28 @@ class VersionValidation:
         bool: True if a version lt|le|gt|ge|eq|ne other version, otherwise, False.
                 or    a version < | <= | > | >= | == | != other version
         """
-        if str(value).strip() == '' or str(other).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        op = str(op).lower().strip()
-        op = 'lt' if op == '<' else 'le' if op == '<=' else op
-        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
-        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
-        valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
-        if op not in valid_ops:
-            fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
-            raise ValidationOperatorError(fmt.format(op, valid_ops))
+        try:
+            if str(value).strip() == '' or str(other).strip() == '':
+                return False
 
-        value, other = str(value), str(other)
-        result = version_compare([value, other], comparison=op, scheme='semver')
-        return result
+            op = str(op).lower().strip()
+            op = 'lt' if op == '<' else 'le' if op == '<=' else op
+            op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+            op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+            valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
+            if op not in valid_ops:
+                fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
+                raise ValidationOperatorError(fmt.format(op, valid_ops))
+
+            value, other = str(value), str(other)
+            result = version_compare([value, other], comparison=op, scheme='semver')
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
 
 class ParsedTimezoneError(Exception):
