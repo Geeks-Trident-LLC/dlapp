@@ -233,7 +233,6 @@ class OpValidation:
             return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def compare(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for string.
 
@@ -250,16 +249,23 @@ class OpValidation:
         bool: True if a value eq|ne other value, otherwise, False.
                 or    a value == | != other value
         """
-        op = str(op).lower().strip()
-        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
-        valid_ops = ('eq', 'ne')
-        if op not in valid_ops:
-            fmt = ('Invalid {!r} operator for checking equal '
-                   'or via versa.  It MUST be {}.')
-            raise ValidationOperatorError(fmt.format(op, valid_ops))
+        if str(value).upper() == '__EXCEPTION__':
+            return False
 
-        result = getattr(operator, op)(value, other)
-        return result
+        try:
+            op = str(op).lower().strip()
+            op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+            valid_ops = ('eq', 'ne')
+            if op not in valid_ops:
+                fmt = ('Invalid {!r} operator for checking equal '
+                       'or via versa.  It MUST be {}.')
+                raise ValidationOperatorError(fmt.format(op, valid_ops))
+
+            result = getattr(operator, op)(value, other)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
     @false_on_exception_for_classmethod
