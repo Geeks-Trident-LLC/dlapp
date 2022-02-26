@@ -821,7 +821,7 @@ class VersionValidation:
         ----------
         value (str): a version.
         op (str): an operator can be lt, le, gt, ge, eq, ne, <, <=, >, >=, ==, or !=
-        other (str): an other version.
+        other (str): other version.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
@@ -855,7 +855,7 @@ class VersionValidation:
         ----------
         value (str): a version.
         op (str): an operator can be lt, le, gt, ge, eq, ne, <, <=, >, >=, ==, or !=
-        other (str): an other version.
+        other (str): other version.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
@@ -996,6 +996,7 @@ class DatetimeValidation:
         start = 0
         date_val, timezone, iso, dayfirst, fuzzy = [''] * 5
         match_data = ''
+        m = None
         for m in re.finditer(pattern, data):
             before_match = m.string[start:m.start()]
             if not date_val:
@@ -1011,14 +1012,15 @@ class DatetimeValidation:
             match_data = m.group().strip()
             start = m.end()
         else:
-            if not timezone and match_data.startswith('timezone='):
-                timezone = m.string[m.end():].strip()
-            elif not iso and match_data.startswith('iso='):
-                iso = m.string[m.end():].strip()
-            elif not dayfirst and match_data.startswith('dayfirst='):
-                dayfirst = m.string[m.end():].strip()
-            elif not fuzzy and match_data.startswith('fuzzy='):
-                fuzzy = m.string[m.end():].strip()
+            if m:
+                if not timezone and match_data.startswith('timezone='):
+                    timezone = m.string[m.end():].strip()
+                elif not iso and match_data.startswith('iso='):
+                    iso = m.string[m.end():].strip()
+                elif not dayfirst and match_data.startswith('dayfirst='):
+                    dayfirst = m.string[m.end():].strip()
+                elif not fuzzy and match_data.startswith('fuzzy='):
+                    fuzzy = m.string[m.end():].strip()
 
         result = DatetimeResult(data=date_val, timezone=timezone, iso=iso,
                                 dayfirst=dayfirst, fuzzy=fuzzy)
@@ -1090,7 +1092,7 @@ class DatetimeValidation:
         ----------
         value (str): a datetime.
         op (str): an operator can be lt, le, gt, ge, eq, ne, >, >=, <, <=, ==, or !=
-        other (str): an other datetime.
+        other (str): other datetime.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
