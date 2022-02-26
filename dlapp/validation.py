@@ -192,7 +192,6 @@ class OpValidation:
     OpValidation.belong(value, other, valid=True, on_exception=True) -> bool
     """
     @classmethod
-    @false_on_exception_for_classmethod
     def compare_number(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for number.
 
@@ -209,22 +208,29 @@ class OpValidation:
         bool: True if a value lt|le|gt|ge|eq|ne other value, otherwise, False.
                 or    a value < | <= | > | >= | == | != other value
         """
-        op = str(op).lower().strip()
-        op = 'lt' if op == '<' else 'le' if op == '<=' else op
-        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
-        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
-        valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
-        if op not in valid_ops:
-            fmt = 'Invalid {!r} operator for validating number.  It MUST be {}.'
-            raise ValidationOperatorError(fmt.format(op, valid_ops))
+        if str(value).upper() == '__EXCEPTION__':
+            return False
 
-        v, o = str(value).lower(), str(other).lower()
-        value = True if v == 'true' else False if v == 'false' else value
-        other = True if o == 'true' else False if o == 'false' else other
-        num = float(other)
-        value = float(value)
-        result = getattr(operator, op)(value, num)
-        return bool(result)
+        try:
+            op = str(op).lower().strip()
+            op = 'lt' if op == '<' else 'le' if op == '<=' else op
+            op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+            op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+            valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
+            if op not in valid_ops:
+                fmt = 'Invalid {!r} operator for validating number.  It MUST be {}.'
+                raise ValidationOperatorError(fmt.format(op, valid_ops))
+
+            v, o = str(value).lower(), str(other).lower()
+            value = True if v == 'true' else False if v == 'false' else value
+            other = True if o == 'true' else False if o == 'false' else other
+            num = float(other)
+            value = float(value)
+            result = getattr(operator, op)(value, num)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
     @false_on_exception_for_classmethod
