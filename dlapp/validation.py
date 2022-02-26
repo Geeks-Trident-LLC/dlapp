@@ -126,6 +126,28 @@ def false_on_exception_for_classmethod(func):
     return wrapper_func
 
 
+def raise_exception_if(ex, on_exception=True):
+    """Raise an exception if condition is required, otherwise return False
+
+    Parameters
+    ----------
+    ex (Exception): an exception
+    on_exception (bool): raise an exception when it set to True
+
+    Returns
+    -------
+    bool: False if on_exception is False
+    """
+    if DEBUG:
+        traceback.print_exc()
+    else:
+        msg = 'Warning *** {}: {}'.format(type(ex).__name__, ex)
+        logger.warning(msg)
+    if on_exception:
+        raise ex
+    return False
+
+
 class RegexValidation:
     """A regular expression validation class.
 
