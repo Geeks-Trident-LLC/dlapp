@@ -947,21 +947,28 @@ class VersionValidation:
         bool: True if a version lt|le|gt|ge|eq|ne other version, otherwise, False.
                 or    a version < | <= | > | >= | == | != other version
         """
-        if str(value).strip() == '' or str(other).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        op = str(op).lower().strip()
-        op = 'lt' if op == '<' else 'le' if op == '<=' else op
-        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
-        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
-        valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
-        if op not in valid_ops:
-            fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
-            raise ValidationOperatorError(fmt.format(op, valid_ops))
+        try:
+            if str(value).strip() == '' or str(other).strip() == '':
+                return False
 
-        value, other = str(value), str(other)
-        result = version_compare([value, other], comparison=op, scheme='string')
-        return result
+            op = str(op).lower().strip()
+            op = 'lt' if op == '<' else 'le' if op == '<=' else op
+            op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+            op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+            valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
+            if op not in valid_ops:
+                fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
+                raise ValidationOperatorError(fmt.format(op, valid_ops))
+
+            value, other = str(value), str(other)
+            result = version_compare([value, other], comparison=op, scheme='string')
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
     @false_on_exception_for_classmethod
