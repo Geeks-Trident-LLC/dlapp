@@ -398,7 +398,7 @@ class Cli:
 
         Parameters
         ----------
-        options (argparse.Namespace): a argparse.Namespace instance.
+        options (argparse.Namespace): an argparse.Namespace instance.
 
         Returns
         -------
@@ -420,7 +420,7 @@ class Cli:
 
         Parameters
         ----------
-        options (argparse.Namespace): a argparse.Namespace instance.
+        options (argparse.Namespace): an argparse.Namespace instance.
 
         Returns
         -------
