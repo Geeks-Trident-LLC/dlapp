@@ -188,13 +188,13 @@ class Element(Result):
 
     @property
     def is_leaf(self):
-        """Return True if an element doesnt have children."""
+        """Return True if an element doesn't have children."""
         return not self.has_children
 
     @property
     def is_scalar(self):
         """Return True if an element is a scalar type."""
-        return isinstance(self.data, (int, float, bool, str, None))
+        return isinstance(self.data, (int, float, bool, str, None))     # noqa
 
     @property
     def is_list(self):
@@ -344,7 +344,7 @@ class ObjectDict(dict):
                 if forward:
                     return value
                 else:
-                    result = dict([i, self._build(j, forward=forward)] for i, j in value.items())
+                    result = dict([i, self._build(j, forward=forward)] for i, j in value.items())  # noqa
                     return result
             elif isinstance(value, dict):
                 lst = [[i, self._build(j, forward=forward)] for i, j in value.items()]
@@ -352,7 +352,7 @@ class ObjectDict(dict):
                     result = self.__class__(lst)
                     return result
                 else:
-                    result = dict(lst)
+                    result = dict(lst)      # noqa
                     return result
             elif isinstance(value, list):
                 lst = [self._build(item, forward=forward) for item in value]
@@ -413,7 +413,7 @@ class ObjectDict(dict):
         """
         from io import IOBase
         if isinstance(filename, IOBase):
-            obj = yaml.load(filename, Loader=loader)
+            obj = yaml.load(filename, Loader=loader)    # noqa
         else:
             with open(filename) as stream:
                 obj = yaml.load(stream, Loader=loader)
@@ -552,7 +552,7 @@ class LookupCls:
         Example:
             abc=empty(), i.e. searches key name is abc and its value is empty.
             abc=ipv4_address(), i.e. searches key name is abc and its value is IPv4 address.
-            abc=date(), i.e search key name is abc and its value is date such as 2021-06-16.
+            abc=date(), i.e. search key name is abc and its value is date such as 2021-06-16.
     """
     def __init__(self, lookup):
         self.lookup = str(lookup)
@@ -852,7 +852,7 @@ class Tabular:
         return width_tbl
 
     def align_string(self, value, width):
-        """return a align string
+        """return an aligned string
 
         Parameters
         ----------
