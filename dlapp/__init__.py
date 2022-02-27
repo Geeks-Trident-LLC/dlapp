@@ -59,7 +59,7 @@ Snippet 4: using lookup with wildcard filtering and select-statement to select a
 >>> result = query_obj.find(lookup='a=_wildcard(Ap*)', select='SELECT a, b')
 >>> assert result == [{'a': 'Apple', 'b': 'Banana'}, {'a': 'Apricot', 'b': 'Boysenberry'}]
 
-Snippet 5: using lookup with regex filtering and and select-statement to select a, c
+Snippet 5: using lookup with regex filtering and select-statement to select a, c
 
 >>> result = query_obj.find(lookup='a=_regex(Ap\\w+)', select='SELECT a, c')
 >>> assert result == [{'a': 'Apple', 'c': 'Cherry'}, {'a': 'Apricot', 'c': 'Cantaloupe'}]
