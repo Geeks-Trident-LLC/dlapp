@@ -7,14 +7,6 @@ from dlapp.argumenthelper import validate_argument_is_not_empty
 from dlapp.collection import Element
 
 
-class DLQueryError(Exception):
-    """Use to capture error for DLQuery instance"""
-
-
-class DLQueryDataTypeError(DLQueryError):
-    """Use to capture error of unsupported query data type."""
-
-
 class DLQuery:
     """This is a class for querying dictionary or list object.
 
@@ -121,19 +113,19 @@ class DLQuery:
         """if DLQuery is a list, then return the value for index if
         index is in the list, else default.
 
-        if DLQuery is a dictionary, then return the value for key (i.e index)
+        if DLQuery is a dictionary, then return the value for key (i.e. index)
         if key is in the dictionary, else default.
 
         Parameters
         ----------
-        index (int, str): a index of list or a key of dictionary.
+        index (int, str): an index of list or a key of dictionary.
         default (Any): a default value if no element in list or
                 in dictionary is found.
         on_exception (bool): raise Exception if it is True.  Default is False.
 
         Returns
         -------
-        Any: any value from DLQuery.data
+        Any: any value from DLQuery
         """
         try:
             if self.is_list:

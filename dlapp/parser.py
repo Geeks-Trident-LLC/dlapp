@@ -205,13 +205,14 @@ class SelectParser:
 
         groups = []
         start = 0
+        match = None
         for match in re.finditer(' +(or_|and_|&&|[|]{2}) +', expressions, flags=re.I):
             expr = match.string[start:match.start()]
             op = match.group().strip().lower()
             groups.extend([expr.strip(), op.strip()])
             start = match.end()
         else:
-            if groups:
+            if groups and match:
                 expr = match.string[match.end():].strip()
                 groups.append(expr)
 

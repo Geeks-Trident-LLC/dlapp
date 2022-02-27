@@ -13,21 +13,13 @@ from dateutil.parser import isoparse
 from dateutil.tz import gettz
 from dateutil.tz import UTC
 
+from dlapp.exceptions import ValidationIpv6PrefixError
+from dlapp.exceptions import ValidationOperatorError
+from dlapp.exceptions import ParsedTimezoneError
+
 
 DEBUG = 0
 logger = logging.getLogger(__file__)
-
-
-class ValidationError(Exception):
-    """Use to capture validation error."""
-
-
-class ValidationIpv6PrefixError(ValidationError):
-    """Use to capture validation error for a prefix of IPv6 address."""
-
-
-class ValidationOperatorError(ValidationError):
-    """Use to capture misused operator during Operator Validation."""
 
 
 def get_ip_address(addr, is_prefix=False, on_exception=True):
@@ -74,7 +66,7 @@ def get_ip_address(addr, is_prefix=False, on_exception=True):
         return (None, None) if is_prefix else None
 
 
-def validate_interface(iface_name, pattern=''):
+def validate_interface(iface_name, pattern='', valid=True, on_exception=True):
     """Verify a provided data is a network interface.
 
     Parameters
@@ -87,9 +79,17 @@ def validate_interface(iface_name, pattern=''):
     bool: True if iface_name is a network interface, otherwise, False.
     """
     iface_name = str(iface_name)
-    pattern = r'\b' + pattern + r' *[0-9]+(/[0-9]+)?([.][0-9]+)?\b'
-    result = re.match(pattern, iface_name, re.I)
-    return bool(result)
+
+    if iface_name.upper() == '__EXCEPTION__':
+        return False
+
+    try:
+        pattern = r'\b' + pattern + r' *[0-9]+(/[0-9]+)?([.][0-9]+)?\b'
+        result = bool(re.match(pattern, iface_name, re.I))
+        return result if valid else not result
+    except Exception as ex:
+        result = raise_exception_if(ex, on_exception=on_exception)
+        return result
 
 
 def false_on_exception_for_classmethod(func):
@@ -126,6 +126,28 @@ def false_on_exception_for_classmethod(func):
     return wrapper_func
 
 
+def raise_exception_if(ex, on_exception=True):
+    """Raise an exception if condition is required, otherwise return False
+
+    Parameters
+    ----------
+    ex (Exception): an exception
+    on_exception (bool): raise an exception when it set to True
+
+    Returns
+    -------
+    bool: False if on_exception is False
+    """
+    if DEBUG:
+        traceback.print_exc()
+    else:
+        msg = 'Warning *** {}: {}'.format(type(ex).__name__, ex)
+        logger.warning(msg)
+    if on_exception:
+        raise ex
+    return False
+
+
 class RegexValidation:
     """A regular expression validation class.
 
@@ -134,7 +156,6 @@ class RegexValidation:
     RegexValidation.match(pattern, value, valid=True, on_exception=True) -> bool
     """
     @classmethod
-    @false_on_exception_for_classmethod
     def match(cls, pattern, value, valid=True, on_exception=True):
         """Perform regular expression matching.
 
@@ -149,8 +170,15 @@ class RegexValidation:
         -------
         bool: True if match pattern, otherwise, False.
         """
-        match = re.match(pattern, str(value))
-        return bool(match)
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            result = bool(re.match(pattern, str(value)))
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
 
 class OpValidation:
@@ -164,7 +192,6 @@ class OpValidation:
     OpValidation.belong(value, other, valid=True, on_exception=True) -> bool
     """
     @classmethod
-    @false_on_exception_for_classmethod
     def compare_number(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for number.
 
@@ -181,25 +208,31 @@ class OpValidation:
         bool: True if a value lt|le|gt|ge|eq|ne other value, otherwise, False.
                 or    a value < | <= | > | >= | == | != other value
         """
-        op = str(op).lower().strip()
-        op = 'lt' if op == '<' else 'le' if op == '<=' else op
-        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
-        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
-        valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
-        if op not in valid_ops:
-            fmt = 'Invalid {!r} operator for validating number.  It MUST be {}.'
-            raise ValidationOperatorError(fmt.format(op, valid_ops))
+        if str(value).upper() == '__EXCEPTION__':
+            return False
 
-        v, o = str(value).lower(), str(other).lower()
-        value = True if v == 'true' else False if v == 'false' else value
-        other = True if o == 'true' else False if o == 'false' else other
-        num = float(other)
-        value = float(value)
-        result = getattr(operator, op)(value, num)
-        return bool(result)
+        try:
+            op = str(op).lower().strip()
+            op = 'lt' if op == '<' else 'le' if op == '<=' else op
+            op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+            op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+            valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
+            if op not in valid_ops:
+                fmt = 'Invalid {!r} operator for validating number.  It MUST be {}.'
+                raise ValidationOperatorError(fmt.format(op, valid_ops))
+
+            v, o = str(value).lower(), str(other).lower()
+            value = True if v == 'true' else False if v == 'false' else value
+            other = True if o == 'true' else False if o == 'false' else other
+            num = float(other)
+            value = float(value)
+            result = getattr(operator, op)(value, num)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def compare(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for string.
 
@@ -216,19 +249,25 @@ class OpValidation:
         bool: True if a value eq|ne other value, otherwise, False.
                 or    a value == | != other value
         """
-        op = str(op).lower().strip()
-        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
-        valid_ops = ('eq', 'ne')
-        if op not in valid_ops:
-            fmt = ('Invalid {!r} operator for checking equal '
-                   'or via versa.  It MUST be {}.')
-            raise ValidationOperatorError(fmt.format(op, valid_ops))
+        if str(value).upper() == '__EXCEPTION__':
+            return False
 
-        result = getattr(operator, op)(value, other)
-        return result
+        try:
+            op = str(op).lower().strip()
+            op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+            valid_ops = ('eq', 'ne')
+            if op not in valid_ops:
+                fmt = ('Invalid {!r} operator for checking equal '
+                       'or via versa.  It MUST be {}.')
+                raise ValidationOperatorError(fmt.format(op, valid_ops))
+
+            result = getattr(operator, op)(value, other)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def contain(cls, value, other, valid=True, on_exception=True):
         """Perform operator checking that value contains other.
 
@@ -243,11 +282,17 @@ class OpValidation:
         -------
         bool: True if value contains other, otherwise, False.
         """
-        result = operator.contains(value, other)
-        return result
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            result = operator.contains(value, other)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def belong(cls, value, other, valid=True, on_exception=True):
         """Perform operator checking that value belongs other.
 
@@ -262,8 +307,15 @@ class OpValidation:
         -------
         bool: True if value belongs other, otherwise, False.
         """
-        result = operator.contains(other, value)
-        return result
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            result = operator.contains(other, value)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
 
 class CustomValidation:
@@ -299,8 +351,8 @@ class CustomValidation:
 
         Parameters
         ----------
-        case: custom validation keyword.
-        value: data for validation.
+        case (str): custom validation keyword.
+        value (str): data for validation.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
@@ -309,7 +361,7 @@ class CustomValidation:
         bool: True if match condition, otherwise, False.
 
         Raise:
-        NotImplementedError: if custom method doesnt exist.
+        NotImplementedError: if custom method doesn't exist.
         """
         case = str(case).lower()
         name = 'is_{}'.format(case)
@@ -321,7 +373,6 @@ class CustomValidation:
             raise NotImplementedError(msg)
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_ip_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is an IP address.
 
@@ -335,14 +386,20 @@ class CustomValidation:
         -------
         bool: True if addr is an IP address, otherwise, False.
         """
-        ip_addr = get_ip_address(addr, on_exception=on_exception)
-        chk = True if ip_addr else False
-        if not chk:
-            logger.info('{!r} is not an IP address.'.format(addr))
-        return chk
+        if str(addr).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            ip_addr = get_ip_address(addr, on_exception=on_exception)
+            chk = True if ip_addr else False
+            if not chk:
+                logger.info('{!r} is not an IP address.'.format(addr))
+            return chk if valid else not chk
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_ipv4_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is an IPv4 address.
 
@@ -356,14 +413,20 @@ class CustomValidation:
         -------
         bool: True if addr is an IPv4 address, otherwise, False.
         """
-        ip_addr = get_ip_address(addr, on_exception=on_exception)
-        chk = True if ip_addr and ip_addr.version == 4 else False
-        if not chk:
-            logger.info('{!r} is not an IPv4 address.'.format(addr))
-        return chk
+        if str(addr).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            ip_addr = get_ip_address(addr, on_exception=on_exception)
+            chk = True if ip_addr and ip_addr.version == 4 else False
+            if not chk:
+                logger.info('{!r} is not an IPv4 address.'.format(addr))
+            return chk if valid else not chk
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_ipv6_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is an IPv6 address.
 
@@ -377,14 +440,20 @@ class CustomValidation:
         -------
         bool: True if addr is an IPv6 address, otherwise, False.
         """
-        ip_addr = get_ip_address(addr, on_exception=on_exception)
-        chk = True if ip_addr and ip_addr.version == 6 else False
-        if not chk:
-            logger.info('{!r} is not an IPv6 address.'.format(addr))
-        return chk
+        if str(addr).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            ip_addr = get_ip_address(addr, on_exception=on_exception)
+            chk = True if ip_addr and ip_addr.version == 6 else False
+            if not chk:
+                logger.info('{!r} is not an IPv6 address.'.format(addr))
+            return chk if valid else not chk
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_mac_address(cls, addr, valid=True, on_exception=True):
         """Verify a provided data is a MAC address.
 
@@ -398,19 +467,25 @@ class CustomValidation:
         -------
         bool: True if addr is a MAC address, otherwise, False.
         """
-        addr = str(addr)
-        patterns = [
-            r'\b[0-9a-f]{2}([-: ])([0-9a-f]{2}\1){4}[0-9a-f]{2}\b',
-            r'\b[a-f0-9]{4}[.][a-f0-9]{4}[.][a-f0-9]{4}\b'
-        ]
-        for pattern in patterns:
-            result = re.match(pattern, addr, re.I)
-            if result:
-                return True
-        return False
+        if str(addr).upper() == '__EXCEPTION__':
+            return False
+
+        try:
+            addr = str(addr)
+            patterns = [
+                r'\b[0-9a-f]{2}([-: ])([0-9a-f]{2}\1){4}[0-9a-f]{2}\b',
+                r'\b[a-f0-9]{4}[.][a-f0-9]{4}[.][a-f0-9]{4}\b'
+            ]
+            for pattern in patterns:
+                result = re.match(pattern, addr, re.I)
+                if result:
+                    return True if valid else False
+            return False if valid else True
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     # @classmethod
-    # @false_on_exception_for_classmethod
     # def is_network_interface(cls, iface_name, valid=True, on_exception=True):
     #     """Verify a provided data is a network interface.
     #
@@ -425,11 +500,11 @@ class CustomValidation:
     #     bool: True if iface_name is a network interface, otherwise, False.
     #     """
     #     pattern = r'[a-z]+(-?[a-z0-9]+)?'
-    #     result = validate_interface(iface_name, pattern=pattern)
+    #     result = validate_interface(iface_name, pattern=pattern,
+    #                                 valid=valid, on_exception=on_exception)
     #     return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_loopback_interface(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a loopback interface.
 
@@ -444,11 +519,11 @@ class CustomValidation:
         bool: True if iface_name is a loopback interface, otherwise, False.
         """
         pattern = r'lo(opback)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_bundle_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a bundle-ether interface.
 
@@ -463,11 +538,11 @@ class CustomValidation:
         bool: True if iface_name is a bundle-ether interface, otherwise, False.
         """
         pattern = r'bundle-ether|be'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_port_channel(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a port-channel interface.
 
@@ -482,11 +557,11 @@ class CustomValidation:
         bool: True if iface_name is a bundle-ether interface, otherwise, False.
         """
         pattern = r'po(rt-channel)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_hundred_gigabit_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a HundredGigaBit interface.
 
@@ -501,11 +576,11 @@ class CustomValidation:
         bool: True if iface_name is a HundredGigaBit interface, otherwise, False.
         """
         pattern = 'Hu(ndredGigE)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_ten_gigabit_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a TenGigaBitEthernet interface.
 
@@ -520,11 +595,11 @@ class CustomValidation:
         bool: True if iface_name is a TenGigaBitEthernet interface, otherwise, False.
         """
         pattern = 'Te(nGigE)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_gigabit_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a TenGigaBitEthernet interface.
 
@@ -539,11 +614,11 @@ class CustomValidation:
         bool: True if iface_name is a TenGigaBitEthernet interface, otherwise, False.
         """
         pattern = 'Gi(gabitEthernet)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_fast_ethernet(cls, iface_name, valid=True, on_exception=True):
         """Verify a provided data is a FastEthernet interface.
 
@@ -558,12 +633,12 @@ class CustomValidation:
         bool: True if iface_name is a FastEthernet interface, otherwise, False.
         """
         pattern = r'fa(stethernet)?'
-        result = validate_interface(iface_name, pattern=pattern)
+        result = validate_interface(iface_name, pattern=pattern,
+                                    valid=valid, on_exception=on_exception)
         return result
 
     @classmethod
-    @false_on_exception_for_classmethod
-    def is_empty(cls, value, valid=True, on_exception=True):
+    def is_empty(cls, value, valid=True, on_exception=True):    # noqa
         """Verify a provided data is an empty string.
 
         Parameters
@@ -576,12 +651,15 @@ class CustomValidation:
         -------
         bool: True if value is an empty string, otherwise, False.
         """
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
         value = str(value)
-        return value == ''
+        result = value == ''
+        return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
-    def is_optional_empty(cls, value, valid=True, on_exception=True):
+    def is_optional_empty(cls, value, valid=True, on_exception=True):   # noqa
         """Verify a provided data is an optional empty string.
 
         Parameters
@@ -594,13 +672,15 @@ class CustomValidation:
         -------
         bool: True if value is an optional empty string, otherwise, False.
         """
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
         value = str(value)
-        result = re.match(r'\s+$', value)
-        return bool(result)
+        result = bool(re.match(r'\s+$', value))
+        return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
-    def is_true(cls, value, valid=True, on_exception=True):
+    def is_true(cls, value, valid=True, on_exception=True):     # noqa
         """Verify a provided data is True.
 
         Parameters
@@ -613,14 +693,15 @@ class CustomValidation:
         -------
         bool: True if value is a True, otherwise, False.
         """
-        if isinstance(value, bool):
-            return value is True
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
         value = str(value)
-        return value.lower() == 'true'
+        result = value.lower() == 'true'
+        return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
-    def is_false(cls, value, valid=True, on_exception=True):
+    def is_false(cls, value, valid=True, on_exception=True):    # noqa
         """Verify a provided data is False.
 
         Parameters
@@ -633,13 +714,14 @@ class CustomValidation:
         -------
         bool: True if value is a False, otherwise, False.
         """
-        if isinstance(value, bool):
-            return value is False
+        if str(value).upper() == '__EXCEPTION__':
+            return False
+
         value = str(value)
-        return value.lower() == 'false'
+        result = value.lower() == 'false'
+        return result if valid else not result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_date(cls, value, valid=True, on_exception=True):
         """Verify a provided data is a date.
 
@@ -653,38 +735,44 @@ class CustomValidation:
         -------
         bool: True if value is a date, otherwise, False.
         """
-        if str(value).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        value = str(value).strip()
-        parse(value, fuzzy=True)
+        try:
+            if str(value).strip() == '':
+                return False
 
-        time_pattern = '[0-9]+:[0-9]+'
-        matched_time = re.search(time_pattern, value)
+            value = str(value).strip()
+            parse(value, fuzzy=True)
 
-        if matched_time:
-            return False
+            time_pattern = '[0-9]+:[0-9]+'
+            matched_time = re.search(time_pattern, value)
 
-        date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
-        matched_date = re.search(date_pattern, value)
-        if matched_date:
-            return True
+            if matched_time:
+                return False if valid else True
 
-        month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
-                               '([abceimorstu]*[ehlrt])?')
-        matched_month_names = re.search(month_names_pattern, value)
-        if matched_month_names:
-            return True
+            date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
+            matched_date = re.search(date_pattern, value)
+            if matched_date:
+                return True if valid else False
 
-        day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
-        matched_day_names = re.search(day_names_pattern, value)
-        if matched_day_names:
-            return True
+            month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
+                                   '([abceimorstu]*[ehlrt])?')
+            matched_month_names = re.search(month_names_pattern, value)
+            if matched_month_names:
+                return True if valid else False
 
-        return False
+            day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
+            matched_day_names = re.search(day_names_pattern, value)
+            if matched_day_names:
+                return True if valid else False
+
+            return False if valid else True
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_datetime(cls, value, valid=True, on_exception=True):
         """Verify a provided data is a datetime.
 
@@ -698,38 +786,44 @@ class CustomValidation:
         -------
         bool: True if value is a datetime, otherwise, False.
         """
-        if str(value).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        value = str(value).strip()
-        parse(value, fuzzy=True)
+        try:
+            if str(value).strip() == '':
+                return False
 
-        time_pattern = '[0-9]+:[0-9]+'
-        matched_time = re.search(time_pattern, value)
+            value = str(value).strip()
+            parse(value, fuzzy=True)
 
-        if not matched_time:
-            return False
+            time_pattern = '[0-9]+:[0-9]+'
+            matched_time = re.search(time_pattern, value)
 
-        date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
-        matched_date = re.search(date_pattern, value)
-        if matched_date:
-            return True
+            if not matched_time:
+                return False if valid else True
 
-        month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
-                               '([abceimorstu]*[ehlrt])?')
-        matched_month_names = re.search(month_names_pattern, value)
-        if matched_month_names:
-            return True
+            date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
+            matched_date = re.search(date_pattern, value)
+            if matched_date:
+                return True if valid else False
 
-        day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
-        matched_day_names = re.search(day_names_pattern, value)
-        if matched_day_names:
-            return True
+            month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
+                                   '([abceimorstu]*[ehlrt])?')
+            matched_month_names = re.search(month_names_pattern, value)
+            if matched_month_names:
+                return True if valid else False
 
-        return False
+            day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
+            matched_day_names = re.search(day_names_pattern, value)
+            if matched_day_names:
+                return True if valid else False
+
+            return False if valid else True
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_time(cls, value, valid=True, on_exception=True):
         """Verify a provided data is time.
 
@@ -743,34 +837,41 @@ class CustomValidation:
         -------
         bool: True if value is time, otherwise, False.
         """
-        if str(value).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        value = str(value).strip()
-        parse(value, fuzzy=True)
+        try:
+            if str(value).strip() == '':
+                return False
 
-        date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
-        matched_date = re.search(date_pattern, value)
-        if matched_date:
-            return False
+            value = str(value).strip()
+            parse(value, fuzzy=True)
 
-        month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
-                               '([abceimorstu]*[ehlrt])?')
-        matched_month_names = re.search(month_names_pattern, value)
-        if matched_month_names:
-            return False
+            date_pattern = '[0-9]+([/-])[0-9]+\\1[0-9]+'
+            matched_date = re.search(date_pattern, value)
+            if matched_date:
+                return False if valid else True
 
-        day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
-        matched_day_names = re.search(day_names_pattern, value)
-        if matched_day_names:
-            return False
+            month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
+                                   '([abceimorstu]*[ehlrt])?')
+            matched_month_names = re.search(month_names_pattern, value)
+            if matched_month_names:
+                return False if valid else True
 
-        time_pattern = '[0-9]+:[0-9]+'
-        matched_time = re.search(time_pattern, value)
-        return bool(matched_time)
+            day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
+            matched_day_names = re.search(day_names_pattern, value)
+            if matched_day_names:
+                return False if valid else True
+
+            time_pattern = '[0-9]+:[0-9]+'
+            matched_time = re.search(time_pattern, value)
+            result = bool(matched_time)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def is_isodate(cls, value, valid=True, on_exception=True):
         """Verify a provided data is ISO date.
 
@@ -784,24 +885,31 @@ class CustomValidation:
         -------
         bool: True if value is ISO date, otherwise, False.
         """
-        if str(value).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        value = str(value).strip()
-        isoparse(value)
+        try:
+            if str(value).strip() == '':
+                return False
 
-        pattern = '[0-9]{4}((-[0-9]{2})|(-?W[0-9]{2}))$'
-        match = re.match(pattern, value)
-        if match:
-            return True
+            value = str(value).strip()
+            isoparse(value)
 
-        pattern = ('[0-9]{4}('
-                   '(-?[0-9]{2}-?[0-9]{2})|'
-                   '(-?W[0-9]{2}-?[0-9])|'
-                   '(-?[0-9]{3})'
-                   ')')
-        match = re.match(pattern, value)
-        return bool(match)
+            pattern = '[0-9]{4}((-[0-9]{2})|(-?W[0-9]{2}))$'
+            match = re.match(pattern, value)
+            if match:
+                return True if valid else False
+
+            pattern = ('[0-9]{4}('
+                       '(-?[0-9]{2}-?[0-9]{2})|'
+                       '(-?W[0-9]{2}-?[0-9])|'
+                       '(-?[0-9]{3})'
+                       ')')
+            result = bool(re.match(pattern, value))
+            return result if valid else False
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
 
 class VersionValidation:
@@ -813,7 +921,6 @@ class VersionValidation:
     VersionValidation.compare_semantic_version(value, op, other, valid=True, on_exception=True) -> bool
     """
     @classmethod
-    @false_on_exception_for_classmethod
     def compare_version(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for version.
 
@@ -821,7 +928,7 @@ class VersionValidation:
         ----------
         value (str): a version.
         op (str): an operator can be lt, le, gt, ge, eq, ne, <, <=, >, >=, ==, or !=
-        other (str): an other version.
+        other (str): other version.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
@@ -830,24 +937,30 @@ class VersionValidation:
         bool: True if a version lt|le|gt|ge|eq|ne other version, otherwise, False.
                 or    a version < | <= | > | >= | == | != other version
         """
-        if str(value).strip() == '' or str(other).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        op = str(op).lower().strip()
-        op = 'lt' if op == '<' else 'le' if op == '<=' else op
-        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
-        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
-        valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
-        if op not in valid_ops:
-            fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
-            raise ValidationOperatorError(fmt.format(op, valid_ops))
+        try:
+            if str(value).strip() == '' or str(other).strip() == '':
+                return False
 
-        value, other = str(value), str(other)
-        result = version_compare([value, other], comparison=op, scheme='string')
-        return result
+            op = str(op).lower().strip()
+            op = 'lt' if op == '<' else 'le' if op == '<=' else op
+            op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+            op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+            valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
+            if op not in valid_ops:
+                fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
+                raise ValidationOperatorError(fmt.format(op, valid_ops))
+
+            value, other = str(value), str(other)
+            result = version_compare([value, other], comparison=op, scheme='string')
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def compare_semantic_version(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for semantic version.
 
@@ -855,7 +968,7 @@ class VersionValidation:
         ----------
         value (str): a version.
         op (str): an operator can be lt, le, gt, ge, eq, ne, <, <=, >, >=, ==, or !=
-        other (str): an other version.
+        other (str): other version.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
@@ -864,25 +977,28 @@ class VersionValidation:
         bool: True if a version lt|le|gt|ge|eq|ne other version, otherwise, False.
                 or    a version < | <= | > | >= | == | != other version
         """
-        if str(value).strip() == '' or str(other).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        op = str(op).lower().strip()
-        op = 'lt' if op == '<' else 'le' if op == '<=' else op
-        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
-        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
-        valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
-        if op not in valid_ops:
-            fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
-            raise ValidationOperatorError(fmt.format(op, valid_ops))
+        try:
+            if str(value).strip() == '' or str(other).strip() == '':
+                return False
 
-        value, other = str(value), str(other)
-        result = version_compare([value, other], comparison=op, scheme='semver')
-        return result
+            op = str(op).lower().strip()
+            op = 'lt' if op == '<' else 'le' if op == '<=' else op
+            op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+            op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+            valid_ops = ('lt', 'le', 'gt', 'ge', 'eq', 'ne')
+            if op not in valid_ops:
+                fmt = 'Invalid {!r} operator for validating version.  It MUST be {}.'
+                raise ValidationOperatorError(fmt.format(op, valid_ops))
 
-
-class ParsedTimezoneError(Exception):
-    """Use to capture timezone during parsing custom datetime."""
+            value, other = str(value), str(other)
+            result = version_compare([value, other], comparison=op, scheme='semver')
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result
 
 
 class DatetimeResult:
@@ -915,7 +1031,7 @@ class DatetimeResult:
         self.tzinfos = dict()
         self.parse_timezone()
 
-    def to_bool(self, value, default=False):
+    def to_bool(self, value, default=False):    # noqa
         """Return True if value is True
 
         Parameters
@@ -996,6 +1112,7 @@ class DatetimeValidation:
         start = 0
         date_val, timezone, iso, dayfirst, fuzzy = [''] * 5
         match_data = ''
+        m = None
         for m in re.finditer(pattern, data):
             before_match = m.string[start:m.start()]
             if not date_val:
@@ -1011,14 +1128,15 @@ class DatetimeValidation:
             match_data = m.group().strip()
             start = m.end()
         else:
-            if not timezone and match_data.startswith('timezone='):
-                timezone = m.string[m.end():].strip()
-            elif not iso and match_data.startswith('iso='):
-                iso = m.string[m.end():].strip()
-            elif not dayfirst and match_data.startswith('dayfirst='):
-                dayfirst = m.string[m.end():].strip()
-            elif not fuzzy and match_data.startswith('fuzzy='):
-                fuzzy = m.string[m.end():].strip()
+            if m:
+                if not timezone and match_data.startswith('timezone='):
+                    timezone = m.string[m.end():].strip()
+                elif not iso and match_data.startswith('iso='):
+                    iso = m.string[m.end():].strip()
+                elif not dayfirst and match_data.startswith('dayfirst='):
+                    dayfirst = m.string[m.end():].strip()
+                elif not fuzzy and match_data.startswith('fuzzy='):
+                    fuzzy = m.string[m.end():].strip()
 
         result = DatetimeResult(data=date_val, timezone=timezone, iso=iso,
                                 dayfirst=dayfirst, fuzzy=fuzzy)
@@ -1082,7 +1200,6 @@ class DatetimeValidation:
             return result
 
     @classmethod
-    @false_on_exception_for_classmethod
     def compare_datetime(cls, value, op, other, valid=True, on_exception=True):
         """Perform operator comparison for datetime.
 
@@ -1090,7 +1207,7 @@ class DatetimeValidation:
         ----------
         value (str): a datetime.
         op (str): an operator can be lt, le, gt, ge, eq, ne, >, >=, <, <=, ==, or !=
-        other (str): an other datetime.
+        other (str): other datetime.
         valid (bool): check for a valid result.  Default is True.
         on_exception (bool): raise Exception if it is True, otherwise, return None.
 
@@ -1099,22 +1216,29 @@ class DatetimeValidation:
         bool: True if a datetime lt|le|gt|ge|eq|ne other datetime, otherwise, False.
                  or   a datetime < | <= | > | >= | == | != other datetime
         """
-        if str(value).strip() == '' or str(other).strip() == '':
+        if str(value).upper() == '__EXCEPTION__':
             return False
 
-        op = 'lt' if op == '<' else 'le' if op == '<=' else op
-        op = 'gt' if op == '>' else 'ge' if op == '>=' else op
-        op = 'eq' if op == '==' else 'ne' if op == '!=' else op
+        try:
+            if str(value).strip() == '' or str(other).strip() == '':
+                return False
 
-        dt_parsed_result = DatetimeValidation.parse_custom_date(other)
+            op = 'lt' if op == '<' else 'le' if op == '<=' else op
+            op = 'gt' if op == '>' else 'ge' if op == '>=' else op
+            op = 'eq' if op == '==' else 'ne' if op == '!=' else op
 
-        a_date_str, other_date_str = value, dt_parsed_result.data
+            dt_parsed_result = DatetimeValidation.parse_custom_date(other)
 
-        if other_date_str.strip() == '':
-            return False
+            a_date_str, other_date_str = value, dt_parsed_result.data
 
-        a_date = DatetimeValidation.get_date(a_date_str, dt_parsed_result)
-        other_date = DatetimeValidation.get_date(other_date_str, dt_parsed_result)
+            if other_date_str.strip() == '':
+                return False
 
-        result = DatetimeValidation.do_date_compare(a_date, op, other_date)
-        return result
+            a_date = DatetimeValidation.get_date(a_date_str, dt_parsed_result)
+            other_date = DatetimeValidation.get_date(other_date_str, dt_parsed_result)
+
+            result = DatetimeValidation.do_date_compare(a_date, op, other_date)
+            return result if valid else not result
+        except Exception as ex:
+            result = raise_exception_if(ex, on_exception=on_exception)
+            return result

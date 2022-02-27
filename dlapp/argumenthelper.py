@@ -1,12 +1,7 @@
 """Module containing the logic for the argument helper."""
 
-
-class ArgumentError(Exception):
-    """Use to capture argument error."""
-
-
-class ArgumentValidationError(ArgumentError):
-    """Use to capture argument validation."""
+from dlapp.exceptions import ArgumentError
+from dlapp.exceptions import ArgumentValidationError
 
 
 def validate_argument_type(*args, **kwargs):
@@ -127,7 +122,7 @@ def validate_argument_is_not_empty(**kwargs):
 
     Returns
     -------
-    bool: True if argument(s) is/are not empty..
+    bool: True if argument(s) is/are not empty.
 
     Raise
     -----
