@@ -7,16 +7,9 @@ from dlapp.validation import CustomValidation
 from dlapp.validation import VersionValidation
 from dlapp.validation import DatetimeValidation
 
+from dlapp.exceptions import PredicateParameterDataTypeError
 
 logger = logging.getLogger(__file__)
-
-
-class PredicateError(Exception):
-    """Use to capture the predicate error."""
-
-
-class PredicateParameterDataTypeError(PredicateError):
-    """Use to capture the parameter data type of predicate."""
 
 
 def get_value(data, key):

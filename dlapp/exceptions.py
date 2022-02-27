@@ -7,3 +7,11 @@ class DLQueryError(Exception):
 
 class DLQueryDataTypeError(DLQueryError):
     """Use to capture error of unsupported query data type."""
+
+
+class PredicateError(Exception):
+    """Use to capture the predicate error."""
+
+
+class PredicateParameterDataTypeError(PredicateError):
+    """Use to capture the parameter data type of predicate."""
