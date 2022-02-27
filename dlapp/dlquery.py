@@ -7,14 +7,6 @@ from dlapp.argumenthelper import validate_argument_is_not_empty
 from dlapp.collection import Element
 
 
-class DLQueryError(Exception):
-    """Use to capture error for DLQuery instance"""
-
-
-class DLQueryDataTypeError(DLQueryError):
-    """Use to capture error of unsupported query data type."""
-
-
 class DLQuery:
     """This is a class for querying dictionary or list object.
 
