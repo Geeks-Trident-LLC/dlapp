@@ -15,3 +15,19 @@ class PredicateError(Exception):
 
 class PredicateParameterDataTypeError(PredicateError):
     """Use to capture the parameter data type of predicate."""
+
+
+class ValidationError(Exception):
+    """Use to capture validation error."""
+
+
+class ValidationIpv6PrefixError(ValidationError):
+    """Use to capture validation error for a prefix of IPv6 address."""
+
+
+class ValidationOperatorError(ValidationError):
+    """Use to capture misused operator during Operator Validation."""
+
+
+class ParsedTimezoneError(Exception):
+    """Use to capture timezone during parsing custom datetime."""

@@ -13,21 +13,13 @@ from dateutil.parser import isoparse
 from dateutil.tz import gettz
 from dateutil.tz import UTC
 
+from dlapp.exceptions import ValidationIpv6PrefixError
+from dlapp.exceptions import ValidationOperatorError
+from dlapp.exceptions import ParsedTimezoneError
+
 
 DEBUG = 0
 logger = logging.getLogger(__file__)
-
-
-class ValidationError(Exception):
-    """Use to capture validation error."""
-
-
-class ValidationIpv6PrefixError(ValidationError):
-    """Use to capture validation error for a prefix of IPv6 address."""
-
-
-class ValidationOperatorError(ValidationError):
-    """Use to capture misused operator during Operator Validation."""
 
 
 def get_ip_address(addr, is_prefix=False, on_exception=True):
@@ -1007,10 +999,6 @@ class VersionValidation:
         except Exception as ex:
             result = raise_exception_if(ex, on_exception=on_exception)
             return result
-
-
-class ParsedTimezoneError(Exception):
-    """Use to capture timezone during parsing custom datetime."""
 
 
 class DatetimeResult:
