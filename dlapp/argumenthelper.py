@@ -122,7 +122,7 @@ def validate_argument_is_not_empty(**kwargs):
 
     Returns
     -------
-    bool: True if argument(s) is/are not empty..
+    bool: True if argument(s) is/are not empty.
 
     Raise
     -----
