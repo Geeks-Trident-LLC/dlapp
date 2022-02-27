@@ -1,6 +1,26 @@
 """Module containing the exception class for dlapp."""
 
 
+class ListError(Exception):
+    """Use to capture error for List instance"""
+
+
+class ListIndexError(ListError):
+    """Use to capture error for List instance"""
+
+
+class ResultError(Exception):
+    """Use to capture error for Result instance."""
+
+
+class LookupClsError(Exception):
+    """Use to capture error for LookupObject instance"""
+
+
+class ObjectArgumentError(Exception):
+    """To capture error for Object class."""
+
+
 class DLQueryError(Exception):
     """Use to capture error for DLQuery instance"""
 

@@ -11,13 +11,10 @@ from dlapp.parser import SelectParser
 from dlapp.validation import OpValidation
 from dlapp.validation import CustomValidation
 
-
-class ListError(Exception):
-    """Use to capture error for List instance"""
-
-
-class ListIndexError(ListError):
-    """Use to capture error for List instance"""
+from dlapp.exceptions import ListIndexError
+from dlapp.exceptions import ResultError
+from dlapp.exceptions import LookupClsError
+from dlapp.exceptions import ObjectArgumentError
 
 
 class List(list):
@@ -71,10 +68,6 @@ class List(list):
     def total(self):
         """Get a size of list"""
         return len(self)
-
-
-class ResultError(Exception):
-    """Use to capture error for Result instance."""
 
 
 class Result:
@@ -506,10 +499,6 @@ class ObjectDict(dict):
     todict = to_dict
 
 
-class LookupClsError(Exception):
-    """Use to capture error for LookupObject instance"""
-
-
 class LookupCls:
     """To build a lookup object.
 
@@ -733,10 +722,6 @@ class LookupCls:
                     return False
                 result = re.search(self.right, data)
                 return bool(result)
-
-
-class ObjectArgumentError(Exception):
-    """To capture error for Object class."""
 
 
 class Object:
