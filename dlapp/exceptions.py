@@ -21,6 +21,14 @@ class ObjectArgumentError(Exception):
     """To capture error for Object class."""
 
 
+class ArgumentError(Exception):
+    """Use to capture argument error."""
+
+
+class ArgumentValidationError(ArgumentError):
+    """Use to capture argument validation."""
+
+
 class DLQueryError(Exception):
     """Use to capture error for DLQuery instance"""
 
