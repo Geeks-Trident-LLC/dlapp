@@ -28,7 +28,7 @@ def get_relative_center_location(parent, width, height):
     ----------
     parent (tkinter): tkinter component instance.
     width (int): a width of a child window.
-    height (int): a height of a child window..
+    height (int): a height of a child window.
 
     Returns
     -------
@@ -65,13 +65,13 @@ def create_msgbox(title=None, error=None, warning=None, info=None,
     any: a string or boolean result
     """
     if error:
-        # a return result is a "ok" string
+        # a return result is an "ok" string
         result = messagebox.showerror(title=title, message=error, **options)
     elif warning:
-        # a return result is a "ok" string
+        # a return result is an "ok" string
         result = messagebox.showwarning(title=title, message=warning, **options)
     elif info:
-        # a return result is a "ok" string
+        # a return result is an "ok" string
         result = messagebox.showinfo(title=title, message=info, **options)
     elif question:
         # a return result is a "yes" or "no" string
@@ -89,7 +89,7 @@ def create_msgbox(title=None, error=None, warning=None, info=None,
         # a return result is boolean or None
         result = messagebox.askyesnocancel(title=title, message=yesnocancel, **options)
     else:
-        # a return result is a "ok" string
+        # a return result is an "ok" string
         result = messagebox.showinfo(title=title, message=info, **options)
 
     return result
@@ -273,7 +273,7 @@ class Application:
         self.result_frame = None
 
         self.radio_btn_var = tk.StringVar()
-        self.radio_btn_var.set(None)
+        self.radio_btn_var.set(None)    # noqa
         self.lookup_entry_var = tk.StringVar()
         self.select_entry_var = tk.StringVar()
         self.result = None
@@ -314,7 +314,7 @@ class Application:
         parent (tkinter): a parent of widget.
         text (str): a text of widget.
         link (str): a label hyperlink.
-        increased_size (int): a increased size for font.
+        increased_size (int): increased size for font.
         bold (bool): True will set bold font.
         underline (bool): True will set to underline font.
         italic (bool): True will set to italic font.
@@ -588,7 +588,7 @@ class Application:
         def callback_clear_text_btn():
             self.input_textarea.delete("1.0", "end")
             self.result_textarea.delete("1.0", "end")
-            self.radio_btn_var.set(None)
+            self.radio_btn_var.set(None)    # noqa
             self.lookup_entry_var.set('')
             self.select_entry_var.set('')
             self.result = None
