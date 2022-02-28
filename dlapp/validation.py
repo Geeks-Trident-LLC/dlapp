@@ -1159,6 +1159,20 @@ class DatetimeValidation:
             result = isoparse(datetime_value)
             return result
         else:
+            pattern = """(?ix)(.*[0-9])(
+                        jan(uary)?|
+                        feb(ruary)?|
+                        mar(ch)?|
+                        apr(il)?|
+                        may|
+                        june?|
+                        july?|
+                        aug(ust)?|
+                        sep(tember)?|
+                        oct(ober)?|
+                        nov(ember)?|
+                        dec(ember)?)([0-9].*)"""
+            datetime_value = re.sub(pattern, r'\1 \2 \12', datetime_value)
             result = parse(datetime_value, dayfirst=options.dayfirst,
                            fuzzy=options.fuzzy, tzinfos=options.tzinfos)
             return result
