@@ -3,7 +3,7 @@
 import operator
 import re
 from ipaddress import ip_address
-import functools
+# import functools
 import traceback
 import logging
 from datetime import datetime
@@ -92,38 +92,38 @@ def validate_interface(iface_name, pattern='', valid=True, on_exception=True):
         return result
 
 
-def false_on_exception_for_classmethod(func):
-    """Wrap the classmethod and return False on exception.
-
-    Parameters
-    ----------
-    func (function): a callable function
-
-    Notes
-    -----
-    DO NOT nest this decorator.
-    """
-    @functools.wraps(func)
-    def wrapper_func(*args, **kwargs):
-        """A Wrapper Function"""
-        chk = str(args[1]).upper()
-        if chk == '__EXCEPTION__':
-            return False
-        try:
-            result = func(*args, **kwargs)
-            return result if kwargs.get('valid', True) else not result
-        except Exception as ex:
-            if DEBUG:
-                traceback.print_exc()
-            else:
-                msg = 'Warning *** {}: {}'.format(type(ex).__name__, ex)
-                logger.warning(msg)
-            is_called_exception = kwargs.get('on_exception', False)
-            if is_called_exception:
-                raise ex
-            else:
-                return False if kwargs.get('valid', True) else True
-    return wrapper_func
+# def false_on_exception_for_classmethod(func):
+#     """Wrap the classmethod and return False on exception.
+#
+#     Parameters
+#     ----------
+#     func (function): a callable function
+#
+#     Notes
+#     -----
+#     DO NOT nest this decorator.
+#     """
+#     @functools.wraps(func)
+#     def wrapper_func(*args, **kwargs):
+#         """A Wrapper Function"""
+#         chk = str(args[1]).upper()
+#         if chk == '__EXCEPTION__':
+#             return False
+#         try:
+#             result = func(*args, **kwargs)
+#             return result if kwargs.get('valid', True) else not result
+#         except Exception as ex:
+#             if DEBUG:
+#                 traceback.print_exc()
+#             else:
+#                 msg = 'Warning *** {}: {}'.format(type(ex).__name__, ex)
+#                 logger.warning(msg)
+#             is_called_exception = kwargs.get('on_exception', False)
+#             if is_called_exception:
+#                 raise ex
+#             else:
+#                 return False if kwargs.get('valid', True) else True
+#     return wrapper_func
 
 
 def raise_exception_if(ex, on_exception=True):
