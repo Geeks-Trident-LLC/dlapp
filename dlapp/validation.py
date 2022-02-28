@@ -756,8 +756,6 @@ class CustomValidation:
             if matched_date:
                 return True if valid else False
 
-            # month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
-            #                        '([abceimorstu]*[ehlrt])?')
             month_names_pattern = """(?ix)jan(uary)?|
                                      feb(ruary)?|
                                      mar(ch)?|
@@ -774,7 +772,6 @@ class CustomValidation:
             if matched_month_names:
                 return True if valid else False
 
-            # day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
             day_names_pattern = '(?i)(sun|mon|tues?|wed(nes)?|thu(rs)?|fri|sat(ur)?)(day)?'
             matched_day_names = re.search(day_names_pattern, value)
             if matched_day_names:
@@ -820,8 +817,6 @@ class CustomValidation:
             if matched_date:
                 return True if valid else False
 
-            # month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
-            #                        '([abceimorstu]*[ehlrt])?')
             month_names_pattern = """(?ix)jan(uary)?|
                                      feb(ruary)?|
                                      mar(ch)?|
@@ -838,7 +833,6 @@ class CustomValidation:
             if matched_month_names:
                 return True if valid else False
 
-            # day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
             day_names_pattern = '(?i)(sun|mon|tues?|wed(nes)?|thu(rs)?|fri|sat(ur)?)(day)?'
             matched_day_names = re.search(day_names_pattern, value)
             if matched_day_names:
@@ -878,8 +872,6 @@ class CustomValidation:
             if matched_date:
                 return False if valid else True
 
-            # month_names_pattern = ('(?i)[ADFJMNOS][aceopu][bcglnprtvy]'
-            #                        '([abceimorstu]*[ehlrt])?')
             month_names_pattern = """(?ix)jan(uary)?|
                                      feb(ruary)?|
                                      mar(ch)?|
@@ -896,7 +888,6 @@ class CustomValidation:
             if matched_month_names:
                 return False if valid else True
 
-            # day_names_pattern = '(?i)[FMSTW][aehoru][deintu]([enrsu]*day)?'
             day_names_pattern = '(?i)(sun|mon|tues?|wed(nes)?|thu(rs)?|fri|sat(ur)?)(day)?'
             matched_day_names = re.search(day_names_pattern, value)
             if matched_day_names:
