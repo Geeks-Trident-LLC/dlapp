@@ -451,17 +451,17 @@ class TestDatetimeValidation:
             (
                 'Sun Mar 14 00:30:30 AM 2021',
                 '<',    # less than
-                'Sunday March 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: -25200'
+                'Sunday March 14 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: -25200'
             ),
             (
                 'Sun Mar 14 00:30:30 AM PST 2021',
                 '<',    # less than
-                'Sunday March 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: -25200'
+                'Sunday March 14 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: -25200'
             ),
             (
                 'Sun Mar 14 00:30:30 AM PST 2021',
                 '<',    # less than
-                'Sunday March 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: America/Los_Angeles'
+                'Sunday March 14 2021 02:10:30 AM PDT timezone=PST: -28800, PDT: America/Los_Angeles'
             ),
             #################################################
             # compare DATETIME with dayfirst option         #
