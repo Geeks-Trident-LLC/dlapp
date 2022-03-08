@@ -333,25 +333,25 @@ class Cli:
         )
 
         parser.add_argument(
-            '--filename', type=str,
+            '-f', '--filename', type=str,
             default='',
             help='a json, yaml, or csv file name'
         )
 
         parser.add_argument(
-            '--filetype', type=str, choices=['csv', 'json', 'yaml', 'yml'],
+            '-t', '--filetype', type=str, choices=['csv', 'json', 'yaml', 'yml'],
             default='',
             help='a file type can be either json, yaml, yml, or csv'
         )
 
         parser.add_argument(
-            '--lookup', type=str, dest='lookup',
+            '-l', '--lookup', type=str, dest='lookup',
             default='',
             help='a lookup criteria for searching a list or dictionary'
         )
 
         parser.add_argument(
-            '--select', type=str, dest='select_statement',
+            '-s', '--select', type=str, dest='select_statement',
             default='',
             help='a select statement to enhance multiple searching criteria'
         )
