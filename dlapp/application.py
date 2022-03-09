@@ -1,6 +1,20 @@
 """Module containing the logic for the DLApp."""
 
-import tkinter as tk
+import platform
+
+try:
+    import tkinter as tk
+except ModuleNotFoundError as ex:
+    from dlapp.utils import Printer
+    import sys
+    lst = ["Failed to launch DLApp application because",
+           "Python{} binary doesn't have tkinter module".format(platform.python_version()),
+           "Please install tkinter module and try it again"]
+    Printer.print(lst)
+    sys.exit(1)
+except Exception as ex:
+    raise ex
+
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
@@ -17,8 +31,6 @@ from dlapp.collection import Tabular
 
 from dlapp import edition
 from dlapp.config import Data
-
-import platform
 
 
 def get_relative_center_location(parent, width, height):
