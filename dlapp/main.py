@@ -9,6 +9,8 @@ from dlapp import create_from_csv_file
 from dlapp import create_from_json_file
 from dlapp import create_from_yaml_file
 
+from dlapp.collection import Tabular
+
 
 def get_tutorial_examples():
     """Return the dlapp tutorial examples text."""
@@ -339,7 +341,7 @@ class Cli:
         )
 
         parser.add_argument(
-            '-t', '--filetype', type=str, choices=['csv', 'json', 'yaml', 'yml'],
+            '-e', '--filetype', type=str, choices=['csv', 'json', 'yaml', 'yml'],
             default='',
             help='a file type can be either json, yaml, yml, or csv'
         )
@@ -354,6 +356,11 @@ class Cli:
             '-s', '--select', type=str, dest='select_statement',
             default='',
             help='a select statement to enhance multiple searching criteria'
+        )
+
+        parser.add_argument(
+            '-t', '--tabular', action='store_true', dest='tabular',
+            help='show result in tabular format'
         )
 
         parser.add_argument(
@@ -483,7 +490,11 @@ class Cli:
         query_obj = func(self.filename)
         result = query_obj.find(lookup=lookup, select=select)
         if result:
-            print(result)
+            if options.tabular:
+                node = Tabular(result)
+                node.print()
+            else:
+                print(result)
         else:
             print('*** No record is found.')
 
