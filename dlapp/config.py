@@ -80,3 +80,21 @@ class Data:
         OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         """.format(years, company)
     ).strip()
+
+    @classmethod
+    def get_dependency(cls):
+        dependencies = dict(
+            compare_versions=dict(
+                package=cls.compare_versions_text,
+                url=cls.compare_versions_link
+            ),
+            dateutil=dict(
+                package=cls.python_dateutil_text,
+                url=cls.python_dateutil_link
+            ),
+            pyyaml=dict(
+                package=cls.pyyaml_text,
+                url=cls.pyyaml_link
+            )
+        )
+        return dependencies
