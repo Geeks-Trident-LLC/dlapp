@@ -7,7 +7,7 @@ import compare_versions
 import dateutil
 import yaml
 
-__version__ = '0.3.1'
+__version__ = '0.3.2'
 version = __version__
 __edition__ = 'Community'
 edition = __edition__
