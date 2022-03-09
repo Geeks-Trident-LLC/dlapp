@@ -316,6 +316,28 @@ def run_gui_application(options):
         sys.exit(0)
 
 
+def show_dependency(options):
+    if options.dependency:
+        from platform import uname, python_version
+        from dlapp.utils import Printer
+        from dlapp.config import Data
+        lst = [
+            Data.main_app_text,
+            'Platform: {0.system} {0.release} - Python {1}'.format(
+                uname(), python_version()
+            ),
+            '--------------------',
+            'Dependencies:'
+        ]
+
+        for pkg in Data.get_dependency().values():
+            lst.append('  + Package: {0[package]}'.format(pkg))
+            lst.append('             {0[url]}'.format(pkg))
+
+        Printer.print(lst)
+        sys.exit(0)
+
+
 class Cli:
     """dlapp console CLI application."""
     def __init__(self):
@@ -364,22 +386,27 @@ class Cli:
         )
 
         parser.add_argument(
-            '--tutorial', action='store_true', dest='tutorial',
+            '-d', '--dependency', action='store_true', dest='dependency',
+            help='show Python package dependencies'
+        )
+
+        parser.add_argument(
+            '-u', '--tutorial', action='store_true', dest='tutorial',
             help='show dlapp tutorial'
         )
 
         parser.add_argument(
-            '--tutorial-csv', action='store_true', dest='tutorial_csv',
+            '-c', '--tutorial-csv', action='store_true', dest='tutorial_csv',
             help='show csv tutorial'
         )
 
         parser.add_argument(
-            '--tutorial-json', action='store_true', dest='tutorial_json',
+            '-j', '--tutorial-json', action='store_true', dest='tutorial_json',
             help='show json tutorial'
         )
 
         parser.add_argument(
-            '--tutorial-yaml', action='store_true', dest='tutorial_yaml',
+            '-y', '--tutorial-yaml', action='store_true', dest='tutorial_yaml',
             help='show yaml tutorial'
         )
 
@@ -503,6 +530,7 @@ class Cli:
     def run(self):
         """Take CLI arguments, parse it, and process."""
         options = self.parser.parse_args()
+        show_dependency(options)
         run_tutorial(options)
         run_gui_application(options)
         self.validate_cli_flags(options)
