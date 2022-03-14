@@ -20,27 +20,27 @@ pip install dlapp
 
 ## Usage
 ```bash
-(vp37) C:\>dlapp --help
+(venv) test@test-machine ~ % dlapp --help
 usage: dlapp [options]
 
 dlapp application
 
 optional arguments:
   -h, --help            show this help message and exit
-  --gui                 launch a dlapp GUI application
-  --filename FILENAME   a json, yaml, or csv file name
-  --filetype {csv,json,yaml,yml}
-                        a file type can be either json, yaml, yml, or csv
-  --lookup LOOKUP       a lookup criteria for searching a list or dictionary
-  --select SELECT_STATEMENT
-                        a select statement to enhance multiple searching
-                        criteria
-  --tutorial            show dlapp tutorial
-  --tutorial-csv        show csv tutorial
-  --tutorial-json       show json tutorial
-  --tutorial-yaml       show yaml tutorial
-
-(vp37) C:\>
+  --gui                 Launch a dlapp GUI application.
+  -f FILENAME, --filename FILENAME
+                        JSON, YAML, or CSV file name.
+  -e {csv,json,yaml,yml}, --filetype {csv,json,yaml,yml}
+                        File type can be either json, yaml, yml, or csv.
+  -l LOOKUP, --lookup LOOKUP
+                        Lookup criteria for searching list or dictionary.
+  -s SELECT_STATEMENT, --select SELECT_STATEMENT
+                        Select statement to enhance multiple searching criteria.
+  -t, --tabular         Show result in tabular format.
+  -d, --dependency      Show Python package dependencies.
+  -u {base,csv,json,yaml}, --tutorial {base,csv,json,yaml}
+                        Tutorial can be either base, csv, json, or yaml.
+(venv) test@test-machine ~ %
 ```
 
 ## Getting Started
