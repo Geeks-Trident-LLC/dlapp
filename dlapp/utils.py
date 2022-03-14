@@ -49,14 +49,14 @@ class Printer:
         for item in data:
             if pat:
                 for line in str(item).splitlines():
-                    line = line.strip()
+                    line = line.rstrip()
                     if len(line) > right_bound:
-                        line = re.sub(pat, r'\1\n', line.strip())
+                        line = re.sub(pat, r'\1\n', line)
                         lst.extend(line.splitlines())
                     else:
                         lst.append(line)
             else:
-                lst.extend(line.strip() for line in str(item).splitlines())
+                lst.extend(line.rstrip() for line in str(item).splitlines())
         length = max(len(str(i)) for i in lst + headers + footers)
         if width > left_limit:
             length = right_bound if right_bound > length else length

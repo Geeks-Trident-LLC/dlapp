@@ -92,47 +92,47 @@ class Cli:
 
         parser.add_argument(
             '--gui', action='store_true',
-            help='launch a dlapp GUI application'
+            help='Launch a dlapp GUI application.'
         )
 
         parser.add_argument(
             '-f', '--filename', type=str,
             default='',
-            help='a json, yaml, or csv file name'
+            help='JSON, YAML, or CSV file name.'
         )
 
         parser.add_argument(
             '-e', '--filetype', type=str, choices=['csv', 'json', 'yaml', 'yml'],
             default='',
-            help='a file type can be either json, yaml, yml, or csv'
+            help='File type can be either json, yaml, yml, or csv.'
         )
 
         parser.add_argument(
             '-l', '--lookup', type=str, dest='lookup',
             default='',
-            help='a lookup criteria for searching a list or dictionary'
+            help='Lookup criteria for searching list or dictionary.'
         )
 
         parser.add_argument(
             '-s', '--select', type=str, dest='select_statement',
             default='',
-            help='a select statement to enhance multiple searching criteria'
+            help='Select statement to enhance multiple searching criteria.'
         )
 
         parser.add_argument(
             '-t', '--tabular', action='store_true', dest='tabular',
-            help='show result in tabular format'
+            help='Show result in tabular format.'
         )
 
         parser.add_argument(
             '-d', '--dependency', action='store_true', dest='dependency',
-            help='show Python package dependencies'
+            help='Show Python package dependencies.'
         )
 
         parser.add_argument(
             '-u', '--tutorial', type=str, choices=['base', 'csv', 'json', 'yaml'],
             default='',
-            help='tutorial can be base, csv, json, or yaml tutorial'
+            help='Tutorial can be either base, csv, json, or yaml.'
         )
 
         self.parser = parser
