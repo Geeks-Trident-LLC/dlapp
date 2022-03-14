@@ -24,18 +24,16 @@ def run_tutorial(options):
     -------
     None: will call ``sys.exit(0)`` if end user requests a tutorial
     """
-    is_tutorial_needed = options.tutorial
-    is_tutorial_needed |= options.tutorial_csv
-    is_tutorial_needed |= options.tutorial_json
-    is_tutorial_needed |= options.tutorial_yaml
 
-    if not is_tutorial_needed:
+    tutorial = options.tutorial.lower()
+
+    if tutorial not in ['base', 'csv', 'json', 'yaml']:
         return None
 
-    options.tutorial and tu.show_tutorial_dlquery()
-    options.tutorial_csv and tu.show_tutorial_csv()
-    options.tutorial_json and tu.show_tutorial_json()
-    options.tutorial_yaml and tu.show_tutorial_yaml()
+    tutorial == 'base' and tu.show_tutorial_dlquery()
+    tutorial == 'csv' and tu.show_tutorial_csv()
+    tutorial == 'json' and tu.show_tutorial_json()
+    tutorial == 'yaml' and tu.show_tutorial_yaml()
     sys.exit(0)
 
 
@@ -132,23 +130,9 @@ class Cli:
         )
 
         parser.add_argument(
-            '-u', '--tutorial', action='store_true', dest='tutorial',
-            help='show dlapp tutorial'
-        )
-
-        parser.add_argument(
-            '-c', '--tutorial-csv', action='store_true', dest='tutorial_csv',
-            help='show csv tutorial'
-        )
-
-        parser.add_argument(
-            '-j', '--tutorial-json', action='store_true', dest='tutorial_json',
-            help='show json tutorial'
-        )
-
-        parser.add_argument(
-            '-y', '--tutorial-yaml', action='store_true', dest='tutorial_yaml',
-            help='show yaml tutorial'
+            '-u', '--tutorial', type=str, choices=['base', 'csv', 'json', 'yaml'],
+            default='',
+            help='tutorial can be base, csv, json, or yaml tutorial'
         )
 
         self.parser = parser
