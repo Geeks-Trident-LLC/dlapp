@@ -34,6 +34,7 @@ class SelectParser:
     def __init__(self, select_statement, on_exception=True):
         self.select_statement = select_statement
         self.columns = [None]
+        self.left_operands = []
         self.predicate = None
         self.logger = logger
         self.on_exception = on_exception
@@ -71,6 +72,8 @@ class SelectParser:
         key = key.replace('_COMMA_', ',')
         op = op.lower()
         value = value.replace('_COMMA_', ',')
+
+        key not in self.left_operands and self.left_operands.append(key)
 
         tbl1 = {'lt': 'lt', 'le': 'le', '<': 'lt', '<=': 'le',
                 'less_than': 'lt', 'less_than_or_equal': 'le',
@@ -263,19 +266,20 @@ class SelectParser:
                 ' +where +', statement, maxsplit=1, flags=re.I
             )
             select, expressions = select.strip(), expressions.strip()
-            select = re.sub('^select +', '', select, flags=re.I)
-        elif self.select_statement.lower().startswith('where'):
+            select = re.sub('^ *select +', '', select, flags=re.I).strip()
+        elif statement.lower().startswith('where'):
             select = None
             expressions = re.sub('^where +', '', statement, flags=re.I)
+
         else:
-            select = re.sub('^select +', '', statement, flags=re.I)
+            select = re.sub('^ *select +', '', statement, flags=re.I).strip()
             expressions = None
 
         if select:
-            if select in ['*', '__ALL__']:
+            if re.match(r'(?i) *([*]|_+all_+) *$', select):
                 self.columns = []
             else:
-                self.columns = re.split(', *', select.strip(), flags=re.I)
+                self.columns = re.split(' *, *', select.strip(), flags=re.I)
 
         if expressions:
             self.predicate = self.build_predicate(expressions)

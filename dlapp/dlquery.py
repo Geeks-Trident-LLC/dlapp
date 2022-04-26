@@ -3,8 +3,10 @@ import re
 import operator
 from dlapp import utils
 from dlapp.argumenthelper import validate_argument_type
-from dlapp.argumenthelper import validate_argument_is_not_empty
+# from dlapp.argumenthelper import validate_argument_is_not_empty
 from dlapp.collection import Element
+
+from dlapp.parser import SelectParser
 
 
 class DLQuery:
@@ -203,9 +205,18 @@ class DLQuery:
         """
         node = node or self.data
         lookup = str(lookup).strip()
-        if lookup == '' and select == '':
-            return node
-        validate_argument_is_not_empty(lookup=lookup)
+        if lookup == '':
+
+            if select == '' or re.match(r'(?i)select +([*]|_+all_+) *$', select):
+                return node
+
+            parsed_obj = SelectParser(select, on_exception=on_exception)
+            parsed_obj.parse_statement()
+            if parsed_obj.columns and parsed_obj.columns != [None]:
+                lookup = parsed_obj.columns[0]
+            elif parsed_obj.left_operands:
+                lookup = parsed_obj.left_operands[0]
+
         validate_argument_type(list, tuple, dict, node=node)
 
         elm_obj = Element(node, on_exception=on_exception)
