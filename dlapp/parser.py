@@ -72,13 +72,26 @@ class SelectParser:
         op = op.lower()
         value = value.replace('_COMMA_', ',')
 
+        tbl1 = {'lt': 'lt', 'le': 'le', '<': 'lt', '<=': 'le',
+                'less_than': 'lt', 'less_than_or_equal': 'le',
+                'less_than_or_equal_to': 'le', 'equal_or_less_than': 'le',
+                'equal_to_or_less_than': 'le',
+                'gt': 'gt', 'ge': 'ge', '>': 'gt', '>=': 'ge',
+                'greater_than': 'gt', 'greater_than_or_equal': 'ge',
+                'greater_than_or_equal_to': 'ge', 'equal_or_greater_than': 'ge',
+                'equal_to_or_greater_than': 'ge'}
+
+        tbl2 = {'eq': 'eq', '==': 'eq', 'equal': 'eq', 'equal_to': 'eq',
+                'ne': 'ne', '!=': 'ne', 'not_equal': 'ne', 'not_equal_to': 'ne'}
+
         if op == 'is':
             func = partial(Predicate.is_, key=key, custom=value,
                            on_exception=self.on_exception)
         elif op in ['is_not', 'isnot']:
             func = partial(Predicate.isnot, key=key, custom=value,
                            on_exception=self.on_exception)
-        elif op in ['lt', 'le', 'gt', 'ge', '<', '<=', '>', '>=']:
+        elif op in tbl1:
+            op = tbl1.get(op)
             val = str(value).strip()
             pattern = r'''
                 (?i)((?P<semantic>semantic)_)?
@@ -108,7 +121,8 @@ class SelectParser:
             else:
                 func = partial(Predicate.compare_number, key=key,
                                op=op, other=value)
-        elif op in ['eq', 'ne', '==', '!=']:
+        elif op in tbl2:
+            op = tbl2.get(op)
             val = str(value).strip()
             pattern = r'''
                 (?i)((?P<semantic>semantic)_)?
