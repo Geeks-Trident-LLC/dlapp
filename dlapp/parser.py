@@ -34,6 +34,7 @@ class SelectParser:
     def __init__(self, select_statement, on_exception=True):
         self.select_statement = select_statement
         self.columns = [None]
+        self.left_operands = []
         self.predicate = None
         self.logger = logger
         self.on_exception = on_exception
@@ -72,13 +73,28 @@ class SelectParser:
         op = op.lower()
         value = value.replace('_COMMA_', ',')
 
+        key not in self.left_operands and self.left_operands.append(key)
+
+        tbl1 = {'lt': 'lt', 'le': 'le', '<': 'lt', '<=': 'le',
+                'less_than': 'lt', 'less_than_or_equal': 'le',
+                'less_than_or_equal_to': 'le', 'equal_or_less_than': 'le',
+                'equal_to_or_less_than': 'le',
+                'gt': 'gt', 'ge': 'ge', '>': 'gt', '>=': 'ge',
+                'greater_than': 'gt', 'greater_than_or_equal': 'ge',
+                'greater_than_or_equal_to': 'ge', 'equal_or_greater_than': 'ge',
+                'equal_to_or_greater_than': 'ge'}
+
+        tbl2 = {'eq': 'eq', '==': 'eq', 'equal': 'eq', 'equal_to': 'eq',
+                'ne': 'ne', '!=': 'ne', 'not_equal': 'ne', 'not_equal_to': 'ne'}
+
         if op == 'is':
             func = partial(Predicate.is_, key=key, custom=value,
                            on_exception=self.on_exception)
         elif op in ['is_not', 'isnot']:
             func = partial(Predicate.isnot, key=key, custom=value,
                            on_exception=self.on_exception)
-        elif op in ['lt', 'le', 'gt', 'ge', '<', '<=', '>', '>=']:
+        elif op in tbl1:
+            op = tbl1.get(op)
             val = str(value).strip()
             pattern = r'''
                 (?i)((?P<semantic>semantic)_)?
@@ -108,7 +124,8 @@ class SelectParser:
             else:
                 func = partial(Predicate.compare_number, key=key,
                                op=op, other=value)
-        elif op in ['eq', 'ne', '==', '!=']:
+        elif op in tbl2:
+            op = tbl2.get(op)
             val = str(value).strip()
             pattern = r'''
                 (?i)((?P<semantic>semantic)_)?
@@ -249,19 +266,20 @@ class SelectParser:
                 ' +where +', statement, maxsplit=1, flags=re.I
             )
             select, expressions = select.strip(), expressions.strip()
-            select = re.sub('^select +', '', select, flags=re.I)
-        elif self.select_statement.lower().startswith('where'):
+            select = re.sub('^ *select +', '', select, flags=re.I).strip()
+        elif statement.lower().startswith('where'):
             select = None
             expressions = re.sub('^where +', '', statement, flags=re.I)
+
         else:
-            select = re.sub('^select +', '', statement, flags=re.I)
+            select = re.sub('^ *select +', '', statement, flags=re.I).strip()
             expressions = None
 
         if select:
-            if select in ['*', '__ALL__']:
+            if re.match(r'(?i) *([*]|_+all_+) *$', select):
                 self.columns = []
             else:
-                self.columns = re.split(', *', select.strip(), flags=re.I)
+                self.columns = re.split(' *, *', select.strip(), flags=re.I)
 
         if expressions:
             self.predicate = self.build_predicate(expressions)
