@@ -1,22 +1,15 @@
 """Module containing the logic for predicate."""
 
 import logging
-from dlquery.validation import RegexValidation
-from dlquery.validation import OpValidation
-from dlquery.validation import CustomValidation
-from dlquery.validation import VersionValidation
-from dlquery.validation import DatetimeValidation
+from dlapp.validation import RegexValidation
+from dlapp.validation import OpValidation
+from dlapp.validation import CustomValidation
+from dlapp.validation import VersionValidation
+from dlapp.validation import DatetimeValidation
 
+from dlapp.exceptions import PredicateParameterDataTypeError
 
 logger = logging.getLogger(__file__)
-
-
-class PredicateError(Exception):
-    """Use to capture the predicate error."""
-
-
-class PredicateParameterDataTypeError(PredicateError):
-    """Use to capture the parameter data type of predicate."""
 
 
 def get_value(data, key):
@@ -63,7 +56,7 @@ class Predicate:
     """
     @classmethod
     def is_(cls, data, key='', custom='', on_exception=True):
-        """A is keyword for expression validation.
+        """is keyword for expression validation.
 
         Parameters
         ----------
@@ -84,7 +77,7 @@ class Predicate:
 
     @classmethod
     def isnot(cls, data, key='', custom='', on_exception=True):
-        """A is_not or isnot keyword for expression validation.
+        """is_not or isnot keyword for expression validation.
 
         Parameters
         ----------
@@ -95,7 +88,7 @@ class Predicate:
 
         Returns
         -------
-        bool: True if does not meet custom keyword condition, otherwise, False.
+        bool: True or False.
         """
 
         value = get_value(data, key)
@@ -106,7 +99,7 @@ class Predicate:
 
     @classmethod
     def match(cls, data, key='', pattern='', on_exception=True):
-        """A match keyword for expression validation.
+        """match keyword for expression validation.
 
         Parameters
         ----------
@@ -127,7 +120,7 @@ class Predicate:
 
     @classmethod
     def notmatch(cls, data, key='', pattern='', on_exception=True):
-        """A not_match or notmatch keyword for expression validation.
+        """not_match or notmatch keyword for expression validation.
 
         Parameters
         ----------
@@ -148,14 +141,14 @@ class Predicate:
 
     @classmethod
     def compare_number(cls, data, key='', op='', other='', on_exception=True):
-        """A compare_number keyword for expression validation.
+        """compare_number keyword for expression validation.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
         key (str): a key of dict or dict-like instance.
         op (str): an operator such as lt, le, gt, ge, eq, or ne.
-        other (str, int, float): an other number.
+        other (str, int, float): other number.
         on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
@@ -170,14 +163,14 @@ class Predicate:
 
     @classmethod
     def compare(cls, data, key='', op='', other='', on_exception=True):
-        """A compare keyword for expression validation.
+        """compare keyword for expression validation.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
         key (str): a key of dict or dict-like instance.
         op (str): an operator such eq or ne.
-        other (str): an other data.
+        other (str): other data.
         on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
@@ -192,14 +185,14 @@ class Predicate:
 
     @classmethod
     def compare_version(cls, data, key='', op='', other='', on_exception=True):
-        """A compare_version keyword for expression validation.
+        """compare_version keyword for expression validation.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
         key (str): a key of dict or dict-like instance.
         op (str): an operator such lt, le, gt, ge, eq or ne.
-        other (str): an other data.
+        other (str): other data.
         on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
@@ -214,14 +207,14 @@ class Predicate:
 
     @classmethod
     def compare_semantic_version(cls, data, key='', op='', other='', on_exception=True):
-        """A compare_semantic_version keyword for expression validation.
+        """compare_semantic_version keyword for expression validation.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
         key (str): a key of dict or dict-like instance.
         op (str): an operator such lt, le, gt, ge, eq or ne.
-        other (str): an other data.
+        other (str): other data.
         on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
@@ -236,14 +229,14 @@ class Predicate:
 
     @classmethod
     def compare_datetime(cls, data, key='', op='', other='', on_exception=True):
-        """A compare_datetime keyword for expression validation.
+        """compare_datetime keyword for expression validation.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
         key (str): a key of dict or dict-like instance.
         op (str): an operator such lt, le, gt, ge, eq or ne.
-        other (str): an other data.
+        other (str): other data.
         on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
@@ -258,13 +251,13 @@ class Predicate:
 
     @classmethod
     def contain(cls, data, key='', other='', on_exception=True):
-        """A contain keyword for expression validation.
+        """contain keyword for expression validation.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
         key (str): a key of dict or dict-like instance.
-        other (str): an other data.
+        other (str): other data.
         on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
@@ -279,13 +272,13 @@ class Predicate:
 
     @classmethod
     def notcontain(cls, data, key='', other='', on_exception=True):
-        """A not_contain or notcontain keyword for expression validation.
+        """not_contain or notcontain keyword for expression validation.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
         key (str): a key of dict or dict-like instance.
-        other (str): an other data.
+        other (str): other data.
         on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
@@ -300,13 +293,13 @@ class Predicate:
 
     @classmethod
     def belong(cls, data, key='', other='', on_exception=True):
-        """A belong keyword for expression validation.
+        """belong keyword for expression validation.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
         key (str): a key of dict or dict-like instance.
-        other (str): an other data.
+        other (str): other data.
         on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
@@ -321,13 +314,13 @@ class Predicate:
 
     @classmethod
     def notbelong(cls, data, key='', other='', on_exception=True):
-        """A not_belong or notbelong keyword for expression validation.
+        """not_belong or notbelong keyword for expression validation.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
         key (str): a key of dict or dict-like instance.
-        other (str): an other data.
+        other (str): other data.
         on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
@@ -341,29 +334,39 @@ class Predicate:
         return result
 
     @classmethod
-    def true(cls, data):
+    def true(cls, data, on_exception=True):     # noqa
         """Regardless a user provided data, it always returns True.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
+        on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
         -------
         bool: True
+
+        Notes
+        -----
+        Both data and on_exception will skip because this method always return True.
         """
         return True
 
     @classmethod
-    def false(cls, data):
+    def false(cls, data, on_exception=True):    # noqa
         """Regardless a user provided data, it always returns False.
 
         Parameters
         ----------
         data (dict): a dict or dict-like instance.
+        on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
         -------
         bool: False
+
+        Notes
+        -----
+        Both data and on_exception will skip because this method always return False.
         """
         return False

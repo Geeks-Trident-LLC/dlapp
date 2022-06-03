@@ -1,9 +1,9 @@
-from dlquery import create_from_yaml_file
-from dlquery import create_from_yaml_data
-from dlquery import create_from_json_file
-from dlquery import create_from_json_data
-from dlquery import create_from_csv_file
-from dlquery import create_from_csv_data
+from dlapp import create_from_yaml_file
+from dlapp import create_from_yaml_data
+from dlapp import create_from_json_file
+from dlapp import create_from_json_data
+from dlapp import create_from_csv_file
+from dlapp import create_from_csv_data
 from os import path
 
 test_path = path.dirname(__file__)
@@ -11,32 +11,32 @@ test_path = path.dirname(__file__)
 
 class TestDynamicDict:
     def test_creating_dlquery_from_yaml_file(self):
-        """Test creating a dlquery instance from YAML file."""
+        """Test creating a dlapp instance from YAML file."""
         filename = path.join(test_path, 'data/sample.yaml')
         query_obj = create_from_yaml_file(filename)
         assert query_obj.get('a') == 'Apricot'
 
     def test_creating_dlquery_from_yaml_data(self):
-        """Test creating a dlquery instance from YAML data."""
+        """Test creating a dlapp instance from YAML data."""
         data = '''{"a": "Apricot", "b": "Banana"}'''
         query_obj = create_from_yaml_data(data)
         assert query_obj.get('a') == 'Apricot'
 
     def test_creating_dlquery_from_json_file(self):
-        """Test creating a dlquery instance from JSON file."""
+        """Test creating a dlapp instance from JSON file."""
         filename = path.join(test_path, 'data/sample.json')
         # filename = self.json_filename
         query_obj = create_from_json_file(filename)
         assert query_obj.get('a') == 'Apricot'
 
     def test_creating_dlquery_from_json_data(self):
-        """Test creating a dlquery instance from JSON data."""
+        """Test creating a dlapp instance from JSON data."""
         data = '''{"a": "Apricot", "b": "Banana"}'''
         query_obj = create_from_json_data(data)
         assert query_obj.get('a') == 'Apricot'
 
-    def test_creating_dlquery_from_json_file(self):
-        """Test creating a dlquery instance from CSV file."""
+    def test_creating_dlquery_from_csv_file(self):
+        """Test creating a dlapp instance from CSV file."""
         filename = path.join(test_path, 'data/sample.csv')
         query_obj = create_from_csv_file(filename)
         result = query_obj.find(lookup='a=_iwildcard(Ap*)')
@@ -48,8 +48,8 @@ class TestDynamicDict:
         query_obj.find(lookup='a', select='where a match Ap\\w+')
         assert result == ['Apple', 'Apricot']
 
-    def test_creating_dlquery_from_json_data(self):
-        """Test creating a dlquery instance from CSV data."""
+    def test_creating_dlquery_from_csv_data(self):
+        """Test creating a dlapp instance from CSV data."""
         data = '''
             a,b,c
             Apple,Banana,Cherry

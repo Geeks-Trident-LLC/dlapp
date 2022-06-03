@@ -1,4 +1,4 @@
-"""Top-level module for dlquery.
+"""Top-level module for dlapp.
 
 This module
 
@@ -31,7 +31,7 @@ For example, assuming there is a list of dictionary
 we want to find any fruit beginning with letters Ap in group "a".  First,
 we need to import DLQuery library and instantiate a query_obj
 
->>> from dlquery import DLQuery
+>>> from dlapp import DLQuery
 >>> query_obj = DLQuery(lst_of_dict)
 
 Snippet 1: using a lookup with a wildcard filtering
@@ -59,7 +59,7 @@ Snippet 4: using lookup with wildcard filtering and select-statement to select a
 >>> result = query_obj.find(lookup='a=_wildcard(Ap*)', select='SELECT a, b')
 >>> assert result == [{'a': 'Apple', 'b': 'Banana'}, {'a': 'Apricot', 'b': 'Boysenberry'}]
 
-Snippet 5: using lookup with regex filtering and and select-statement to select a, c
+Snippet 5: using lookup with regex filtering and select-statement to select a, c
 
 >>> result = query_obj.find(lookup='a=_regex(Ap\\w+)', select='SELECT a, c')
 >>> assert result == [{'a': 'Apple', 'c': 'Cherry'}, {'a': 'Apricot', 'c': 'Cantaloupe'}]
@@ -70,20 +70,23 @@ Snippet 6: using lookup and select-statement to select c with WHERE clause
 >>> assert result == [{'c': 'Cherry'}, {'c': 'Cantaloupe'}]
 """
 
-from dlquery.dlquery import DLQuery         # noqa
-from dlquery.factory import create_from_yaml_file   # noqa
-from dlquery.factory import create_from_yaml_data   # noqa
-from dlquery.factory import create_from_json_file   # noqa
-from dlquery.factory import create_from_json_data   # noqa
-from dlquery.factory import create_from_csv_file    # noqa
-from dlquery.factory import create_from_csv_data    # noqa
+from dlapp.dlquery import DLQuery         # noqa
+from dlapp.factory import create_from_yaml_file   # noqa
+from dlapp.factory import create_from_yaml_data   # noqa
+from dlapp.factory import create_from_json_file   # noqa
+from dlapp.factory import create_from_json_data   # noqa
+from dlapp.factory import create_from_csv_file    # noqa
+from dlapp.factory import create_from_csv_data    # noqa
 
-from dlquery.validation import RegexValidation      # noqa
-from dlquery.validation import OpValidation         # noqa
-from dlquery.validation import CustomValidation     # noqa
+from dlapp.validation import RegexValidation      # noqa
+from dlapp.validation import OpValidation         # noqa
+from dlapp.validation import CustomValidation     # noqa
 
-__version__ = '1.0.1'
-version = __version__
+from dlapp.config import version
+from dlapp.config import edition
+
+__version__ = version
+__edition__ = edition
 
 __all__ = [
     'CustomValidation',
@@ -97,5 +100,5 @@ __all__ = [
     'create_from_yaml_file',
     'create_from_yaml_data',
     'version',
-    '__version__'
+    'edition'
 ]

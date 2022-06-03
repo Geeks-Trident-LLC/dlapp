@@ -3,8 +3,7 @@
 import re
 import logging
 from functools import partial
-from dlquery.predicate import Predicate
-from dlquery.utils import is_number
+from dlapp.predicate import Predicate
 
 
 logger = logging.getLogger(__file__)
@@ -19,6 +18,7 @@ class SelectParser:
     columns (list): columns
     predicate (function): a callable function.
     logger (logging.Logger): a logger
+    on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
     Properties
     ----------
@@ -31,11 +31,13 @@ class SelectParser:
     build_predicate() -> function
     parse_statement() -> None
     """
-    def __init__(self, select_statement):
+    def __init__(self, select_statement, on_exception=True):
         self.select_statement = select_statement
         self.columns = [None]
+        self.left_operands = []
         self.predicate = None
         self.logger = logger
+        self.on_exception = on_exception
 
     @property
     def is_zero_select(self):
@@ -58,16 +60,41 @@ class SelectParser:
         -------
         function: a callable function.
         """
-        key, op, value = [i.strip() for i in re.split(r' +', expression, maxsplit=2)]
-        key = key.replace('_SPACE_', ' ').replace('_COMMA_', ',')
+        pattern = '''(?i)["'](?P<key>.+)['"] +(?P<op>\\S+) +(?P<value>.+)'''
+        match = re.match(pattern, expression)
+        if match:
+            key = match.group('key').strip()
+            op = match.group('op').strip()
+            value = match.group('value').strip()
+        else:
+            key, op, value = [i.strip() for i in re.split(r' +', expression, maxsplit=2)]
+
+        key = key.replace('_COMMA_', ',')
         op = op.lower()
-        value = value.replace('_SPACE_', ' ').replace('_COMMA_', ',')
+        value = value.replace('_COMMA_', ',')
+
+        key not in self.left_operands and self.left_operands.append(key)
+
+        tbl1 = {'lt': 'lt', 'le': 'le', '<': 'lt', '<=': 'le',
+                'less_than': 'lt', 'less_than_or_equal': 'le',
+                'less_than_or_equal_to': 'le', 'equal_or_less_than': 'le',
+                'equal_to_or_less_than': 'le',
+                'gt': 'gt', 'ge': 'ge', '>': 'gt', '>=': 'ge',
+                'greater_than': 'gt', 'greater_than_or_equal': 'ge',
+                'greater_than_or_equal_to': 'ge', 'equal_or_greater_than': 'ge',
+                'equal_to_or_greater_than': 'ge'}
+
+        tbl2 = {'eq': 'eq', '==': 'eq', 'equal': 'eq', 'equal_to': 'eq',
+                'ne': 'ne', '!=': 'ne', 'not_equal': 'ne', 'not_equal_to': 'ne'}
 
         if op == 'is':
-            func = partial(Predicate.is_, key=key, custom=value)
+            func = partial(Predicate.is_, key=key, custom=value,
+                           on_exception=self.on_exception)
         elif op in ['is_not', 'isnot']:
-            func = partial(Predicate.isnot, key=key, custom=value)
-        elif op in ['lt', 'le', 'gt', 'ge']:
+            func = partial(Predicate.isnot, key=key, custom=value,
+                           on_exception=self.on_exception)
+        elif op in tbl1:
+            op = tbl1.get(op)
             val = str(value).strip()
             pattern = r'''
                 (?i)((?P<semantic>semantic)_)?
@@ -75,7 +102,7 @@ class SelectParser:
             '''
             match_version = re.match(pattern, val, flags=re.VERBOSE)
 
-            pattern = r'(?i)datetime[(](?P<datetime_str>.+)[)]$'
+            pattern = r'(?i)(datetime|date|time)[(](?P<datetime_str>.+)[)]$'
             match_datetime = re.match(pattern, val)
 
             if match_version:
@@ -83,18 +110,22 @@ class SelectParser:
                 expected_version = match_version.group('expected_version')
                 if not semantic:
                     func = partial(Predicate.compare_version, key=key,
-                                   op=op, other=expected_version)
+                                   op=op, other=expected_version,
+                                   on_exception=self.on_exception)
                 else:
                     func = partial(Predicate.compare_semantic_version,
-                                   key=key, op=op, other=expected_version)
+                                   key=key, op=op, other=expected_version,
+                                   on_exception=self.on_exception)
             elif match_datetime:
                 datetime_str = match_datetime.group('datetime_str')
                 func = partial(Predicate.compare_datetime, key=key,
-                               op=op, other=datetime_str)
+                               op=op, other=datetime_str,
+                               on_exception=self.on_exception)
             else:
                 func = partial(Predicate.compare_number, key=key,
                                op=op, other=value)
-        elif op in ['eq', 'ne']:
+        elif op in tbl2:
+            op = tbl2.get(op)
             val = str(value).strip()
             pattern = r'''
                 (?i)((?P<semantic>semantic)_)?
@@ -102,7 +133,7 @@ class SelectParser:
             '''
             match_version = re.match(pattern, val, flags=re.VERBOSE)
 
-            pattern = r'(?i)datetime[(](?P<datetime_str>.+)[)]$'
+            pattern = r'(?i)(datetime|date|time)[(](?P<datetime_str>.+)[)]$'
             match_datetime = re.match(pattern, val)
 
             if match_version:
@@ -110,29 +141,45 @@ class SelectParser:
                 expected_version = match_version.group('expected_version')
                 if not semantic:
                     func = partial(Predicate.compare_version, key=key,
-                                   op=op, other=expected_version)
+                                   op=op, other=expected_version,
+                                   on_exception=self.on_exception)
                 else:
                     func = partial(Predicate.compare_semantic_version,
-                                   key=key, op=op, other=expected_version)
+                                   key=key, op=op, other=expected_version,
+                                   on_exception=self.on_exception)
             elif match_datetime:
                 datetime_str = match_datetime.group('datetime_str')
                 func = partial(Predicate.compare_datetime, key=key,
-                               op=op, other=datetime_str)
+                               op=op, other=datetime_str,
+                               on_exception=self.on_exception)
             else:
-                cfunc = Predicate.compare_number if is_number(value) else Predicate.compare
-                func = partial(cfunc, key=key, op=op, other=value)
+                try:
+                    float(value)
+                    func = partial(Predicate.compare_number,
+                                   key=key, op=op, other=value,
+                                   on_exception=self.on_exception)
+                except Exception as ex:     # noqa
+                    func = partial(Predicate.compare,
+                                   key=key, op=op, other=value,
+                                   on_exception=self.on_exception)
         elif op == 'match':
-            func = partial(Predicate.match, key=key, pattern=value)
+            func = partial(Predicate.match, key=key, pattern=value,
+                           on_exception=self.on_exception)
         elif op in ['not_match', 'notmatch']:
-            func = partial(Predicate.notmatch, key=key, pattern=value)
+            func = partial(Predicate.notmatch, key=key, pattern=value,
+                           on_exception=self.on_exception)
         elif op in ['contain', 'contains']:
-            func = partial(Predicate.contain, key=key, other=value)
+            func = partial(Predicate.contain, key=key, other=value,
+                           on_exception=self.on_exception)
         elif re.match('not_?contains?', op, re.I):
-            func = partial(Predicate.notcontain, key=key, other=value)
+            func = partial(Predicate.notcontain, key=key, other=value,
+                           on_exception=self.on_exception)
         elif op in ['belong', 'belongs']:
-            func = partial(Predicate.belong, key=key, other=value)
+            func = partial(Predicate.belong, key=key, other=value,
+                           on_exception=self.on_exception)
         elif re.match('not_?belongs?', op, re.I):
-            func = partial(Predicate.notbelong, key=key, other=value)
+            func = partial(Predicate.notbelong, key=key, other=value,
+                           on_exception=self.on_exception)
         else:
             msg = (
                 '*** Return False because of an unsupported {!r} logical '
@@ -153,29 +200,36 @@ class SelectParser:
         -------
         function: a callable function.
         """
-        def chain(data_, a_=None, b_=None, op_=''):
-            result_a, result_b = a_(data_), b_(data_)
-            if op_ == 'or_':
-                return result_a or result_b
-            elif op_ == 'and_':
-                return result_a and result_b
-            else:
-                msg_ = (
-                    '* Return False because of an unsupported {!r} logical '
-                    'operator.  Contact developer to support this case.'
-                ).format(op_)
-                self.logger.info(msg_)
-                return Predicate.false(data_)
+        def chain(data_, a_=None, b_=None, op_='', on_exception=False):
+            try:
+                result_a, result_b = a_(data_), b_(data_)
+                if op_ in ['or_', '||']:
+                    return result_a or result_b
+                elif op_ in ['and_', '&&']:
+                    return result_a and result_b
+                else:
+                    msg_ = (
+                        '* Return False because of an unsupported {!r} logical '
+                        'operator.  Contact developer to support this case.'
+                    ).format(op_)
+                    self.logger.info(msg_)
+                    return Predicate.false(data_)
+            except Exception as ex:
+                if on_exception:
+                    raise ex
+                else:
+                    return Predicate.false(data_)
 
         groups = []
         start = 0
-        for match in re.finditer(' +(or_|and_) +', expressions, flags=re.I):
+        match = None
+        for match in re.finditer(' +(or_|and_|&&|[|]{2}) +', expressions, flags=re.I):
             expr = match.string[start:match.start()]
             op = match.group().strip().lower()
             groups.extend([expr.strip(), op.strip()])
             start = match.end()
         else:
-            if groups:
+            if groups and match:
                 expr = match.string[match.end():].strip()
                 groups.append(expr)
 
@@ -185,7 +239,8 @@ class SelectParser:
                 result = self.get_predicate(groups[0])
                 for case, expr in zip(groups[1:-1:2], groups[2::2]):
                     func_b = self.get_predicate(expr)
-                    result = partial(chain, a_=result, b_=func_b, op_=case)
+                    result = partial(chain, a_=result, b_=func_b, op_=case,
+                                     on_exception=self.on_exception)
                 return result
             else:
                 msg = (
@@ -211,19 +266,20 @@ class SelectParser:
                 ' +where +', statement, maxsplit=1, flags=re.I
             )
             select, expressions = select.strip(), expressions.strip()
-            select = re.sub('^select +', '', select, flags=re.I)
-        elif self.select_statement.lower().startswith('where'):
+            select = re.sub('^ *select +', '', select, flags=re.I).strip()
+        elif statement.lower().startswith('where'):
             select = None
             expressions = re.sub('^where +', '', statement, flags=re.I)
+
         else:
-            select = re.sub('^select +', '', statement, flags=re.I)
+            select = re.sub('^ *select +', '', statement, flags=re.I).strip()
             expressions = None
 
         if select:
-            if select in ['*', '__ALL__']:
+            if re.match(r'(?i) *([*]|_+all_+) *$', select):
                 self.columns = []
             else:
-                self.columns = re.split('[ ,]+', select.strip(), flags=re.I)
+                self.columns = re.split(' *, *', select.strip(), flags=re.I)
 
         if expressions:
             self.predicate = self.build_predicate(expressions)

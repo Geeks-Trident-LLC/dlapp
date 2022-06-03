@@ -1,10 +1,10 @@
 import pytest
 
-from dlquery.argumenthelper import validate_argument_type
-from dlquery.argumenthelper import validate_argument_choice
-from dlquery.argumenthelper import validate_argument_is_not_empty
-from dlquery.argumenthelper import ArgumentValidationError
-from dlquery.argumenthelper import ArgumentError
+from dlapp.argumenthelper import validate_argument_type
+from dlapp.argumenthelper import validate_argument_choice
+from dlapp.argumenthelper import validate_argument_is_not_empty
+from dlapp.argumenthelper import ArgumentValidationError
+from dlapp.argumenthelper import ArgumentError
 
 
 class Dummy:

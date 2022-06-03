@@ -1,18 +1,12 @@
 """Module containing the logic for querying dictionary or list object."""
 import re
 import operator
-from dlquery import utils
-from dlquery.argumenthelper import validate_argument_type
-from dlquery.argumenthelper import validate_argument_is_not_empty
-from dlquery.collection import Element
+from dlapp import utils
+from dlapp.argumenthelper import validate_argument_type
+# from dlapp.argumenthelper import validate_argument_is_not_empty
+from dlapp.collection import Element
 
-
-class DLQueryError(Exception):
-    """Use to capture error for DLQuery instance"""
-
-
-class DLQueryDataTypeError(DLQueryError):
-    """Use to capture error of unsupported query data type."""
+from dlapp.parser import SelectParser
 
 
 class DLQuery:
@@ -121,19 +115,19 @@ class DLQuery:
         """if DLQuery is a list, then return the value for index if
         index is in the list, else default.
 
-        if DLQuery is a dictionary, then return the value for key (i.e index)
+        if DLQuery is a dictionary, then return the value for key (i.e. index)
         if key is in the dictionary, else default.
 
         Parameters
         ----------
-        index (int, str): a index of list or a key of dictionary.
+        index (int, str): an index of list or a key of dictionary.
         default (Any): a default value if no element in list or
                 in dictionary is found.
         on_exception (bool): raise Exception if it is True.  Default is False.
 
         Returns
         -------
-        Any: any value from DLQuery.data
+        Any: any value from DLQuery
         """
         try:
             if self.is_list:
@@ -195,7 +189,7 @@ class DLQuery:
             else:
                 return default
 
-    def find(self, node=None, lookup='', select=''):
+    def find(self, node=None, lookup='', select='', on_exception=False):
         """recursively search a lookup.
 
         Parameters
@@ -203,6 +197,7 @@ class DLQuery:
         node (dict, list): a dict, dict-like, list, or list-like instance.
         lookup (str): a search pattern.
         select (str): a select statement.
+        on_exception (bool): raise `Exception` if set True, otherwise, return False.
 
         Returns
         -------
@@ -210,9 +205,20 @@ class DLQuery:
         """
         node = node or self.data
         lookup = str(lookup).strip()
-        validate_argument_is_not_empty(lookup=lookup)
+        if lookup == '':
+
+            if select == '' or re.match(r'(?i)select +([*]|_+all_+) *$', select):
+                return node
+
+            parsed_obj = SelectParser(select, on_exception=on_exception)
+            parsed_obj.parse_statement()
+            if parsed_obj.columns and parsed_obj.columns != [None]:
+                lookup = parsed_obj.columns[0]
+            elif parsed_obj.left_operands:
+                lookup = parsed_obj.left_operands[0]
+
         validate_argument_type(list, tuple, dict, node=node)
 
-        elm_obj = Element(node)
+        elm_obj = Element(node, on_exception=on_exception)
         records = elm_obj.find(lookup, select=select)
         return records

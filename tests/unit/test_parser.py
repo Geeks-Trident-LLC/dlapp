@@ -1,6 +1,6 @@
 import pytest
-# from dlquery import DLQuery
-from dlquery.parser import SelectParser
+# from dlapp import DLQuery
+from dlapp.parser import SelectParser
 
 
 @pytest.fixture
@@ -43,17 +43,41 @@ class TestSelectParser:
                 ['a', 'b'],                 # expected_columns
                 True                        # predicate_result
             ),
-            (   # case: select * where a != 1 or_ c eq 3
+            (   # case: select a, c where a != 1 or_ c eq 3
                 {'a': 1, 'b': 2, 'c': 3},               # data
                 'select a, c where a ne 1 or_ c eq 3',  # select statement
                 ['a', 'c'],                             # expected_columns
                 True                                    # predicate_result
             ),
-            (   # case: select * where a = 1 and_ c eq 3
+            (  # case: select a, c where a != 1 || c eq 3
+                {'a': 1, 'b': 2, 'c': 3},               # data
+                'select a, c where a ne 1 || c eq 3',   # select statement
+                ['a', 'c'],                             # expected_columns
+                True                                    # predicate_result
+            ),
+            (   # case: select a, c where a = 1 and_ c eq 3
                 {'a': 1, 'b': 2, 'c': 3},                   # data
                 'select a, c where a eq 1 and_ c eq 3',     # select statement
                 ['a', 'c'],                                 # expected_columns
                 True                                        # predicate_result
+            ),
+            (  # case: select a, c where a = 1 and_ c eq 3
+                {'a': 1, 'b': 2, 'c': 3},                   # data
+                'select a, c where a eq 1 && c eq 3',       # select statement
+                ['a', 'c'],                                 # expected_columns
+                True                                        # predicate_result
+            ),
+            (  # case: a, select key name having space where "key having space" == 2
+                {'a': 1, 'key name having space': 2},                                       # data
+                '''select a, key name having space where "key name having space" == 2''',   # select statement
+                ['a', 'key name having space'],                                             # expected_columns
+                True                                                                        # predicate_result
+            ),
+            (  # case: select a, key name having space where 'key having space' == 2
+                {'a': 1, 'key name having space': 2},                                       # data
+                '''select a, key name having space where 'key name having space' == 2''',   # select statement
+                ['a', 'key name having space'],                                             # expected_columns
+                True                                                                        # predicate_result
             ),
         ]
     )
@@ -272,6 +296,10 @@ class TestSelectParser:
             #####################
             (
                 {'a': 20, 'b': 2},              # data
+                'select b where a > 10',        # select statement
+            ),
+            (
+                {'a': 20, 'b': 2},              # data
                 'select b where a gt 10',       # select statement
             ),
             (
@@ -280,7 +308,15 @@ class TestSelectParser:
             ),
             (
                 {'a': 20, 'b': 2},              # data
+                'select b where a >= 20.0',     # select statement
+            ),
+            (
+                {'a': 20, 'b': 2},              # data
                 'select b where a ge 20.0',     # select statement
+            ),
+            (
+                {'a': 5, 'b': 2},               # data
+                'select b where a < 10',        # select statement
             ),
             (
                 {'a': 5, 'b': 2},               # data
@@ -288,11 +324,23 @@ class TestSelectParser:
             ),
             (
                 {'a': 5.0, 'b': 2},             # data
+                'select b where a <= 5',        # select statement
+            ),
+            (
+                {'a': 5.0, 'b': 2},             # data
                 'select b where a le 5',        # select statement
             ),
             (
                 {'a': 5, 'b': 2},               # data
+                'select b where a == 5.0',      # select statement
+            ),
+            (
+                {'a': 5, 'b': 2},               # data
                 'select b where a eq 5.0',      # select statement
+            ),
+            (
+                {'a': 5, 'b': 2},               # data
+                'select b where a != 3',        # select statement
             ),
             (
                 {'a': 5, 'b': 2},               # data
@@ -303,7 +351,15 @@ class TestSelectParser:
             #####################
             (
                 {'a': 'abc', 'b': 2},           # data
+                'select b where a == abc',      # select statement
+            ),
+            (
+                {'a': 'abc', 'b': 2},           # data
                 'select b where a eq abc',      # select statement
+            ),
+            (
+                {'a': 'abc', 'b': 2},           # data
+                'select b where a != xyz',      # select statement
             ),
             (
                 {'a': 'abc', 'b': 2},           # data
@@ -338,6 +394,10 @@ class TestSelectParser:
             ######################
             (
                 {'a': 'b', 'b': '2'},                   # data
+                'select a where a > version(a)',        # select statement
+            ),
+            (
+                {'a': 'b', 'b': '2'},                   # data
                 'select a where a gt version(a)',       # select statement
             ),
             (
@@ -346,7 +406,15 @@ class TestSelectParser:
             ),
             (
                 {'a': '6.3.4', 'b': '2'},               # data
-                'select a where a gt version(6.3.0)',   # select statement
+                'select a where a >= version(6.3.0)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a ge version(6.3.0)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a < version(7.0.1)',    # select statement
             ),
             (
                 {'a': '6.3.4', 'b': '2'},               # data
@@ -354,11 +422,23 @@ class TestSelectParser:
             ),
             (
                 {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a <= version(7.0.1-a)',  # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
                 'select a where a le version(7.0.1-a)',     # select statement
             ),
             (
-                {'a': '6.3.4', 'b': '2'},  # data
-                'select a where a eq version(6.3.4)',  # select statement
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a == version(6.3.4)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a eq version(6.3.4)',   # select statement
+            ),
+            (
+                {'a': '6.3.4', 'b': '2'},               # data
+                'select a where a != version(6.3.5)',   # select statement
             ),
             (
                 {'a': '6.3.4', 'b': '2'},               # data
@@ -395,41 +475,40 @@ class TestSelectParser:
             # datetime comparison         #
             ###############################
             (
+                {'a': '2021-06-05'},                                    # data
+                'select a where a == date(06/05/2021)',                 # select statement
+            ),
+            (
+                {'a': '2021Jun05'},                                     # data
+                'select a where a == date(Jun  5, 2021)',               # select statement
+            ),
+            (
+                {'a': '03:30:50.000001 PM'},                           # data
+                'select a where a > time(15:30:50)',                   # select statement
+            ),
+            (
+                {'a': '03:30:50pm'},                                    # data
+                'select a where a == time(15:30:50)',                   # select statement
+            ),
+            (
                 {'a': '06/06/2021'},                                    # data
                 'select a where a gt datetime(01/01/2021)',             # select statement
             ),
             (
                 {'a': '6-6-2021'},                                          # data
-                'select a where a gt datetime(01-01-2021 format=%m-%d-%Y)',  # select statement
+                'select a where a gt datetime(Jan  1, 2021)',               # select statement
             ),
             (
-                {'a': '2021Jun06 PDT'},                                                         # data
-                'select a where a gt datetime(2021Jan01 PST format=%Y%b%d skips= PDT, PST)',    # select statement
+                {'a': '2021-06-14T08:30:00+00:00'},                                 # data
+                'select a where a > datetime(2021-06-14T07:30:00+00:00 iso=True)',  # select statement
             ),
             (
-                {'a': 'Jun  3, 2021'},                                          # data
-                'select a where a ge datetime(Jan 29, 2021 format=%b %d, %Y)',  # select statement
+                {'a': '2021Jun06 02:30:00 PM PDT'},                                                             # data
+                'select a where a > datetime(Jan  1 10:30:00 AM PST 2021 timezone=PST: -28800, PDT: -25200)',   # select statement
             ),
             (
-                {'a': '01/1/2021'},                             # data
-                'select a where a lt datetime(6/06/2021)',      # select statement
-            ),
-            (
-                {'a': '01/01/2021'},                            # data
-                'select a where a le datetime(06/06/2021)',     # select statement
-            ),
-            (
-                {'a': '6/6/2021'},                              # data
-                'select a where a eq datetime(06/06/2021)',     # select statement
-            ),
-            (
-                {'a': '01/01/2021'},                            # data
-                'select a where a ne datetime(06/06/2021)',     # select statement
-            ),
-
-            (
-                {'a': '06/06/2021 05:30:10 PM'},                # data
-                'select a where a ne datetime(06/06/2021 14:30:10 format,=%m/%d/%Y %I:%M:%S %p, %m/%d/%Y %H:%M:%S)',  # select statement
+                {'a': '2021Jun06 02:30:00 PM PDT'},                                                             # data
+                'select a where a == datetime(Jun  6 14:30:00 AM PDT 2021 timezone=PST: -28800, PDT: -25200)',  # select statement
             ),
         ]
     )

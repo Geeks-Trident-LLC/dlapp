@@ -5,19 +5,16 @@ import json
 import re
 from functools import partial
 from pprint import pprint
-from dlquery.argumenthelper import validate_argument_type
-from dlquery import utils
-from dlquery.parser import SelectParser
-from dlquery.validation import OpValidation
-from dlquery.validation import CustomValidation
+from dlapp.argumenthelper import validate_argument_type
+from dlapp import utils
+from dlapp.parser import SelectParser
+from dlapp.validation import OpValidation
+from dlapp.validation import CustomValidation
 
-
-class ListError(Exception):
-    """Use to capture error for List instance"""
-
-
-class ListIndexError(ListError):
-    """Use to capture error for List instance"""
+from dlapp.exceptions import ListIndexError
+from dlapp.exceptions import ResultError
+from dlapp.exceptions import LookupClsError
+from dlapp.exceptions import ObjectArgumentError
 
 
 class List(list):
@@ -73,10 +70,6 @@ class List(list):
         return len(self)
 
 
-class ResultError(Exception):
-    """Use to capture error for Result instance."""
-
-
 class Result:
     """The Result Class to store data.
 
@@ -122,10 +115,22 @@ class Result:
 
 
 class Element(Result):
-    """Element class."""
-    def __init__(self, data, index='', parent=None):
+    """Element class.
+
+    Attributes
+    ----------
+    data (any): a data.
+    index (str): a index value of data if data is list or dictionary.
+    parent (Element): an Element instance.
+    on_exception (bool): raise `Exception` if set True, otherwise, return False.
+    type (str): datatype name of data.
+
+    """
+    def __init__(self, data, index='', parent=None, on_exception=False):
         super().__init__(data, parent=parent)
         self.index = index
+        self.type = ''
+        self.on_exception = on_exception
         self._build(data)
 
     def __iter__(self):
@@ -183,13 +188,13 @@ class Element(Result):
 
     @property
     def is_leaf(self):
-        """Return True if an element doesnt have children."""
+        """Return True if an element doesn't have children."""
         return not self.has_children
 
     @property
     def is_scalar(self):
         """Return True if an element is a scalar type."""
-        return isinstance(self.data, (int, float, bool, str, None))
+        return isinstance(self.data, (int, float, bool, str, None))     # noqa
 
     @property
     def is_list(self):
@@ -214,13 +219,15 @@ class Element(Result):
         List: list of filtered records.
         """
         result = List()
-        select_obj = SelectParser(select_statement)
+        select_obj = SelectParser(select_statement,
+                                  on_exception=self.on_exception)
         select_obj.parse_statement()
 
         if callable(select_obj.predicate):
             lst = List()
             for record in records:
-                is_found = select_obj.predicate(record.parent.data)
+                is_found = select_obj.predicate(record.parent.data,
+                                                on_exception=self.on_exception)
                 if is_found:
                     lst.append(record)
         else:
@@ -337,7 +344,7 @@ class ObjectDict(dict):
                 if forward:
                     return value
                 else:
-                    result = dict([i, self._build(j, forward=forward)] for i, j in value.items())
+                    result = dict([i, self._build(j, forward=forward)] for i, j in value.items())  # noqa
                     return result
             elif isinstance(value, dict):
                 lst = [[i, self._build(j, forward=forward)] for i, j in value.items()]
@@ -345,7 +352,7 @@ class ObjectDict(dict):
                     result = self.__class__(lst)
                     return result
                 else:
-                    result = dict(lst)
+                    result = dict(lst)      # noqa
                     return result
             elif isinstance(value, list):
                 lst = [self._build(item, forward=forward) for item in value]
@@ -406,7 +413,7 @@ class ObjectDict(dict):
         """
         from io import IOBase
         if isinstance(filename, IOBase):
-            obj = yaml.load(filename, Loader=loader)
+            obj = yaml.load(filename, Loader=loader)    # noqa
         else:
             with open(filename) as stream:
                 obj = yaml.load(stream, Loader=loader)
@@ -492,12 +499,61 @@ class ObjectDict(dict):
     todict = to_dict
 
 
-class LookupClsError(Exception):
-    """Use to capture error for LookupObject instance"""
-
-
 class LookupCls:
-    """To build a lookup object."""
+    """To build a lookup object.
+
+    Attributes
+    ----------
+    lookup (str): a search criteria.
+    left (str): a left lookup which uses to match a key of dictionary.
+            It is a regular expression.
+    right (str, callable): a right lookup that uses to match a value of
+            dictionary.  It that can be regular expression pattern
+            or a callable function, i.e. Predicate function.
+
+    Notes
+    -----
+    A lookup consists two parts:
+        + a left lookup which uses to match a key of dictionary.
+        + a right lookup which uses to match value of dictionary.
+        The proper syntax of lookup can be:
+
+        case 1: lookup='abc'
+            a left lookup search any key which key name is abc.
+            while a right lookup is empty.  No action.
+
+        case 2: lookup='abc=xyz'
+            a left lookup searches any key which key name is abc.
+            a right lookup searches item of dict where key == abc and its value ==xyz.
+
+        case 3: lookup='=xyz'
+            a left lookup is empty that means all keys.
+            a right lookup search item of dict where any value of keys == xyz.
+
+        case 4: lookup='abc=_wildcard(*xyz*)
+            a left lookup searches any key which key name is abc.
+            a right lookup searches items of dict where key == abc and its value contains xzy
+
+        Both left and right supports text, wildcard, and regex.
+        The following combination lookups are valid:
+            abc=_wildcard(*xyz*)
+            abc=_iwildcard(*xyz*)
+            abc=_regex(.*xyz.*)
+            abc=_iregex(.*xyz.*)
+            _wildcard([Aa][Bb]c)=_wildcard(*xyz*)
+            _wildcard([Aa][Bb]c)=_regex(.*xyz.*)
+            =_wildcard(*xyz*)
+            =_regex(.*xyz.*)
+
+        Furthermore, right lookup also support custom keyword such as
+            empty, not_empty, ip_address, ipv4_address,
+            ipv6_address, date, datetime, time, ...
+
+        Example:
+            abc=empty(), i.e. searches key name is abc and its value is empty.
+            abc=ipv4_address(), i.e. searches key name is abc and its value is IPv4 address.
+            abc=date(), i.e. search key name is abc and its value is date such as 2021-06-16.
+    """
     def __init__(self, lookup):
         self.lookup = str(lookup)
         self.left = None
@@ -548,6 +604,7 @@ class LookupCls:
                 is_ip_address|is_not_ip_address|
                 is_ipv4_address|is_not_ipv4_address|
                 is_ipv6_address|is_not_ipv6_address|
+                is_date|is_datetime|is_time|
                 is_true|is_not_true|
                 is_false|is_not_false)
                 [(][)]$
@@ -665,10 +722,6 @@ class LookupCls:
                     return False
                 result = re.search(self.right, data)
                 return bool(result)
-
-
-class ObjectArgumentError(Exception):
-    """To capture error for Object class."""
 
 
 class Object:
@@ -799,7 +852,7 @@ class Tabular:
         return width_tbl
 
     def align_string(self, value, width):
-        """return a align string
+        """return an aligned string
 
         Parameters
         ----------

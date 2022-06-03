@@ -1,5 +1,5 @@
 
-from dlquery.main import Cli
+from dlapp.main import Cli
 
 console = Cli()
 console.run()

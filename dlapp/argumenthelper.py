@@ -1,12 +1,7 @@
 """Module containing the logic for the argument helper."""
 
-
-class ArgumentError(Exception):
-    """Use to capture argument error."""
-
-
-class ArgumentValidationError(ArgumentError):
-    """Use to capture argument validation."""
+from dlapp.exceptions import ArgumentError
+from dlapp.exceptions import ArgumentValidationError
 
 
 def validate_argument_type(*args, **kwargs):
@@ -29,7 +24,7 @@ def validate_argument_type(*args, **kwargs):
 
     Example
     -------
-        >>> from dlquery.argumenthelper import validate_argument_type
+        >>> from dlapp.argumenthelper import validate_argument_type
         >>> def test(dict_obj):
         ...     validate_argument_type(dict, dict_obj=dict_obj)
         ...
@@ -84,7 +79,7 @@ def validate_argument_choice(**kwargs):
     -------
 
         >>>
-        >>> from dlquery.argumenthelper import validate_argument_choice
+        >>> from dlapp.argumenthelper import validate_argument_choice
         >>> def test(kind='car'):
         ...     '''argument `kind` must be either ``car`` or ``bicycle```'''
         ...     validate_argument_choice(kind=(kind, ('car', 'bicycle')))
@@ -127,7 +122,7 @@ def validate_argument_is_not_empty(**kwargs):
 
     Returns
     -------
-    bool: True if argument(s) is/are not empty..
+    bool: True if argument(s) is/are not empty.
 
     Raise
     -----
@@ -135,7 +130,7 @@ def validate_argument_is_not_empty(**kwargs):
 
     Example
     -------
-        >>> from dlquery.argumenthelper import validate_argument_is_not_empty
+        >>> from dlapp.argumenthelper import validate_argument_is_not_empty
         >>> def test(node):
         ...     validate_argument_is_not_empty(node=node)
         ...
